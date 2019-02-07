@@ -14,7 +14,6 @@
   :serial T
   :pathname "src"
   :components ((:file "aux-package")
-               (:file "package")
                (:module "column"
                 :components ((:file "package")
                              (:file "protocol")
