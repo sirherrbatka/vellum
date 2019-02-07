@@ -18,6 +18,7 @@
                 :components ((:file "package")
                              (:file "protocol")
                              (:file "types")
+                             (:file "conditions")
                              (:file "docstring")
                              (:file "internal")
                              (:file "implementation")))
