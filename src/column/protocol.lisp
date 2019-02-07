@@ -1,0 +1,19 @@
+(in-package #:cl-df.column)
+
+
+(defgeneric column-type (column))
+(defgeneric column-size (column))
+(defgeneric column-at (column index))
+(defgeneric (setf column-at) (new-value column index))
+;; (defgeneric install-change-observer (column observer))
+;; (defgeneric change-observer-obsolete-p (observer))
+;; (defgeneric notify-change (observer index new-value))
+;; (defgeneric clear-change-observers (column))
+;; (defgeneric run-change-observers (column index new-value))
+(defgeneric replica (column &optional isolate))
+(defgeneric make-iterator (column))
+
+(defgeneric iterator-at (iterator column))
+(defgeneric (setf iterator-at) (new-value iterator index))
+(defgeneric iterator-forward (iterator column))
+(defgeneric augment-iterator (iterator column))
