@@ -12,6 +12,9 @@
     (:description "Shifts ITERATOR forward on all columns."
      :exceptional-situations "Should signal condition if this operation would move beyond column bounds."))
 
+  (function replica
+    (:description "Creates new column with the same content as the old one. Changes in the new istance won't effect the COLUMN. Changes in the COLUMN may effect the new instance if ISOLATE is nil and will not effect new instance if ISOLATE is not-nil."))
+
   (function column-at
     (:description "Obtains value under INDEX from the COLUMN."
      :returns "Value under INDEX of the COLUMN. :NULL if location is empty."
