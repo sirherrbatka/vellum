@@ -6,10 +6,10 @@
   :version "0.0.0"
   :license "BSD simplified"
   :author "Marek Kochanowicz"
-  :depends-on ( :iterate              :serapeum
-                :prove                :cl-data-structures
-                :lparallel            :metabang-bind
-                :alexandria)
+  :depends-on ( :iterate      :serapeum
+                :prove        :cl-data-structures
+                :lparallel    :metabang-bind
+                :alexandria   :documentation-utils-extensions)
   :defsystem-depends-on (:prove-asdf)
   :serial T
   :pathname "src"
@@ -18,6 +18,7 @@
                 :components ((:file "package")
                              (:file "protocol")
                              (:file "types")
+                             (:file "docstring")
                              (:file "internal")
                              (:file "implementation")))
                (:module "header"
