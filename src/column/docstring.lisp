@@ -15,11 +15,11 @@
   (function column-at
     (:description "Obtains value under INDEX from the COLUMN."
      :returns "Value under INDEX of the COLUMN. :NULL if location is empty."
-     :exceptional-situations "Will signal INDEX-OUT-OF-BOUNDS if index is out of column bounds."))
+     :exceptional-situations "Will signal INDEX-OUT-OF-COLUMN-BOUNDS if index is out of column bounds."))
 
   (function (setf column-at)
     (:description "Sets value under INDEX in the COLUMN."
-     :exceptional-situations "Will signal INDEX-OUT-OF-BOUNDS if index is out of column bounds."))
+     :exceptional-situations "Will signal INDEX-OUT-OF-COLUMN-BOUNDS if index is out of column bounds."))
 
   (function column-size
     (:description "The total size of the COLUMN.")))
