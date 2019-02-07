@@ -15,6 +15,6 @@
 
 (defgeneric iterator-at (iterator column))
 (defgeneric (setf iterator-at) (new-value iterator column))
-(defgeneric move-iterator (iterator &optional times))
+(defgeneric move-iterator (iterator times))
 (defgeneric augment-iterator (iterator column))
 (defgeneric finish-iterator (iterator))
