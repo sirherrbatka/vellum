@@ -46,7 +46,7 @@
                  :documentation "Highest index+1 in this column.")))
 
 
-(defclass sparse-material-column-iterator (fundamental-pure-iterator)
+(defclass sparse-material-column-iterator-base (fundamental-pure-iterator)
   ((%columns :initarg :columns
              :type vector
              :initform (vect)
@@ -69,7 +69,14 @@
               :reader read-bitmasks)))
 
 
+(defclass sparse-material-column-iterator
+    (sparse-material-column-iterator-base)
+  ((%total-length :initargs :total-length
+                  :reader read-total-length
+                  :initform 0)))
+
+
 (defclass sparse-material-column-constructing-iterator
     (fundamental-pure-constructing-iterator
-     sparse-material-column-iterator)
+     sparse-material-column-iterator-base)
   ())

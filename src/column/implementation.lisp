@@ -56,7 +56,14 @@
           new-value))))
 
 
-(defmethod iterator-at ((iterator sparse-material-column-iterator) column)
+(defmethod iterator-at ((iterator sparse-material-column-iterator)
+                        column)
+  (validate-iterator-position iterator)
+  (call-next-method))
+
+
+(defmethod iterator-at ((iterator sparse-material-column-iterator-base)
+                        column)
   (check-type column integer)
   (bind (((:slots %columns %index %buffers) iterator)
          (buffers %buffers)
@@ -73,6 +80,13 @@
 
 (defmethod (setf iterator-at) (new-value
                                (iterator sparse-material-column-iterator)
+                               column)
+  (validate-iterator-position iterator)
+  (call-next-method))
+
+
+(defmethod (setf iterator-at) (new-value
+                               (iterator sparse-material-column-iterator-base)
                                column)
   (check-type column integer)
   (bind (((:slots %bitmasks %columns %index %buffers) iterator)
