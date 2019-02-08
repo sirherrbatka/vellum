@@ -1,11 +1,6 @@
 (in-package #:cl-df.column)
 
 
-(defmethod augment-iterator :around ((iterator (eql nil))
-                                     (column fundamental-column))
-  (make-iterator column))
-
-
 (defmethod column-type ((column sparse-material-column))
   (cl-ds:type-specialization column))
 
@@ -59,3 +54,24 @@
         (progn
           (setf (cl-ds:at column index) new-value)
           new-value))))
+
+
+(defmethod iterator-at ((iterator sparse-material-column-iterator) column)
+  (check-type column integer)
+  (bind (((:slots %columns %index %buffers) iterator)
+         (offset (offset %index)))
+    (~> %buffers (aref column) (aref offset))))
+
+
+(defmethod (setf iterator-at) (new-value
+                               (iterator sparse-material-column-iterator)
+                               column)
+  (check-type column integer)
+  (bind (((:slots %bitmasks %columns %index %buffers) iterator)
+         (offset (offset %index)))
+    (setf (~> %buffers (aref column) (aref offset)) new-value)
+    (when (eql new-value :null)
+      (let ((bitmask (aref %bitmasks column)))
+        (setf (ldb (byte 1 offset) bitmask) 0
+              (aref %bitmasks column) bitmask)))
+    new-value))
