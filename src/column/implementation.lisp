@@ -59,7 +59,15 @@
 (defmethod iterator-at ((iterator sparse-material-column-iterator) column)
   (check-type column integer)
   (bind (((:slots %columns %index %buffers) iterator)
+         (buffers %buffers)
+         (length (fill-pointer buffers))
          (offset (offset %index)))
+    (declare (type vector buffers))
+    (unless (< -1 column length)
+      (error 'no-such-column
+             :bounds `(0 ,length)
+             :value column
+             :text "There is no such column."))
     (~> %buffers (aref column) (aref offset))))
 
 
@@ -68,8 +76,16 @@
                                column)
   (check-type column integer)
   (bind (((:slots %bitmasks %columns %index %buffers) iterator)
+         (buffers %buffers)
+         (length (fill-pointer buffers))
          (offset (offset %index)))
+    (declare (type vector buffers))
     (setf (~> %buffers (aref column) (aref offset)) new-value)
+    (unless (< -1 column length)
+      (error 'no-such-column
+             :bounds `(0 ,length)
+             :value column
+             :text "There is no such column."))
     (when (eql new-value :null)
       (let ((bitmask (aref %bitmasks column)))
         (setf (ldb (byte 1 offset) bitmask) 0
