@@ -29,3 +29,33 @@
       (cl-ds.common.abstract:write-ownership-tag
        (cl-ds.common.abstract:make-ownership-tag)
        column))))
+
+
+(defmethod column-at ((column sparse-material-column) index)
+  (check-type index integer)
+  (let ((column-size (access-column-size column)))
+    (unless (< -1 index column-size)
+      (error 'index-out-of-column-bounds
+             :bounds `(0 ,column-size)
+             :value index
+             :text "Column index out of column bounds."))
+    (bind (((:values value found)
+            (cl-ds:at column index)))
+      (if found value :null))))
+
+
+(defmethod (setf column-at) (new-value (column sparse-material-column) index)
+  (check-type index integer)
+  (let ((column-size (access-column-size column)))
+    (unless (< -1 index column-size)
+      (error 'index-out-of-column-bounds
+             :bounds `(0 ,column-size)
+             :value index
+             :text "Column index out of column bounds."))
+    (if (eql new-value :null)
+        (progn
+          (cl-ds:erase! column index)
+          :null)
+        (progn
+          (setf (cl-ds:at column index) new-value)
+          new-value))))
