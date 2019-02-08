@@ -12,6 +12,7 @@
 ;; (defgeneric run-change-observers (column index new-value))
 (defgeneric replica (column &optional isolate))
 (defgeneric make-iterator (column))
+(defgeneric make-constructing-iterator (column))
 
 (defgeneric iterator-at (iterator column))
 (defgeneric (setf iterator-at) (new-value iterator column))
