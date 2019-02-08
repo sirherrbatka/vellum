@@ -72,7 +72,7 @@
 (defclass sparse-material-column-iterator
     (sparse-material-column-iterator-base)
   ((%total-length :initargs :total-length
-                  :reader read-total-length
+                  :accessor access-total-length
                   :initform 0)))
 
 
