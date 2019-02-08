@@ -24,6 +24,6 @@
 (defclass sparse-material-column (cl-ds.dicts.srrb:transactional-sparse-rrb-vector
                                   fundamental-column)
   ((%column-size :initarg :column-size
-                 :reader read-column-size
+                 :accessor access-column-size
                  :reader column-size
                  :documentation "Highest index+1 in this column.")))
