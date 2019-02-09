@@ -21,7 +21,8 @@
                              (:file "conditions")
                              (:file "docstring")
                              (:file "internal")
-                             (:file "implementation")))
+                             (:file "implementation")
+                             (:test-file "tests")))
                (:module "header"
                 :components ())
                (:module "table"

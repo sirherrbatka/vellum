@@ -50,8 +50,8 @@
 (defun make-sparse-material-column (&key (element-type t))
   (make 'sparse-material-column
         :ownership-tag (cl-ds.common.abstract:make-ownership-tag)
+        :column-size 0
         :element-type element-type))
-
 
 
 (defclass sparse-material-column-iterator (fundamental-pure-iterator)

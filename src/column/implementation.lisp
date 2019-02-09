@@ -115,3 +115,19 @@
     (move-stacks iterator new-index)
     (fill-buffers iterator)
     nil))
+
+
+(defmethod make-iterator ((column sparse-material-column))
+  (lret ((result (make 'sparse-material-column-iterator)))
+    (vector-push-extend column (read-columns result))
+    (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+)
+                        (read-buffers result))
+    (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+
+                                    :initial-element nil)
+                        (read-changes result))
+    (setf (access-depth result) (cl-ds.dicts.srrb:access-shift column))
+    (vector-push-extend (make-array cl-ds.common.rrb:+maximal-shift+
+                                    :initial-element nil)
+                        (read-stacks result))
+    (move-stacks result 0)
+    (fill-buffers result)))
