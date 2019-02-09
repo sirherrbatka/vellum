@@ -52,29 +52,3 @@
         :ownership-tag (cl-ds.common.abstract:make-ownership-tag)
         :column-size 0
         :element-type element-type))
-
-
-(defclass sparse-material-column-iterator (fundamental-pure-iterator)
-  ((%columns :initarg :columns
-             :type vector
-             :initform (vect)
-             :reader read-columns)
-   (%stacks :initarg :stacks
-            :type vector
-            :initform (vect)
-            :reader read-stacks)
-   (%depth :initarg :depth
-           :type fixnum
-           :initform 0
-           :accessor access-depth)
-   (%index :initarg :index
-           :accessor access-index
-           :type fixnum
-           :initform 0)
-   (%buffers :initarg :buffers
-             :type vector
-             :initform (vect)
-             :reader read-buffers)
-   (%changes :initarg :change-mask
-             :type (vector boolean)
-             :accessor read-changes)))

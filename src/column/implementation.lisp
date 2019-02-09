@@ -90,21 +90,28 @@
              :value column
              :text "There is no such column."))
     (unless (eql new-value old-value)
-      (setf (aref %changes column) t))
+      (setf (~> %changes (aref column) (aref offset)) t))
     new-value))
 
 
 (defmethod move-iterator
     ((iterator sparse-material-column-iterator)
      times)
+  (declare (optimize (debug 3)))
   (check-type times non-negative-fixnum)
   (when (zerop times)
     (return-from move-iterator nil))
-  (bind (((:slots %index %stacks %buffers %total-length) iterator)
+  (bind (((:slots %index %stacks %buffers %depth) iterator)
          (index %index)
          (new-index (+ index times))
-         (new-tree-index (tree-index new-index))
-         (promoted (not (eql new-index new-tree-index))))
+         (new-depth (~> new-index
+                        integer-length
+                        (ceiling cl-ds.common.rrb:+bit-count+)
+                        1-))
+         (promoted (not (eql (ceiling (1+ index)
+                                      cl-ds.common.rrb:+maximum-children-count+)
+                             (ceiling (1+ new-index)
+                                      cl-ds.common.rrb:+maximum-children-count+)))))
     (unless promoted
       (setf %index new-index)
       (return-from move-iterator nil))
@@ -112,7 +119,7 @@
     (reduce-stacks iterator)
     (clear-changes iterator)
     (clear-buffers iterator)
-    (move-stacks iterator new-index)
+    (move-stacks iterator new-index new-depth)
     (fill-buffers iterator)
     nil))
 
@@ -123,11 +130,22 @@
     (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+)
                         (read-buffers result))
     (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+
-                                    :initial-element nil)
+                                    :initial-element nil
+                                    :element-type 'boolean)
                         (read-changes result))
     (setf (access-depth result) (cl-ds.dicts.srrb:access-shift column))
     (vector-push-extend (make-array cl-ds.common.rrb:+maximal-shift+
                                     :initial-element nil)
                         (read-stacks result))
-    (move-stacks result 0)
+    (move-stacks result 0 (cl-ds.dicts.srrb:access-shift column))
+    (setf (~> result read-stacks last-elt first-elt)
+          (cl-ds.dicts.srrb:acce))
     (fill-buffers result)))
+
+
+(defmethod column-type ((column sparse-material-column))
+  (cl-ds:type-specialization column))
+
+
+(defmethod column-type ((column fundamental-iterator))
+  t)
