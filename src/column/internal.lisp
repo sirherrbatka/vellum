@@ -13,3 +13,270 @@
 (defun offset (index)
   (declare (type fixnum index))
   (logandc2 index cl-ds.common.rrb:+tail-mask+))
+
+
+(defun tree-index (index)
+  (declare (type fixnum index))
+  (logand index cl-ds.common.rrb:+tail-mask+))
+
+
+(defun insert-into-stack (column stack tree-index new-node)
+  )
+
+
+(defun build-new-node (column change buffer new-size)
+  (let ((content (make-array new-size :element-type (column-type column)))
+        (tag (cl-ds.common.abstract:read-ownership-tag column))
+        (bitmask 0))
+    (iterate
+      (with index = 0)
+      (for i from 0)
+      (for changed in-vector change)
+      (when changed
+        (setf (ldb (byte 1 i) bitmask) 1
+              (aref content index) (aref buffer i)
+              index (1+ index))))
+    (cl-ds.common.rrb:make-sparse-rrb-node :ownership-tag tag
+                                           :content content
+                                           :bitmask bitmask)))
+
+
+(defun pad-stack (depth index new-depth stack column)
+  (iterate
+    (with tag = (cl-ds.common.abstract:read-ownership-tag column))
+    (for i from (- new-depth depth) downto 0)
+    (for j from 0)
+    (for byte from 0 by cl-ds.common.rrb:+bit-count+)
+    (for offset = (ldb (byte cl-ds.common.rrb:+bit-count+ byte)
+                      index))
+    (for node = (cl-ds.common.rrb:make-sparse-rrb-node
+                 :ownership-tag tag
+                 :content (vector prev-node)
+                 :bitmask (ash 1 offset)))
+    (for prev-node
+         previous node
+         initially (aref stack 0))
+    (setf (aref stack j) node))
+  (iterate
+    (for i from depth below new-depth)
+    (setf (aref stack i) nil)))
+
+
+(defun pad-stacks (iterator new-depth)
+  (map nil
+       (curry #'pad-stack
+              (access-depth iterator)
+              (access-index iterator)
+              new-depth)
+       (read-stacks iterator)
+       (read-columns iterator))
+  (setf (access-depth iterator) new-depth))
+
+
+(defun move-stack (depth new-index stack)
+  (iterate outer
+    (for i from 1 below depth)
+    (for parent
+        initially (aref stack 0)
+        then (aref stack i))
+    (for byte from 0 by cl-ds.common.rrb:+bit-count+)
+    (for offset = (ldb (byte cl-ds.common.rrb:+bit-count+ byte)
+                      new-index))
+    (for present = (cl-ds.common.rrb:sparse-rrb-node-contains parent offset))
+    (when (or (not present))
+      (iterate
+        (for j from i below depth)
+        (setf (aref stack j) nil))
+      (leave))
+    (for child = (cl-ds.common.rrb:sparse-nref parent offset))
+    (unless (eq child (aref stack i))
+      (setf (aref stack i) child))))
+
+
+(defun move-stacks (iterator new-index)
+  (let* ((depth (access-depth iterator))
+         (new-depth (~> new-index
+                        integer-length
+                        (ceiling cl-ds.common.rrb:+maximum-children-count+))))
+    (if (> new-depth depth)
+        (pad-stacks iterator new-depth)
+        (iterate
+          (for stack in-vector (read-stacks iterator))
+          (move-stack depth new-index stack)))
+    (setf (access-index iterator) new-index)))
+
+
+(defun mutate-leaf (column old-node change buffer)
+  (let* ((new-size (- cl-ds.common.rrb:+maximum-children-count+
+                      (count :null buffer)))
+         (old-content (cl-ds.common.rrb:sparse-rrb-node-content old-node))
+         (old-size (array-dimension old-content 0))
+         (bitmask 0)
+         (new-content (if (>= old-size new-size)
+                          old-content
+                          (make-array new-size
+                                      :element-type (column-type column)))))
+    (declare (type simple-vector old-content)
+             (type fixnum old-size new-size))
+    (iterate
+      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+      (for changed in-vector change)
+      (unless changed
+        (setf (aref buffer i) (cl-ds.common.rrb:sparse-nref old-node i))))
+    (iterate
+      (with index = 0)
+      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+      (for v in-vector buffer)
+      (unless (eql v :null)
+        (setf (aref new-content index) v
+              (ldb (byte 1 i) bitmask) 1
+              index (1+ index))))
+    (setf (cl-ds.common.rrb:sparse-rrb-node-content old-node) new-content
+          (cl-ds.common.rrb:sparse-rrb-node-bitmask old-node) bitmask)))
+
+
+(defun make-leaf (column old-node change buffer)
+  (unless (null old-node)
+    (iterate
+      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+      (for changed in-vector change)
+      (unless changed
+        (setf (aref buffer i) (cl-ds.common.rrb:sparse-nref old-node i)))))
+  (let* ((new-size (- cl-ds.common.rrb:+maximum-children-count+
+                      (count :null buffer)))
+         (new-content (make-array new-size
+                                  :element-type (column-type column)))
+         (bitmask 0))
+    (iterate
+      (with index = 0)
+      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+      (for v in-vector buffer)
+      (unless (eql v :null)
+        (setf (aref new-content index) v
+              (ldb (byte 1 i) bitmask) 1
+              index (1+ index))))
+    (cl-ds.common.rrb:make-sparse-rrb-node
+     :ownership-tag (cl-ds.common.abstract:read-ownership-tag column)
+     :bitmask bitmask
+     :content new-content)))
+
+
+(defun change-leaf (depth stack column change buffer)
+  (cond ((every #'null change)
+         (return-from change-leaf nil))
+        ((every (curry #'eql :null) buffer)
+         (setf (aref stack depth) nil))
+        (t
+         (let* ((tag (cl-ds.common.abstract:read-ownership-tag column))
+                (old-node (aref stack depth)))
+           (if (or (null old-node)
+                   (not (cl-ds.common.abstract:acquire-ownership old-node
+                                                                 tag)))
+               (setf (aref stack depth)
+                     (make-leaf column old-node change buffer))
+               (mutate-leaf column old-node change buffer)))))
+  nil)
+
+
+(defun change-leafs (iterator)
+  (map nil
+       (curry #'change-leaf
+              (access-depth iterator))
+       (read-stacks iterator)
+       (read-columns iterator)
+       (read-changes iterator)
+       (read-buffers iterator)))
+
+
+(defun copy-on-write-node (parent child position tag)
+  (cond ((and (null parent) (null child))
+         nil)
+        ((null parent)
+         (cl-ds.common.rrb:make-sparse-rrb-node
+          :ownership-tag tag
+          :content (vector child)
+          :bitmask (ash 1 position)))
+        ((cl-ds.common.abstract:acquire-ownership parent tag)
+         (if (null child)
+             (cl-ds.common.rrb:sparse-rrb-node-erase! parent position)
+             (progn
+               (setf (cl-ds.common.rrb:sparse-nref parent position)
+                     child)
+               parent)))
+        (t (let ((copy (cl-ds.common.rrb:deep-copy-sparse-rrb-node parent
+                                                                   tag)))
+             (if (null child)
+                 (cl-ds.common.rrb:sparse-rrb-node-erase! copy position)
+                 (progn
+                   (setf (cl-ds.common.rrb:sparse-nref copy position)
+                         child)
+                   copy))))))
+
+
+(defun reduce-stack (depth index stack column)
+  (iterate
+    (with tag = (cl-ds.common.abstract:read-ownership-tag column))
+    (with prev-node = (aref stack depth))
+    (for i from (1- depth) downto 0)
+    (for bits
+         from (* (1- depth) cl-ds.common.rrb:+bit-count+)
+         downto 0
+         by cl-ds.common.rrb:+bit-count+)
+    (for node = (aref stack i))
+    (for position = (ldb (byte cl-ds.common.rrb:+bit-count+ bits)
+                         index))
+    (for new-node = (copy-on-write-node node prev-node position tag))
+    (until (eql node new-node))
+    (setf prev-node new-node)))
+
+
+(defun fill-buffer (depth buffer stack)
+  (let ((node (aref stack depth)))
+    (when (null node)
+      (return-from fill-buffer nil))
+    (iterate
+      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+      (for present = (cl-ds.common.rrb:sparse-rrb-node-contains node i))
+      (when present
+        (setf (aref buffer i) (cl-ds.common.rrb:sparse-nref node i))))))
+
+
+(defun fill-buffers (iterator)
+  (map nil
+       (curry #'fill-buffer
+              (access-depth iterator))
+       (read-buffers iterator)
+       (read-stacks iterator)))
+
+
+(defun reduce-stacks (iterator)
+  (map nil
+       (curry #'reduce-stack
+              (access-depth iterator)
+              (access-index iterator))
+       (read-stacks iterator)
+       (read-columns iterator)))
+
+
+(defun clear-changes (iterator)
+  (bind (((:slots %changes) iterator)
+         (changes %changes)
+         (length (length changes)))
+    (iterate
+      (for i from 0 below length)
+      (for change = (aref changes i))
+      (iterate
+        (for j from 0 below cl-ds.common.rrb:+maximum-children-count+)
+        (setf (aref change j) nil)))))
+
+
+(defun clear-buffers (iterator)
+  (bind (((:slots %buffers) iterator)
+         (buffers %buffers)
+         (length (length buffers)))
+    (iterate
+      (for i from 0 below length)
+      (for buffer = (aref buffers i))
+      (iterate
+        (for j from 0 below cl-ds.common.rrb:+maximum-children-count+)
+        (setf (aref buffer j) :null)))))

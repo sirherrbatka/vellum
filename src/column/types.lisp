@@ -38,15 +38,23 @@
                   :reader read-subiterators)))
 
 
-(defclass sparse-material-column (cl-ds.dicts.srrb:transactional-sparse-rrb-vector
-                                  fundamental-column)
+(defclass sparse-material-column
+    (cl-ds.dicts.srrb:transactional-sparse-rrb-vector
+     fundamental-column)
   ((%column-size :initarg :column-size
                  :accessor access-column-size
                  :reader column-size
                  :documentation "Highest index+1 in this column.")))
 
 
-(defclass sparse-material-column-iterator-base (fundamental-pure-iterator)
+(defun make-sparse-material-column (&key (element-type t))
+  (make 'sparse-material-column
+        :ownership-tag (cl-ds.common.abstract:make-ownership-tag)
+        :element-type element-type))
+
+
+
+(defclass sparse-material-column-iterator (fundamental-pure-iterator)
   ((%columns :initarg :columns
              :type vector
              :initform (vect)
@@ -55,6 +63,10 @@
             :type vector
             :initform (vect)
             :reader read-stacks)
+   (%depth :initarg :depth
+           :type fixnum
+           :initform 0
+           :accessor access-depth)
    (%index :initarg :index
            :accessor access-index
            :type fixnum
@@ -63,20 +75,6 @@
              :type vector
              :initform (vect)
              :reader read-buffers)
-   (%bitmasks :initarg :bitmasks
-              :type vector
-              :initform (vect)
-              :reader read-bitmasks)))
-
-
-(defclass sparse-material-column-iterator
-    (sparse-material-column-iterator-base)
-  ((%total-length :initargs :total-length
-                  :accessor access-total-length
-                  :initform 0)))
-
-
-(defclass sparse-material-column-constructing-iterator
-    (fundamental-pure-constructing-iterator
-     sparse-material-column-iterator-base)
-  ())
+   (%changes :initarg :change-mask
+             :type (vector boolean)
+             :accessor read-changes)))

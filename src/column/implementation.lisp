@@ -58,12 +58,6 @@
 
 (defmethod iterator-at ((iterator sparse-material-column-iterator)
                         column)
-  (validate-iterator-position iterator)
-  (call-next-method))
-
-
-(defmethod iterator-at ((iterator sparse-material-column-iterator-base)
-                        column)
   (check-type column integer)
   (bind (((:slots %columns %index %buffers) iterator)
          (buffers %buffers)
@@ -81,27 +75,43 @@
 (defmethod (setf iterator-at) (new-value
                                (iterator sparse-material-column-iterator)
                                column)
-  (validate-iterator-position iterator)
-  (call-next-method))
-
-
-(defmethod (setf iterator-at) (new-value
-                               (iterator sparse-material-column-iterator-base)
-                               column)
   (check-type column integer)
-  (bind (((:slots %bitmasks %columns %index %buffers) iterator)
+  (bind (((:slots %changes %bitmasks %columns %index %buffers) iterator)
          (buffers %buffers)
          (length (fill-pointer buffers))
-         (offset (offset %index)))
+         (offset (offset %index))
+         (buffer (aref buffers column))
+         (old-value (aref buffer offset)))
     (declare (type vector buffers))
-    (setf (~> %buffers (aref column) (aref offset)) new-value)
+    (setf (aref buffer offset) new-value)
     (unless (< -1 column length)
       (error 'no-such-column
              :bounds `(0 ,length)
              :value column
              :text "There is no such column."))
-    (when (eql new-value :null)
-      (let ((bitmask (aref %bitmasks column)))
-        (setf (ldb (byte 1 offset) bitmask) 0
-              (aref %bitmasks column) bitmask)))
+    (unless (eql new-value old-value)
+      (setf (aref %changes column) t))
     new-value))
+
+
+(defmethod move-iterator
+    ((iterator sparse-material-column-iterator)
+     times)
+  (check-type times non-negative-fixnum)
+  (when (zerop times)
+    (return-from move-iterator nil))
+  (bind (((:slots %index %stacks %buffers %total-length) iterator)
+         (index %index)
+         (new-index (+ index times))
+         (new-tree-index (tree-index new-index))
+         (promoted (not (eql new-index new-tree-index))))
+    (unless promoted
+      (setf %index new-index)
+      (return-from move-iterator nil))
+    (change-leafs iterator)
+    (reduce-stacks iterator)
+    (clear-changes iterator)
+    (clear-buffers iterator)
+    (move-stacks iterator new-index)
+    (fill-buffers iterator)
+    nil))
