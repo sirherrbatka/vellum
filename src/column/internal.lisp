@@ -20,10 +20,6 @@
   (logand index cl-ds.common.rrb:+tail-mask+))
 
 
-(defun insert-into-stack (column stack tree-index new-node)
-  )
-
-
 (defun build-new-node (column change buffer new-size)
   (let ((content (make-array new-size :element-type (column-type column)))
         (tag (cl-ds.common.abstract:read-ownership-tag column))
