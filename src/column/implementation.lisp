@@ -149,3 +149,16 @@
 
 (defmethod column-type ((column fundamental-iterator))
   t)
+
+
+(defmethod finish-iterator ((iterator sparse-material-column-iterator))
+  (iterate
+    (with depth = (access-depth iterator))
+    (for column in-vector (read-columns iterator))
+    (for stack in-vector (read-stacks iterator))
+    (setf (cl-ds.dicts.srrb:access-tree column) (first-elt stack)
+          (cl-ds.dicts.srrb:access-shift column) depth)
+    (for index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
+    (setf (cl-ds.dicts.srrb:access-tree-index-bound column) index-bound
+          (cl-ds.dicts.srrb:access-index-bound column)
+          (+ index-bound cl-ds.common.rrb:+maximum-children-count+))))

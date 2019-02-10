@@ -20,23 +20,6 @@
   (logand index cl-ds.common.rrb:+tail-mask+))
 
 
-(defun build-new-node (column change buffer new-size)
-  (let ((content (make-array new-size :element-type (column-type column)))
-        (tag (cl-ds.common.abstract:read-ownership-tag column))
-        (bitmask 0))
-    (iterate
-      (with index = 0)
-      (for i from 0)
-      (for changed in-vector change)
-      (when changed
-        (setf (ldb (byte 1 i) bitmask) 1
-              (aref content index) (aref buffer i)
-              index (1+ index))))
-    (cl-ds.common.rrb:make-sparse-rrb-node :ownership-tag tag
-                                           :content content
-                                           :bitmask bitmask)))
-
-
 (defun pad-stack (depth index new-depth stack column)
   (iterate
     (with prev-node = (aref stack 0))
