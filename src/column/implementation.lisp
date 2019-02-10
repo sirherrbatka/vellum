@@ -163,11 +163,9 @@
   (declare (ignore all location))
   (if (eql value :null)
       (values cl-ds.meta:null-bucket
-              cl-ds.common:empty-eager-modification-operation-status
-              nil)
+              cl-ds.common:empty-eager-modification-operation-status)
       (values (cl-ds:force value)
-              cl-ds.common:empty-changed-eager-modification-operation-status
-              t)))
+              cl-ds.common:empty-changed-eager-modification-operation-status)))
 
 
 (defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:put!-function)
