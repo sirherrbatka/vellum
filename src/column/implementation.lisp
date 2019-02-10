@@ -175,10 +175,25 @@
                                              &rest all
                                              &key value)
   (if (eql value :null)
-      (progn
-        (incf (access-column-size container))
-        (values structure
-                cl-ds.common:empty-changed-eager-modification-operation-status))
+      (bind (((:values bucket status) (cl-ds.meta:make-bucket operation
+                                                              container
+                                                              position
+                                                              :value value)))
+        (if (cl-ds:changed status)
+            (bind (((:values result status)
+                    (cl-ds.dicts.srrb:transactional-sparse-rrb-vector-grow operation
+                                                                           structure
+                                                                           structure
+                                                                           position
+                                                                           all
+                                                                           bucket)))
+              (when (cl-ds:changed status)
+                (incf (access-column-size structure)))
+              (values result status))
+            (progn
+              (incf (access-column-size container))
+              (values structure
+                      cl-ds.common:empty-changed-eager-modification-operation-status))))
       (bind (((:values container status)
               (cl-ds.dicts.srrb:transactional-sparse-rrb-vector-grow
                operation structure container
