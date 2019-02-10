@@ -148,3 +148,44 @@
           (access-column-size column) index
           (cl-ds.dicts.srrb:access-index-bound column)
           (+ index-bound cl-ds.common.rrb:+maximum-children-count+))))
+
+
+(defmethod cl-ds:put-back! ((container fundamental-column) item)
+  (cl-ds.meta:position-modification #'cl-ds:put-back! container
+                                    container nil :value item))
+
+
+(defmethod cl-ds.meta:make-bucket ((operation cl-ds.meta:grow-function)
+                                   (structure sparse-material-column)
+                                   location
+                                   &rest all
+                                   &key value)
+  (declare (ignore all location))
+  (if (eql value :null)
+      (values cl-ds.meta:null-bucket
+              cl-ds.common:empty-eager-modification-operation-status
+              nil)
+      (values (cl-ds:force value)
+              cl-ds.common:empty-changed-eager-modification-operation-status
+              t)))
+
+
+(defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:put!-function)
+                                             (structure sparse-material-column)
+                                             container
+                                             position
+                                             &rest all
+                                             &key value)
+  (if (eql value :null)
+      (progn
+        (incf (access-column-size container))
+        (values structure
+                cl-ds.common:empty-changed-eager-modification-operation-status))
+      (bind (((:values container status)
+              (cl-ds.dicts.srrb:transactional-sparse-rrb-vector-grow
+               operation structure container
+               (access-column-size structure)
+               all value)))
+        (when (cl-ds:changed status)
+          (incf (access-column-size container)))
+        (values container status))))
