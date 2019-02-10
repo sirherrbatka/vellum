@@ -279,17 +279,9 @@
              :value index
              :argument 'index
              :text "Column index out of column bounds."))
-    (if (eql new-value :null)
-        (progn
-          (cl-ds.meta:position-modification #'cl-ds:erase!
-                                            column
-                                            column
-                                            index)
-          :null)
-        (progn
-          (cl-ds.meta:position-modification #'(setf cl-ds:at)
-                                            column
-                                            column
-                                            index
-                                            :value new-value)
-          new-value))))
+    (cl-ds.meta:position-modification #'(setf cl-ds:at)
+                                      column
+                                      column
+                                      index
+                                      :value new-value)
+    new-value))

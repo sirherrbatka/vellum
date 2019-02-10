@@ -210,8 +210,12 @@
                                              position
                                              &rest all
                                              &key value)
-  (declare (ignore all value))
+  (declare (ignore all))
   (check-type position non-negative-integer)
+  (when (eql value :null)
+    (error 'setting-to-null
+           :argument 'value
+           :text "Setting content of the column to :null is not allowed. Use ERASE! instead."))
   (bind (((:values result status) (call-next-method)))
     (when (and (cl-ds:changed status)
                (> position (access-column-size structure)))
