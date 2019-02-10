@@ -3,6 +3,7 @@
 
 (defgeneric column-type (column))
 (defgeneric column-size (column))
+(defgeneric (setf column-size) (new-size column))
 (defgeneric column-at (column index))
 (defgeneric (setf column-at) (new-value column index))
 ;; (defgeneric install-change-observer (column observer))
