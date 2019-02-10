@@ -12,6 +12,9 @@
     (:description "Shifts ITERATOR forward on all columns."
      :exceptional-situations "Should signal condition if this operation would move beyond column bounds."))
 
+  (function make-iterator
+    (:description "Constructs iterator from the column. Extra columns can be added into iterator with augment-iterator function."))
+
   (function replica
     (:description "Creates new column with the same content as the old one. Changes in the new istance won't effect the COLUMN. Changes in the COLUMN may effect the new instance if ISOLATE is false and will not effect new instance if ISOLATE is true."))
 
