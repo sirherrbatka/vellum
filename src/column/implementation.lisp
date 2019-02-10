@@ -187,3 +187,47 @@
         (when (cl-ds:changed status)
           (incf (access-column-size container)))
         (values container status))))
+
+
+(defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:insert!-function)
+                                             (structure sparse-material-column)
+                                             container
+                                             position
+                                             &rest all
+                                             &key value)
+  (declare (ignore all value))
+  (check-type position non-negative-integer)
+  (bind (((:values result status) (call-next-method)))
+    (when (and (cl-ds:changed status)
+               (> position (access-column-size structure)))
+      (setf (access-column-size structure) (1+ position)))
+    (values result status)))
+
+
+(defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:add!-function)
+                                             (structure sparse-material-column)
+                                             container
+                                             position
+                                             &rest all
+                                             &key value)
+  (declare (ignore all value))
+  (check-type position non-negative-integer)
+  (bind (((:values result status) (call-next-method)))
+    (when (and (cl-ds:changed status)
+               (> position (access-column-size structure)))
+      (setf (access-column-size structure) (1+ position)))
+    (values result status)))
+
+
+(defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:shrink-function)
+                                             (structure sparse-material-column)
+                                             container
+                                             position
+                                             &rest all)
+  (declare (ignore all))
+  (check-type position non-negative-integer)
+  (bind (((:values result status) (call-next-method)))
+    (when (and (cl-ds:changed status)
+               (= (1+ position) (access-column-size structure)))
+      (setf (access-column-size structure) (1- position)))
+    (values result status)))
