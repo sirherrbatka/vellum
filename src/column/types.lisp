@@ -13,17 +13,7 @@
   ())
 
 
-(defclass fundamental-constructing-iterator (fundamental-iterator)
-  ())
-
-
 (defclass fundamental-pure-iterator (fundamental-iterator)
-  ())
-
-
-(defclass fundamental-pure-constructing-iterator
-    (fundamental-constructing-iterator
-     fundamental-pure-iterator)
   ())
 
 

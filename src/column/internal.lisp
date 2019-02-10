@@ -252,3 +252,44 @@
   (iterate
     (for buffer in-vector (read-buffers iterator))
     (map-into buffer (constantly :null))))
+
+
+(defun sparse-material-column-at (column index)
+  (declare (type sparse-material-column column))
+  (check-type index integer)
+  (let ((column-size (access-column-size column)))
+    (unless (< -1 index column-size)
+      (error 'index-out-of-column-bounds
+             :bounds `(0 ,column-size)
+             :value index
+             :argument 'index
+             :text "Column index out of column bounds."))
+    (bind (((:values value found)
+            (cl-ds.dicts.srrb:sparse-rrb-vector-at column index)))
+      (if found value :null))))
+
+
+(defun (setf sparse-material-column-at) (new-value column index)
+  (declare (type sparse-material-column column))
+  (check-type index integer)
+  (let ((column-size (access-column-size column)))
+    (unless (< -1 index column-size)
+      (error 'index-out-of-column-bounds
+             :bounds `(0 ,column-size)
+             :value index
+             :argument 'index
+             :text "Column index out of column bounds."))
+    (if (eql new-value :null)
+        (progn
+          (cl-ds.meta:position-modification #'cl-ds:erase!
+                                            column
+                                            column
+                                            index)
+          :null)
+        (progn
+          (cl-ds.meta:position-modification #'(setf cl-ds:at)
+                                            column
+                                            column
+                                            index
+                                            :value new-value)
+          new-value))))

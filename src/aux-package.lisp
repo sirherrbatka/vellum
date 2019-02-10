@@ -1,7 +1,8 @@
 (in-package #:cl-user)
 
 (defpackage :cl-data-frames.aux-package
-  (:use #:cl))
+  (:use #:cl)
+  (:export #:rexport))
 
 (in-package :cl-data-frames.aux-package)
 

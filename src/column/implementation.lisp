@@ -27,35 +27,11 @@
 
 
 (defmethod column-at ((column sparse-material-column) index)
-  (check-type index integer)
-  (let ((column-size (access-column-size column)))
-    (unless (< -1 index column-size)
-      (error 'index-out-of-column-bounds
-             :bounds `(0 ,column-size)
-             :value index
-             :argument 'index
-             :text "Column index out of column bounds."))
-    (bind (((:values value found)
-            (cl-ds.dicts.srrb:sparse-rrb-vector-at column index)))
-      (if found value :null))))
+  (sparse-material-column-at column index))
 
 
 (defmethod (setf column-at) (new-value (column sparse-material-column) index)
-  (check-type index integer)
-  (let ((column-size (access-column-size column)))
-    (unless (< -1 index column-size)
-      (error 'index-out-of-column-bounds
-             :bounds `(0 ,column-size)
-             :value index
-             :argument 'index
-             :text "Column index out of column bounds."))
-    (if (eql new-value :null)
-        (progn
-          (cl-ds:erase! column index)
-          :null)
-        (progn
-          (setf (cl-ds:at column index) new-value)
-          new-value))))
+  (setf (sparse-material-column-at column index) new-value))
 
 
 (defmethod iterator-at ((iterator sparse-material-column-iterator)
@@ -127,6 +103,7 @@
 
 
 (defmethod make-iterator ((column sparse-material-column))
+  (declare (optimize (debug 3)))
   (lret ((result (make 'sparse-material-column-iterator)))
     (vector-push-extend column (read-columns result))
     (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+)
@@ -141,7 +118,10 @@
                         (read-stacks result))
     (move-stacks result 0 (cl-ds.dicts.srrb:access-shift column))
     (setf (~> result read-stacks last-elt first-elt)
-          (cl-ds.dicts.srrb:acce))
+          (let ((root (cl-ds.dicts.srrb:access-tree column)))
+            (if (cl-ds.meta:null-bucket-p root)
+                nil
+                root)))
     (fill-buffers result)))
 
 
