@@ -225,3 +225,7 @@
                (= (1+ position) (access-column-size structure)))
       (setf (access-column-size structure) (1- position)))
     (values result status)))
+
+
+(defmethod (setf column-size) (new-size (column sparse-material-column))
+  cl-ds.utils:todo)

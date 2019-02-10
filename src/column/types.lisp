@@ -34,6 +34,7 @@
   ((%column-size :initarg :column-size
                  :accessor access-column-size
                  :reader column-size
+                 :writer write-column-size
                  :documentation "Highest index+1 in this column.")))
 
 
