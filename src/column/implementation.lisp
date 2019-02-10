@@ -33,9 +33,10 @@
       (error 'index-out-of-column-bounds
              :bounds `(0 ,column-size)
              :value index
+             :argument 'index
              :text "Column index out of column bounds."))
     (bind (((:values value found)
-            (cl-ds:at column index)))
+            (cl-ds.dicts.srrb:sparse-rrb-vector-at column index)))
       (if found value :null))))
 
 
@@ -46,6 +47,7 @@
       (error 'index-out-of-column-bounds
              :bounds `(0 ,column-size)
              :value index
+             :argument 'index
              :text "Column index out of column bounds."))
     (if (eql new-value :null)
         (progn
@@ -154,11 +156,13 @@
 (defmethod finish-iterator ((iterator sparse-material-column-iterator))
   (iterate
     (with depth = (access-depth iterator))
+    (with index = (access-index iterator))
     (for column in-vector (read-columns iterator))
     (for stack in-vector (read-stacks iterator))
     (setf (cl-ds.dicts.srrb:access-tree column) (first-elt stack)
           (cl-ds.dicts.srrb:access-shift column) depth)
     (for index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
     (setf (cl-ds.dicts.srrb:access-tree-index-bound column) index-bound
+          (access-column-size column) index
           (cl-ds.dicts.srrb:access-index-bound column)
           (+ index-bound cl-ds.common.rrb:+maximum-children-count+))))
