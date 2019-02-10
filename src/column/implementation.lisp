@@ -104,6 +104,8 @@
 
 (defmethod make-iterator ((column sparse-material-column))
   (declare (optimize (debug 3)))
+  (cl-ds.dicts.srrb:transactional-insert-tail!
+   column (cl-ds.common.abstract:read-ownership-tag column))
   (lret ((result (make 'sparse-material-column-iterator)))
     (vector-push-extend column (read-columns result))
     (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+)
