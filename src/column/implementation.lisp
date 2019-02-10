@@ -161,11 +161,8 @@
                                    &rest all
                                    &key value)
   (declare (ignore all location))
-  (if (eql value :null)
-      (values cl-ds.meta:null-bucket
-              cl-ds.common:empty-eager-modification-operation-status)
-      (values (cl-ds:force value)
-              cl-ds.common:empty-changed-eager-modification-operation-status)))
+  (values (cl-ds:force value)
+          cl-ds.common:empty-changed-eager-modification-operation-status))
 
 
 (defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:put!-function)
@@ -204,7 +201,7 @@
         (values container status))))
 
 
-(defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:insert!-function)
+(defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:grow-function)
                                              (structure sparse-material-column)
                                              container
                                              position
@@ -216,21 +213,6 @@
     (error 'setting-to-null
            :argument 'value
            :text "Setting content of the column to :null is not allowed. Use ERASE! instead."))
-  (bind (((:values result status) (call-next-method)))
-    (when (and (cl-ds:changed status)
-               (> position (access-column-size structure)))
-      (setf (access-column-size structure) (1+ position)))
-    (values result status)))
-
-
-(defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:add!-function)
-                                             (structure sparse-material-column)
-                                             container
-                                             position
-                                             &rest all
-                                             &key value)
-  (declare (ignore all value))
-  (check-type position non-negative-integer)
   (bind (((:values result status) (call-next-method)))
     (when (and (cl-ds:changed status)
                (> position (access-column-size structure)))
