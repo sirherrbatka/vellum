@@ -26,4 +26,5 @@
   cl-ds:update!
   cl-ds:add!
   cl-ds:update-if!
+  cl-ds:replica
   cl-ds:put-back!)

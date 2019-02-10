@@ -9,7 +9,7 @@
   t)
 
 
-(defmethod replica ((column sparse-material-column) &optional isolate)
+(defmethod cl-ds:replica ((column sparse-material-column) &optional isolate)
   (check-type isolate boolean)
   (lret ((result (make 'sparse-material-column
                        :column-size (access-column-size column)
