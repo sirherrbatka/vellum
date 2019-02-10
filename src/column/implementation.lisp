@@ -173,34 +173,14 @@
                                              position
                                              &rest all
                                              &key value)
-  (if (eql value :null)
-      (bind (((:values bucket status) (cl-ds.meta:make-bucket operation
-                                                              container
-                                                              position
-                                                              :value value)))
-        (if (cl-ds:changed status)
-            (bind (((:values result status)
-                    (cl-ds.dicts.srrb:transactional-sparse-rrb-vector-grow operation
-                                                                           structure
-                                                                           structure
-                                                                           position
-                                                                           all
-                                                                           bucket)))
-              (when (cl-ds:changed status)
-                (incf (access-column-size structure)))
-              (values result status))
-            (progn
-              (incf (access-column-size container))
-              (values structure
-                      cl-ds.common:empty-changed-eager-modification-operation-status))))
-      (bind (((:values container status)
-              (cl-ds.dicts.srrb:transactional-sparse-rrb-vector-grow
-               operation structure container
-               (access-column-size structure)
-               all value)))
-        (when (cl-ds:changed status)
-          (incf (access-column-size container)))
-        (values container status))))
+  (bind (((:values container status)
+          (cl-ds.dicts.srrb:transactional-sparse-rrb-vector-grow
+           operation structure container
+           (access-column-size structure)
+           all value)))
+    (when (cl-ds:changed status)
+      (incf (access-column-size container)))
+    (values container status)))
 
 
 (defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:grow-function)
