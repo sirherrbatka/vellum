@@ -118,12 +118,12 @@
     (vector-push-extend (make-array cl-ds.common.rrb:+maximal-shift+
                                     :initial-element nil)
                         (read-stacks result))
-    (move-stacks result 0 (cl-ds.dicts.srrb:access-shift column))
     (setf (~> result read-stacks last-elt first-elt)
           (let ((root (cl-ds.dicts.srrb:access-tree column)))
             (if (cl-ds.meta:null-bucket-p root)
                 nil
                 root)))
+    (move-stacks result 0 (cl-ds.dicts.srrb:access-shift column))
     (fill-buffers result)))
 
 
@@ -140,12 +140,14 @@
     (with depth = (access-depth iterator))
     (with index = (access-index iterator))
     (for column in-vector (read-columns iterator))
+    (for column-size = (column-size column))
+    (for shift = (cl-ds.dicts.srrb:access-shift column))
     (for stack in-vector (read-stacks iterator))
     (setf (cl-ds.dicts.srrb:access-tree column) (first-elt stack)
-          (cl-ds.dicts.srrb:access-shift column) depth)
+          (cl-ds.dicts.srrb:access-shift column) (max shift depth))
     (for index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
     (setf (cl-ds.dicts.srrb:access-tree-index-bound column) index-bound
-          (access-column-size column) index
+          (access-column-size column) (max column-size index)
           (cl-ds.dicts.srrb:access-index-bound column)
           (+ index-bound cl-ds.common.rrb:+maximum-children-count+))))
 
