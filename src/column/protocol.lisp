@@ -17,3 +17,4 @@
 (defgeneric move-iterator (iterator times))
 (defgeneric augment-iterator (iterator column))
 (defgeneric finish-iterator (iterator))
+(defgeneric resize-column (column new-size))

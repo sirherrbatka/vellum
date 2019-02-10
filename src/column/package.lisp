@@ -5,21 +5,22 @@
   (:use #:cl #:cl-data-frames.aux-package)
   (:nicknames #:cl-df.column)
   (:export
-   #:column-type
-   #:column-size
+   #:augment-iterator
    #:column-at
-   #:replica
-   #:make-iterator
-   #:iterator-at
+   #:column-size
+   #:column-type
+   #:complex-iterator
+   #:finish-iterator
    #:fundamental-column
    #:fundamental-iterator
    #:fundamental-pure-iterator
+   #:iterator-at
+   #:make-iterator
    #:make-sparse-material-column
-   #:complex-iterator
-   #:sparse-material-column
    #:move-iterator
-   #:augment-iterator
-   #:finish-iterator))
+   #:replica
+   #:resize-column
+   #:sparse-material-column))
 
 (cl-data-frames.aux-package:rexport :cl-data-frames.column
   cl-ds:erase!
