@@ -4,9 +4,10 @@
 (declaim (inline make-node))
 (defun make-node (iterator column bitmask
                   &key
-                    (type (column-type column))
-                    (content (make-array (logcount bitmask)
-                                         :element-type type))
+                    type
+                    (content (make-array
+                              (logcount bitmask)
+                              :element-type (or type (column-type column))))
                     (tag (cl-ds.common.abstract:read-ownership-tag column)))
   (declare (ignore iterator))
   (cl-ds.common.rrb:make-sparse-rrb-node
