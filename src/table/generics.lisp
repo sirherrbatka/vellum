@@ -36,3 +36,5 @@
 (defgeneric column-at (frame column))
 
 (defgeneric (setf column-at) (frame column))
+
+(defgeneric column-name (frame column))
