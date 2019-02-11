@@ -24,9 +24,9 @@
                              (:file "implementation")
                              (:test-file "tests")))
                (:module "header"
-                :components ())
+                :components ((:file "package")))
                (:module "table"
-                :components ())
+                :components ((:file "package")))
                (:module "api"
                 :components ())
                (:module "csv"
