@@ -1,4 +1,4 @@
-(in-package #:cl-df)
+(in-package #:cl-df.table)
 
 
 (defvar *transform-in-place* nil)

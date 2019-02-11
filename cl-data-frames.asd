@@ -26,7 +26,8 @@
                (:module "header"
                 :components ((:file "package")))
                (:module "table"
-                :components ((:file "package")))
+                :components ((:file "package")
+                             (:file "generics")))
                (:module "api"
                 :components ((:file "package")
                              (:file "generics")))

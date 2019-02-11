@@ -1,6 +1,20 @@
 (in-package #:cl-df.column)
 
 
+(declaim (inline make-node))
+(defun make-node (iterator column bitmask
+                  &key
+                    (type (column-type column))
+                    (content (make-array (logcount bitmask)
+                                         :element-type type))
+                    (tag (cl-ds.common.abstract:read-ownership-tag column)))
+  (declare (ignore iterator))
+  (cl-ds.common.rrb:make-sparse-rrb-node
+   :ownership-tag tag
+   :content content
+   :bitmask bitmask))
+
+
 (defun validate-iterator-position (iterator)
   (bind (((:slots %index %total-length) iterator))
     (unless (< %index %total-length)
@@ -20,7 +34,7 @@
   (logand index cl-ds.common.rrb:+tail-mask+))
 
 
-(defun pad-stack (depth index new-depth stack column)
+(defun pad-stack (iterator depth index new-depth stack column)
   (iterate
     (with prev-node = (aref stack 0))
     (with tag = (cl-ds.common.abstract:read-ownership-tag column))
@@ -32,10 +46,10 @@
          by cl-ds.common.rrb:+bit-count+)
     (for offset = (ldb (byte cl-ds.common.rrb:+bit-count+ byte)
                        index))
-    (for node = (cl-ds.common.rrb:make-sparse-rrb-node
-                 :ownership-tag tag
-                 :content (vector prev-node)
-                 :bitmask (ash 1 offset)))
+    (for node = (make-node
+                 iterator column (ash 1 offset)
+                 :tag tag
+                 :content (vector prev-node)))
     (setf prev-node node
           (aref stack j) node))
   (first-elt stack))
@@ -44,6 +58,7 @@
 (defun pad-stacks (iterator new-depth)
   (map nil
        (curry #'pad-stack
+              iterator
               (access-depth iterator)
               (access-index iterator)
               new-depth)
@@ -115,7 +130,7 @@
           (cl-ds.common.rrb:sparse-rrb-node-bitmask old-node) bitmask)))
 
 
-(defun make-leaf (column old-node change buffer)
+(defun make-leaf (iterator column old-node change buffer)
   (unless (null old-node)
     (iterate
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
@@ -137,13 +152,10 @@
         (setf (aref new-content index) v
               (ldb (byte 1 i) bitmask) 1
               index (1+ index))))
-    (cl-ds.common.rrb:make-sparse-rrb-node
-     :ownership-tag (cl-ds.common.abstract:read-ownership-tag column)
-     :bitmask bitmask
-     :content new-content)))
+    (make-node iterator column bitmask :content new-content)))
 
 
-(defun change-leaf (depth stack column change buffer)
+(defun change-leaf (iterator depth stack column change buffer)
   (cond ((every #'null change)
          (return-from change-leaf nil))
         ((every (curry #'eql :null) buffer)
@@ -155,7 +167,7 @@
                    (not (cl-ds.common.abstract:acquire-ownership old-node
                                                                  tag)))
                (setf (aref stack depth)
-                     (make-leaf column old-node change buffer))
+                     (make-leaf iterator column old-node change buffer))
                (mutate-leaf column old-node change buffer)))))
   nil)
 
@@ -163,6 +175,7 @@
 (defun change-leafs (iterator)
   (map nil
        (curry #'change-leaf
+              iterator
               (access-depth iterator))
        (read-stacks iterator)
        (read-columns iterator)
@@ -170,14 +183,12 @@
        (read-buffers iterator)))
 
 
-(defun copy-on-write-node (parent child position tag)
+(defun copy-on-write-node (iterator parent child position tag column)
   (cond ((and (null parent) (null child))
          nil)
         ((null parent)
-         (cl-ds.common.rrb:make-sparse-rrb-node
-          :ownership-tag tag
-          :content (vector child)
-          :bitmask (ash 1 position)))
+         (make-node iterator column (ash 1 position)
+                    :content (vector child)))
         ((and (null child)
               (eql 1 (cl-ds.common.rrb:sparse-rrb-node-size parent)))
          nil)
@@ -196,7 +207,7 @@
                        child))))))
 
 
-(defun reduce-stack (depth index stack column)
+(defun reduce-stack (iterator depth index stack column)
   (iterate
     (with tag = (cl-ds.common.abstract:read-ownership-tag column))
     (with prev-node = (aref stack depth))
@@ -207,7 +218,8 @@
     (for node = (aref stack i))
     (for position = (ldb (byte cl-ds.common.rrb:+bit-count+ bits)
                          index))
-    (for new-node = (copy-on-write-node node prev-node position tag))
+    (for new-node = (copy-on-write-node iterator node prev-node
+                                        position tag column))
     (until (eql node new-node))
     (setf prev-node new-node
           (aref stack i) new-node))
@@ -236,6 +248,7 @@
 (defun reduce-stacks (iterator)
   (map nil
        (curry #'reduce-stack
+              iterator
               (access-depth iterator)
               (access-index iterator))
        (read-stacks iterator)
