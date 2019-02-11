@@ -135,10 +135,13 @@
                        (setf (cl-ds.common.rrb:sparse-nref parent-node i)
                              child-node))
                      nodes
-                     next-nodes))))))
-    (~>> columns
-         (map 'vector #'column-root)
-         (impl 0))))
+                     next-nodes)))))
+         (roots (map 'vector #'column-root columns)))
+    (impl 0 roots)
+    (iterate
+      (for root in-vector roots)
+      (for column in-vector columns)
+      (setf (cl-ds.dicts.srrb:access-tree columns) root))))
 
 
 (defun move-stack (depth new-index stack)
