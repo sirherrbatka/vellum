@@ -117,23 +117,25 @@
                         (aref nodes i) node))
                 (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask node)
                       new-bitmask))))
-          (unless (eql d depth)
-            (iterate
-              (with present-mask =
-                    (reduce #'logand nodes
-                            :key #'cl-ds.common.rrb:sparse-rrb-node-bitmask))
-              (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-              (when (ldb-test (byte 1 i) present-mask))
-              (for next-nodes = (map 'vector
-                                     (rcurry #'cl-ds.common.rrb:sparse-nref i)
-                                     nodes))
-              (impl (1+ d) next-nodes)
-              (map nil
-                   (lambda (parent-node child-node)
-                     (setf (cl-ds.common.rrb:sparse-nref parent-node i)
-                           child-node))
-                   nodes
-                   next-nodes)))))
+          (let ((present-mask (reduce
+                               #'logand nodes
+                               :key #'cl-ds.common.rrb:sparse-rrb-node-bitmask)))
+            (unless (or (eql d depth)
+                        (zerop present-mask))
+              (iterate
+                (with next-nodes = (copy-array nodes))
+                (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+                (when (ldb-test (byte 1 i) present-mask))
+                (map-into next-nodes
+                          (rcurry #'cl-ds.common.rrb:sparse-nref i)
+                          nodes)
+                (impl (1+ d) next-nodes)
+                (map nil
+                     (lambda (parent-node child-node)
+                       (setf (cl-ds.common.rrb:sparse-nref parent-node i)
+                             child-node))
+                     nodes
+                     next-nodes))))))
     (~>> columns
          (map 'vector #'column-root)
          (impl 0))))
