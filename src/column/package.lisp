@@ -18,7 +18,6 @@
    #:make-iterator
    #:make-sparse-material-column
    #:move-iterator
-   #:replica
    #:sparse-material-column))
 
 (cl-data-frames.aux-package:rexport :cl-data-frames.column
