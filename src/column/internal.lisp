@@ -59,6 +59,86 @@
   (setf (access-depth iterator) new-depth))
 
 
+(defun initialize-iterator-column (column stack buffer)
+  (map-into stack (constantly nil))
+  (setf (first-elt stack) (column-root column))
+  (let ((shift (cl-ds.dicts.srrb:access-shift column)))
+    (move-stack shift 0 stack)
+    (fill-buffer shift buffer stack)))
+
+
+(defun initialize-iterator-columns (iterator)
+  (map nil #'initialize-iterator-column
+       (read-columns iterator)
+       (read-stacks iterator)
+       (read-buffers iterator)))
+
+
+(defun select-from-vector (vector elements)
+  (map 'vector (curry #'aref vector) elements))
+
+
+(defun index-promoted (old-index new-index)
+  (not (eql (ceiling (1+ old-index)
+                     cl-ds.common.rrb:+maximum-children-count+)
+            (ceiling (1+ new-index)
+                     cl-ds.common.rrb:+maximum-children-count+))))
+
+
+(defun remove-nulls-in-trees (iterator)
+  (bind ((columns (~>> iterator read-columns
+                       (remove-if #'null)))
+         (depth (access-depth iterator))
+         ((:labels missing-bitmask (node))
+          (~> node
+              cl-ds.common.rrb:sparse-rrb-node-bitmask
+              lognot))
+         ((:labels impl (d nodes))
+          (iterate
+            (with missing-mask = (reduce #'logand nodes
+                                         :key #'missing-bitmask))
+            (for node in-vector nodes)
+            (for i from 0)
+            (for old-bitmask = (cl-ds.common.rrb:sparse-rrb-node-bitmask
+                                node))
+            (for this-missing = (lognot old-bitmask))
+            (for unique-missing = (logandc2 this-missing missing-mask))
+            (for new-bitmask = (logand (logxor old-bitmask missing-mask)
+                                       unique-missing))
+            (assert (eql (logcount new-bitmask)
+                         (logcount old-bitmask)))
+            (unless (eql new-bitmask old-bitmask)
+              (let* ((column (aref columns i))
+                     (tag (cl-ds.common.abstract:read-ownership-tag column))
+                     (owned (cl-ds.common.abstract:acquire-ownership node tag)))
+                (unless owned
+                  (setf node (cl-ds.common.rrb:deep-copy-sparse-rrb-node node
+                                                                         tag)
+                        (aref nodes i) node))
+                (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask node)
+                      new-bitmask))))
+          (unless (eql d depth)
+            (iterate
+              (with present-mask =
+                    (reduce #'logand nodes
+                            :key #'cl-ds.common.rrb:sparse-rrb-node-bitmask))
+              (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+              (when (ldb-test (byte 1 i) present-mask))
+              (for next-nodes = (map 'vector
+                                     (rcurry #'cl-ds.common.rrb:sparse-nref i)
+                                     nodes))
+              (impl (1+ d) next-nodes)
+              (map nil
+                   (lambda (parent-node child-node)
+                     (setf (cl-ds.common.rrb:sparse-nref parent-node i)
+                           child-node))
+                   nodes
+                   next-nodes)))))
+    (~>> columns
+         (map 'vector #'column-root)
+         (impl 0))))
+
+
 (defun move-stack (depth new-index stack)
   (iterate outer
     (with node = (aref stack 0))

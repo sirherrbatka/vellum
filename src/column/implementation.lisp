@@ -72,6 +72,13 @@
     new-value))
 
 
+(defmethod in-existing-content ((iterator sparse-material-column-iterator))
+  (< (access-index iterator)
+     (reduce #'max
+             (read-columns iterator)
+             :key #'column-size)))
+
+
 (defmethod move-iterator
     ((iterator sparse-material-column-iterator)
      times)
@@ -86,10 +93,7 @@
                         integer-length
                         (ceiling cl-ds.common.rrb:+bit-count+)
                         1-))
-         (promoted (not (eql (ceiling (1+ index)
-                                      cl-ds.common.rrb:+maximum-children-count+)
-                             (ceiling (1+ new-index)
-                                      cl-ds.common.rrb:+maximum-children-count+)))))
+         (promoted (index-promoted index new-index)))
     (unless promoted
       (setf %index new-index)
       (return-from move-iterator nil))
@@ -118,14 +122,9 @@
     (vector-push-extend (make-array cl-ds.common.rrb:+maximal-shift+
                                     :initial-element nil)
                         (read-stacks result))
-    (setf (~> result read-stacks last-elt first-elt)
-          (column-root column))
-    (move-stack (cl-ds.dicts.srrb:access-shift column)
-                0
-                (~> result read-stacks last-elt))
-    (fill-buffer (cl-ds.dicts.srrb:access-shift column)
-                 (~> result read-buffers last-elt)
-                 (~> result read-stacks last-elt))))
+    (initialize-iterator-column column
+                                (~> result read-stacks last-elt)
+                                (~> result read-buffers last-elt))))
 
 
 (defmethod column-type ((column sparse-material-column))
@@ -231,3 +230,22 @@
 (defmethod (setf column-size) (new-size (column sparse-material-column))
   (check-type new-size non-negative-fixnum)
   cl-ds.utils:todo)
+
+
+(defmethod remove-some-nulls ((iterator sparse-material-column-iterator)
+                             &rest columns)
+  (when (endp columns)
+    (return-from remove-some-nulls nil))
+  (bind (((:slots %index %stacks %buffers %depth) iterator)
+         (index %index))
+    (remove-nulls-in-trees iterator columns)
+    (setf %index 0)
+    (initialize-iterator-columns iterator)
+    (move-iterator iterator index)
+    (concatenate-trees iterator columns)
+    (trim-depth iterator columns)
+    (setf %index 0)
+    (initialize-iterator-columns iterator)
+    (move-iterator iterator index)
+    nil
+    ))

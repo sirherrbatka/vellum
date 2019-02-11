@@ -13,7 +13,7 @@
 
 (defgeneric vslice (frame selector))
 
-(defgeneric frame-at (frame column row))
+(defgeneric at (frame column row))
 
 (defgeneric (setf frame-at) (new-value frame column row))
 
