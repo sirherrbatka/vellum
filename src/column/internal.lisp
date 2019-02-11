@@ -141,7 +141,7 @@
     (iterate
       (for root in-vector roots)
       (for column in-vector columns)
-      (setf (cl-ds.dicts.srrb:access-tree columns) root))))
+      (setf (cl-ds.dicts.srrb:access-tree column) root))))
 
 
 (defun move-stack (depth new-index stack)
