@@ -89,7 +89,7 @@
   (bind ((columns (~>> iterator read-columns
                        (remove-if #'null)))
          (depth (access-depth iterator))
-         ((:labels missing-bitmask (node))
+         ((:flet missing-bitmask (node))
           (~> node
               cl-ds.common.rrb:sparse-rrb-node-bitmask
               lognot))
