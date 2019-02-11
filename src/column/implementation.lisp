@@ -224,7 +224,7 @@
   (bind (((:values result status) (call-next-method)))
     (when (and (cl-ds:changed status)
                (= (1+ position) (access-column-size structure)))
-      (setf (access-column-size structure) (1- position)))
+      (setf (access-column-size structure) position))
     (values result status)))
 
 
