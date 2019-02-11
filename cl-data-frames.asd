@@ -28,6 +28,6 @@
                (:module "table"
                 :components ((:file "package")))
                (:module "api"
-                :components ())
+                :components ((:file "package")))
                (:module "csv"
                 :components ())))
