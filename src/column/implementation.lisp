@@ -123,8 +123,11 @@
             (if (cl-ds.meta:null-bucket-p root)
                 nil
                 root)))
-    (move-stacks result 0 (cl-ds.dicts.srrb:access-shift column))
-    (fill-buffers result)))
+    (move-stack (cl-ds.dicts.srrb:access-shift column) 0
+                (~> result read-stacks last-elt))
+    (fill-buffer (cl-ds.dicts.srrb:access-shift column)
+                 (~> result read-buffers last-elt)
+                 (~> result read-stacks last-elt))))
 
 
 (defmethod column-type ((column sparse-material-column))
