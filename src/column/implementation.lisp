@@ -119,11 +119,9 @@
                                     :initial-element nil)
                         (read-stacks result))
     (setf (~> result read-stacks last-elt first-elt)
-          (let ((root (cl-ds.dicts.srrb:access-tree column)))
-            (if (cl-ds.meta:null-bucket-p root)
-                nil
-                root)))
-    (move-stack (cl-ds.dicts.srrb:access-shift column) 0
+          (column-root column))
+    (move-stack (cl-ds.dicts.srrb:access-shift column)
+                0
                 (~> result read-stacks last-elt))
     (fill-buffer (cl-ds.dicts.srrb:access-shift column)
                  (~> result read-buffers last-elt)

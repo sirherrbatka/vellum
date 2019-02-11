@@ -285,3 +285,10 @@
                                       index
                                       :value new-value)
     new-value))
+
+
+(defun column-root (column)
+  (let ((root (cl-ds.dicts.srrb:access-tree column)))
+    (if (cl-ds.meta:null-bucket-p root)
+        nil
+        root)))
