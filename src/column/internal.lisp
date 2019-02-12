@@ -110,7 +110,8 @@
 
 
 (defun shift-content (nodes parents)
-  cl-ds.utils:todo)
+  (let ((masks (gather-masks nodes)))
+    cl-ds.utils:todo))
 
 
 (defun concatenate-trees (iterator)
