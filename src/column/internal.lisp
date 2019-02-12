@@ -98,6 +98,12 @@
   (gethash index table 0))
 
 
+(defun node (nodes index)
+  (declare (type vector nodes)
+           (type fixnum index))
+  (cl-ds.utils:binary-search index nodes #'< #'eql :key #'car))
+
+
 (defun gather-masks (nodes)
   (iterate outer
     (with result = (make-hash-table))
@@ -111,18 +117,33 @@
     (finally (return-from outer (values result max-index)))))
 
 
+(defstruct concatenation-state
+  masks max-index nodes parents nodes-end)
+
+
+(defun concatenation-state (nodes parents)
+  (bind (((:values masks max-index) (gather-masks nodes)))
+    (make-concatenation-state
+     :masks masks
+     :max-index max-index
+     :nodes nodes
+     :parents parents
+     :nodes-end (length nodes))))
+
+
 (defun shift-content (nodes parents)
-  (bind (((:values masks max-index) (gather-masks nodes))
-         (space-vector (make-array (1+ max-index)
-                                   :element-type 'fixnum)))
+  (bind (((:values masks max-index) (gather-masks nodes)))
     (iterate
-      (for i from 0 below max-index)
+      (for prev-i from 0)
+      (for i from 1 below max-index)
       (for mask = (mask masks i))
+      (for prev-mask = (mask masks prev-i))
       (for size = (logcount mask))
-      (for extra-space = (- cl-ds.common.rrb:+maximum-children-count+
-                            size))
-      (setf (aref space-vector i) extra-space))
-    cl-ds.utils:todo))
+      (for prev-size = (logcount prev-mask))
+      (for free-space = (- cl-ds.common.rrb:+maximum-children-count+
+                           prev-size))
+      (unless (zerop free-space)
+        (move-children i prev-i free-space)))))
 
 
 (defun concatenate-trees (iterator)
