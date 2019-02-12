@@ -113,6 +113,9 @@
 
 (defun shift-content (nodes parents)
   (bind (((:values masks max-index) (gather-masks nodes)))
+    (iterate
+      (for i from 0 below max-index)
+      (for mask = (mask masks index)))
     cl-ds.utils:todo))
 
 
