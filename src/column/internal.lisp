@@ -74,10 +74,6 @@
        (read-buffers iterator)))
 
 
-(defun select-from-vector (vector elements)
-  (map 'vector (curry #'aref vector) elements))
-
-
 (defun index-promoted (old-index new-index)
   (not (eql (ceiling (1+ old-index)
                      cl-ds.common.rrb:+maximum-children-count+)
@@ -96,6 +92,10 @@
           (vector-push-extend (list* (logior i parent-index)
                                      (cl-ds.common.rrb:sparse-nref n i))
                               result))))))
+
+
+(defun shift-content (nodes parents)
+  cl-ds.utils:todo)
 
 
 (defun concatenate-trees (iterator)
