@@ -94,6 +94,10 @@
                               result))))))
 
 
+(defun mask (table index)
+  (gethash index table 0))
+
+
 (defun gather-masks (nodes)
   (lret ((result (make-hash-table)))
     (iterate
