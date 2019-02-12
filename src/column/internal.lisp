@@ -112,10 +112,16 @@
 
 
 (defun shift-content (nodes parents)
-  (bind (((:values masks max-index) (gather-masks nodes)))
+  (bind (((:values masks max-index) (gather-masks nodes))
+         (space-vector (make-array (1+ max-index)
+                                   :element-type 'fixnum)))
     (iterate
       (for i from 0 below max-index)
-      (for mask = (mask masks i)))
+      (for mask = (mask masks i))
+      (for size = (logcount mask))
+      (for extra-space = (- cl-ds.common.rrb:+maximum-children-count+
+                            size))
+      (setf (aref space-vector i) extra-space))
     cl-ds.utils:todo))
 
 
