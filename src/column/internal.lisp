@@ -85,17 +85,29 @@
                      cl-ds.common.rrb:+maximum-children-count+))))
 
 
+(defun children (nodes)
+  (lret ((result (vect)))
+    (iterate
+      (for (index . n) in-vector nodes)
+      (iterate
+        (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+        (unless (cl-ds.common.rrb:sparse-rrb-node-contains n i)
+          (next-iteration))
+        (vector-push-extend (list* (logior i (ash index cl-ds.common.rrb:+bit-count+))
+                                   (cl-ds.common.rrb:sparse-nref n i))
+                            result)))))
+
+
 (defun concatenate-trees (iterator)
   (bind ((columns (~>> iterator read-columns
                        (remove-if #'null _ :key #'column-root)))
          (depth (access-depth iterator))
          ((:labels impl (d nodes parents))
-          (unless ((not (eql d depth)))
+          (unless (eql d depth)
             (impl (1+ d)
                   (children (map 'vector #'children nodes))
                   nodes))
-
-          ))))
+          (shift-content nodes parents)))))
 
 
 (defun remove-nulls-in-trees (iterator)
