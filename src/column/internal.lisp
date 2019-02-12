@@ -94,6 +94,17 @@
                               result))))))
 
 
+(defun gather-masks (nodes)
+  (lret ((result (make-hash-table)))
+    (iterate
+      (for column in-vector nodes)
+      (iterate
+        (for (index . n) in-vector column)
+        (for existing-mask = (cl-ds.common.abstract:read-ownership-tag n))
+        (for mask = (gethash index result existing-mask))
+        (setf (gethash index result) (logior mask existing-mask))))))
+
+
 (defun shift-content (nodes parents)
   cl-ds.utils:todo)
 
