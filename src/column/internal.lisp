@@ -115,7 +115,7 @@
   (bind (((:values masks max-index) (gather-masks nodes)))
     (iterate
       (for i from 0 below max-index)
-      (for mask = (mask masks index)))
+      (for mask = (mask masks i)))
     cl-ds.utils:todo))
 
 
