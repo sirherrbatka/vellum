@@ -89,13 +89,13 @@
   (lret ((result (vect)))
     (iterate
       (for (index . n) in-vector nodes)
+      (for parent-index = (ash index cl-ds.common.rrb:+bit-count+))
       (iterate
         (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-        (unless (cl-ds.common.rrb:sparse-rrb-node-contains n i)
-          (next-iteration))
-        (vector-push-extend (list* (logior i (ash index cl-ds.common.rrb:+bit-count+))
-                                   (cl-ds.common.rrb:sparse-nref n i))
-                            result)))))
+        (when (cl-ds.common.rrb:sparse-rrb-node-contains n i)
+          (vector-push-extend (list* (logior i parent-index)
+                                     (cl-ds.common.rrb:sparse-nref n i))
+                              result))))))
 
 
 (defun concatenate-trees (iterator)
