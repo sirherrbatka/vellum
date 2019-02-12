@@ -105,7 +105,7 @@
       (iterate
         (for (index . n) in-vector column)
         (for existing-mask = (cl-ds.common.abstract:read-ownership-tag n))
-        (for mask = (gethash index result existing-mask))
+        (for mask = (gethash index result 0))
         (setf (gethash index result) (logior mask existing-mask))))))
 
 
