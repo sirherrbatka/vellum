@@ -108,7 +108,7 @@
       (for existing-mask = (cl-ds.common.abstract:read-ownership-tag n))
       (for mask = (gethash index result 0))
       (setf (gethash index result) (logior mask existing-mask)))
-    (finally (return-from gather-masks (values result max-index)))))
+    (finally (return-from outer (values result max-index)))))
 
 
 (defun shift-content (nodes parents)
