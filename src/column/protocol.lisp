@@ -18,4 +18,4 @@
 (defgeneric move-iterator (iterator times))
 (defgeneric augment-iterator (iterator column))
 (defgeneric finish-iterator (iterator))
-(defgeneric remove-some-nulls (iterator &rest relevant-columns))
+(defgeneric remove-nulls (iterator))

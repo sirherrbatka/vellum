@@ -85,9 +85,17 @@
                      cl-ds.common.rrb:+maximum-children-count+))))
 
 
+(defun concatenate-trees (iterator)
+  (bind ((columns (~>> iterator read-columns
+                       (remove-if #'null _ :key #'column-root)))
+         (depth (access-depth iterator))
+         ((:labels impl (d nodes))
+          ))))
+
+
 (defun remove-nulls-in-trees (iterator)
   (bind ((columns (~>> iterator read-columns
-                       (remove-if #'null)))
+                       (remove-if #'null _ :key #'column-root)))
          (depth (access-depth iterator))
          ((:flet missing-bitmask (node))
           (~> node
