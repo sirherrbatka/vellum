@@ -99,18 +99,20 @@
 
 
 (defun gather-masks (nodes)
-  (lret ((result (make-hash-table)))
+  (iterate outer
+    (with result = (make-hash-table))
+    (for column in-vector nodes)
     (iterate
-      (for column in-vector nodes)
-      (iterate
-        (for (index . n) in-vector column)
-        (for existing-mask = (cl-ds.common.abstract:read-ownership-tag n))
-        (for mask = (gethash index result 0))
-        (setf (gethash index result) (logior mask existing-mask))))))
+      (for (index . n) in-vector column)
+      (in outer (maximizing index into max-index))
+      (for existing-mask = (cl-ds.common.abstract:read-ownership-tag n))
+      (for mask = (gethash index result 0))
+      (setf (gethash index result) (logior mask existing-mask)))
+    (finally (return-from gather-masks (values result max-index)))))
 
 
 (defun shift-content (nodes parents)
-  (let ((masks (gather-masks nodes)))
+  (bind (((:values masks max-index) (gather-masks nodes)))
     cl-ds.utils:todo))
 
 
