@@ -89,7 +89,12 @@
   (bind ((columns (~>> iterator read-columns
                        (remove-if #'null _ :key #'column-root)))
          (depth (access-depth iterator))
-         ((:labels impl (d nodes))
+         ((:labels impl (d nodes parents))
+          (unless ((not (eql d depth)))
+            (impl (1+ d)
+                  (children (map 'vector #'children nodes))
+                  nodes))
+
           ))))
 
 
