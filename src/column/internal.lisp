@@ -113,8 +113,8 @@
 (defstruct concatenation-state
   (masks (make-hash-table) :type hash-table)
   (max-index 0 :type non-negative-fixnum)
-  (nodes (make-hash-table) :type hash-table)
-  (parents (make-hash-table) :type hash-table))
+  (nodes #() :type vector)
+  (parents #() :type vector))
 
 
 (defun concatenation-state (nodes parents)
@@ -143,11 +143,17 @@
     (gethash index nodes)))
 
 
-(defun space (state index)
+(defun mask (state index)
   (declare (type concatenation-state state)
            (type fixnum index))
   (with-concatenation-state (state)
-    (~>> nodes (gethash index) logcount)))
+    (gethash masks index)))
+
+
+(defun space (state index)
+  (declare (type concatenation-state state)
+           (type fixnum index))
+  (logcount (mask state index)))
 
 
 (defun free-space (state index)
@@ -159,8 +165,10 @@
 
 (defun move-children (state from to)
   (with-concatenation-state (state)
-    (let* ((free-space (free-space state to))
-           (required-space (space state from)))
+    (let* ((to-mask (mask state to))
+           (from-mask (mask state from))
+           (free-space (logcount to-mask))
+           (required-space (logcount from-mask)))
       (cond ((zerop required-space) 0)
             ((zerop free-space) 1)
         ))))
