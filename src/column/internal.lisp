@@ -104,7 +104,7 @@
     (iterate
       (for (index n) in-hashtable column)
       (in outer (maximizing index into max-index))
-      (for existing-mask = (cl-ds.common.abstract:read-ownership-tag n))
+      (for existing-mask = (cl-ds.common.rrb:sparse-rrb-node-bitmask n))
       (for mask = (gethash index result 0))
       (setf (gethash index result) (logior mask existing-mask)))
     (finally (return-from outer (values result max-index)))))
