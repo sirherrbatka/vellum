@@ -114,15 +114,17 @@
   (masks (make-hash-table) :type hash-table)
   (max-index 0 :type non-negative-fixnum)
   (nodes #() :type vector)
-  (parents #() :type vector))
+  (parents #() :type vector)
+  (columns #() :type vector))
 
 
-(defun concatenation-state (nodes parents)
+(defun concatenation-state (columns nodes parents)
   (bind (((:values masks max-index) (gather-masks nodes)))
     (make-concatenation-state
      :masks masks
      :max-index max-index
      :nodes nodes
+     :columns columns
      :parents parents)))
 
 
@@ -174,10 +176,10 @@
         ))))
 
 
-(defun shift-content (nodes parents)
+(defun shift-content (columns nodes parents)
   (iterate
     (with destination = 0)
-    (with state = (concatenation-state nodes parents))
+    (with state = (concatenation-state columns nodes parents))
     (for i from 1 below (concatenation-state-max-index state))
     (iterate
       (for difference = (move-children state i destination))
@@ -195,7 +197,7 @@
             (impl (1+ d)
                   (children (map 'vector #'children nodes))
                   nodes))
-          (shift-content nodes parents)))))
+          (shift-content columns nodes parents)))))
 
 
 (defun remove-nulls-in-trees (iterator)
