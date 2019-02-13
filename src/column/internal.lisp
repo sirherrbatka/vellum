@@ -182,8 +182,11 @@
       (cond ((zerop required-space) 0)
             ((zerop free-space) 1)
             ((>= free-space required-space)
-             cl-ds.utils:todo)
-            (t cl-ds.utils:todo)))))
+             cl-ds.utils:todo
+             0)
+            (t
+             cl-ds.utils:todo
+             1)))))
 
 
 (defun shift-content (columns nodes parents)
