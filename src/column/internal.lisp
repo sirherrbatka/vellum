@@ -173,9 +173,9 @@
     (for i from 1 below (concatenation-state-max-index state))
     (iterate
       (for difference = (move-children state i destination))
+      (until (zerop difference))
       (incf destination difference)
-      (until (or (zerop difference)
-                 (eql destination i))))))
+      (until (eql destination i)))))
 
 
 (defun concatenate-trees (iterator)
