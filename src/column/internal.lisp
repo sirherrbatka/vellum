@@ -299,7 +299,10 @@
                                        to-mask)
              0)
             (t
-             cl-ds.utils:todo
+             (move-children-in-columns state
+                                       from to
+                                       from-mask
+                                       to-mask)
              1)))))
 
 
