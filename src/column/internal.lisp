@@ -82,26 +82,19 @@
 
 
 (defun children (nodes)
-  (lret ((result (vect)))
+  (lret ((result (make-hash-table)))
     (iterate
-      (for (index . n) in-vector nodes)
+      (for (index n) in-hashtable nodes)
       (for parent-index = (ash index cl-ds.common.rrb:+bit-count+))
       (iterate
         (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
         (when (cl-ds.common.rrb:sparse-rrb-node-contains n i)
-          (vector-push-extend (list* (logior i parent-index)
-                                     (cl-ds.common.rrb:sparse-nref n i))
-                              result))))))
+          (setf (gethash (logior i parent-index) result)
+                (cl-ds.common.rrb:sparse-nref n i)))))))
 
 
 (defun mask (table index)
   (gethash index table 0))
-
-
-(defun node (nodes index)
-  (declare (type vector nodes)
-           (type fixnum index))
-  (cl-ds.utils:binary-search index nodes #'< #'eql :key #'car))
 
 
 (defun gather-masks (nodes)
@@ -109,7 +102,7 @@
     (with result = (make-hash-table))
     (for column in-vector nodes)
     (iterate
-      (for (index . n) in-vector column)
+      (for (index n) in-hashtable column)
       (in outer (maximizing index into max-index))
       (for existing-mask = (cl-ds.common.abstract:read-ownership-tag n))
       (for mask = (gethash index result 0))
@@ -118,7 +111,10 @@
 
 
 (defstruct concatenation-state
-  masks max-index nodes parents nodes-end)
+  (masks (make-hash-table) :type hash-table)
+  (max-index 0 :type non-negative-fixnum)
+  (nodes (make-hash-table) :type hash-table)
+  (parents (make-hash-table) :type hash-table))
 
 
 (defun concatenation-state (nodes parents)
@@ -127,16 +123,24 @@
      :masks masks
      :max-index max-index
      :nodes nodes
-     :parents parents
-     :nodes-end (length nodes))))
+     :parents parents)))
 
 
 (defmacro with-concatenation-state (state &body body)
-  `(bind (((:structure concatenation-state-
-                       masks max-index nodes
-                       parents nodes-end)
+  `(bind (((:accessors (masks concatenation-state-masks)
+                       (max-index concatenation-state-max-index)
+                       (nodes concatenation-state-nodes)
+                       (parents concatenation-state-max-parents)
+                       (nodes-end concatenation-state-nodes-end))
            ,state))
      ,@body))
+
+
+(defun node (state index)
+  (declare (type concatenation-state state)
+           (type fixnum index))
+  (with-concatenation-state state
+    (gethash index nodes)))
 
 
 (defun shift-content (nodes parents)
