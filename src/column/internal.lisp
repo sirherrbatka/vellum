@@ -138,26 +138,30 @@
      ,@body))
 
 
-(defun node (state index)
+(-> node (concatenation-state fixnum fixnum)
+    cl-ds.common.rrb:sparse-rrb-node)
+(defun node (state column index)
   (declare (type concatenation-state state)
-           (type fixnum index))
+           (type fixnum index column))
   (with-concatenation-state (state)
-    (gethash index nodes)))
+    (gethash index (aref nodes column))))
 
 
+(-> mask (concatenation-state fixnum) cl-ds.common.rrb:sparse-rrb-mask)
 (defun mask (state index)
   (declare (type concatenation-state state)
            (type fixnum index))
   (with-concatenation-state (state)
-    (gethash masks index 0)))
+    (gethash index masks 0)))
 
-
+(-> space (concatenation-state fixnum) fixnum)
 (defun space (state index)
   (declare (type concatenation-state state)
            (type fixnum index))
   (logcount (mask state index)))
 
 
+(-> free-space (concatenation-state fixnum) fixnum)
 (defun free-space (state index)
   (declare (type concatenation-state state)
            (type fixnum index))
