@@ -172,6 +172,8 @@
            (free-space (- cl-ds.common.rrb:+maximum-children-count+
                           (logcount to-mask)))
            (required-space (logcount from-mask)))
+      (declare (type fixnum required-space free-space)
+               (type cl-ds.common.rrb:sparse-rrb-mask to-mask from-mask))
       (cond ((zerop required-space) 0)
             ((zerop free-space) 1)
         ))))
