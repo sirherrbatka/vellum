@@ -169,7 +169,8 @@
   (with-concatenation-state (state)
     (let* ((to-mask (mask state to))
            (from-mask (mask state from))
-           (free-space (logcount to-mask))
+           (free-space (- cl-ds.common.rrb:+maximum-children-count+
+                          (logcount to-mask)))
            (required-space (logcount from-mask)))
       (cond ((zerop required-space) 0)
             ((zerop free-space) 1)
