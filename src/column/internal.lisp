@@ -154,6 +154,7 @@
   (with-concatenation-state (state)
     (gethash index masks 0)))
 
+
 (-> space (concatenation-state fixnum) fixnum)
 (defun space (state index)
   (declare (type concatenation-state state)
