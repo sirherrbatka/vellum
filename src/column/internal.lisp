@@ -126,7 +126,7 @@
      :parents parents)))
 
 
-(defmacro with-concatenation-state (state &body body)
+(defmacro with-concatenation-state ((state) &body body)
   `(bind (((:accessors (masks concatenation-state-masks)
                        (max-index concatenation-state-max-index)
                        (nodes concatenation-state-nodes)
@@ -139,23 +139,43 @@
 (defun node (state index)
   (declare (type concatenation-state state)
            (type fixnum index))
-  (with-concatenation-state state
+  (with-concatenation-state (state)
     (gethash index nodes)))
 
 
+(defun space (state index)
+  (declare (type concatenation-state state)
+           (type fixnum index))
+  (with-concatenation-state (state)
+    (~>> nodes (gethash index) logcount)))
+
+
+(defun free-space (state index)
+  (declare (type concatenation-state state)
+           (type fixnum index))
+  (- cl-ds.common.rrb:+maximum-children-count+
+     (space state index)))
+
+
+(defun move-children (state from to)
+  (with-concatenation-state (state)
+    (let* ((free-space (free-space state to))
+           (required-space (space state from)))
+      (cond ((zerop required-space) 0)
+            ((zerop free-space) 1)
+        ))))
+
+
 (defun shift-content (nodes parents)
-  (bind (((:values masks max-index) (gather-masks nodes)))
+  (iterate
+    (with destination = 0)
+    (with state = (concatenation-state nodes parents))
+    (for i from 1 below (concatenation-state-max-index state))
     (iterate
-      (for prev-i from 0)
-      (for i from 1 below max-index)
-      (for mask = (mask masks i))
-      (for prev-mask = (mask masks prev-i))
-      (for size = (logcount mask))
-      (for prev-size = (logcount prev-mask))
-      (for free-space = (- cl-ds.common.rrb:+maximum-children-count+
-                           prev-size))
-      (unless (zerop free-space)
-        (move-children i prev-i free-space)))))
+      (for difference = (move-children state i destination))
+      (incf destination difference)
+      (until (or (zerop difference)
+                 (eql destination i))))))
 
 
 (defun concatenate-trees (iterator)
