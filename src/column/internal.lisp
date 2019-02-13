@@ -149,7 +149,7 @@
   (declare (type concatenation-state state)
            (type fixnum index))
   (with-concatenation-state (state)
-    (gethash masks index)))
+    (gethash masks index 0)))
 
 
 (defun space (state index)
