@@ -181,9 +181,7 @@
                (type cl-ds.common.rrb:sparse-rrb-mask to-mask from-mask))
       (cond ((zerop required-space) 0)
             ((zerop free-space) 1)
-            ((= required-space free-space)
-             cl-ds.utils:todo)
-            ((> free-space required-space)
+            ((>= free-space required-space)
              cl-ds.utils:todo)
             (t cl-ds.utils:todo)))))
 
