@@ -131,6 +131,14 @@
      :nodes-end (length nodes))))
 
 
+(defmacro with-concatenation-state (state &body body)
+  `(bind (((:structure concatenation-state-
+                       masks max-index nodes
+                       parents nodes-end)
+           ,state))
+     ,@body))
+
+
 (defun shift-content (nodes parents)
   (bind (((:values masks max-index) (gather-masks nodes)))
     (iterate
