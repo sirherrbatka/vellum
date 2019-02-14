@@ -394,7 +394,8 @@
               (setf (aref new-content index) child)
               (incf index))
             (if (cl-ds.common.abstract:acquire-ownership node tag)
-                cl-ds.utils:todo
+                (setf (cl-ds.common.rrb:sparse-rrb-node-content node)
+                      new-content)
                 (let ((parent-index (parent-index index)))
                   (setf (parent-changed current-state column parent-index) t)
                   cl-ds.utils:todo)))))))
