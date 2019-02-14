@@ -353,10 +353,13 @@
           child-position))
 
 
-(defun update-parents (state column)
+(defun update-parents (state current-state column)
   (with-concatenation-state (state)
     (iterate
       (with column-parents = (aref parents column))
+      (with tag = (~> columns
+                      (aref column)
+                      cl-ds.common.abstract:read-ownership-tag))
       (for (index changed) in-hashtable (aref changed-parents column))
       (for node = (gethash index column-parents))
       (for mask = 0)
@@ -366,8 +369,18 @@
         (for child = (node state column child-index))
         (setf mask (dpb 1 (byte 1 i) mask)))
       (if (zerop mask)
-          cl-ds.utils:todo
-          cl-ds.utils:todo))))
+          (progn
+            (setf (parent-changed current-state column
+                                  (parent-index index))
+                  t)
+            (remhash index column-parents))
+          (if (cl-ds.common.abstract:acquire-ownership node tag)
+              cl-ds.utils:todo
+              (progn
+                (setf (parent-changed current-state column
+                                      (parent-index index))
+                      t)
+                cl-ds.utils:todo))))))
 
 
 (defun concatenate-trees (iterator)
