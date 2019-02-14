@@ -396,9 +396,11 @@
             (if (cl-ds.common.abstract:acquire-ownership node tag)
                 (setf (cl-ds.common.rrb:sparse-rrb-node-content node)
                       new-content)
-                (let ((parent-index (parent-index index)))
-                  (setf (parent-changed current-state column parent-index) t)
-                  cl-ds.utils:todo)))))))
+                (let* ((parent-index (parent-index index))
+                       (new-node (make-node iterator column mask
+                                            :content new-content)))
+                  (setf (parent-changed current-state column parent-index) t
+                        (node current-state column index) new-node))))))))
 
 
 (defun concatenate-trees (iterator)
