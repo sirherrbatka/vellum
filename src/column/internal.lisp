@@ -343,7 +343,11 @@
       (for difference = (move-children state i destination))
       (until (zerop difference))
       (incf destination difference)
-      (until (eql destination i)))))
+      (until (eql destination i)))
+    (finally (return state))))
+
+
+(defun update-parents (state))
 
 
 (defun concatenate-trees (iterator)
@@ -352,10 +356,12 @@
          (depth (access-depth iterator))
          ((:labels impl (d nodes parents))
           (unless (eql d depth)
-            (impl (1+ d)
-                  (children (map 'vector #'children nodes))
-                  nodes))
-          (shift-content iterator columns nodes parents)))))
+            (let ((state
+                    (impl (1+ d)
+                          (children (map 'vector #'children nodes))
+                          nodes)))
+              (update-parents state)
+              (shift-content iterator columns nodes parents)))))))
 
 
 (defun remove-nulls-in-trees (iterator)
