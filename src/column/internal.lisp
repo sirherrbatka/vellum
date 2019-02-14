@@ -201,6 +201,11 @@
      (space state index)))
 
 
+(-> parent-index (fixnum) fixnum)
+(defun parent-index (child-index)
+  (ash child-index (- cl-ds.common.rrb:+bit-count+)))
+
+
 (-> move-children-in-column (concatenation-state
                              fixnum fixnum
                              cl-ds.common.rrb:sparse-rrb-mask
@@ -211,7 +216,9 @@
                                 to-mask column-index)
   (declare (ignore from-mask))
   (with-concatenation-state (state)
-    (bind ((column (aref columns column-index))
+    (bind ((from-parent (parent-index from))
+           (to-parent (parent-index to))
+           (column (aref columns column-index))
            (column-tag (cl-ds.common.abstract:read-ownership-tag column))
            (from-node (node state column-index from))
            (to-node (node state column-index to))
@@ -228,6 +235,8 @@
            (to-owned (and to-exists
                           (cl-ds.common.abstract:acquire-ownership
                            to-node column-tag))))
+      (setf (parent-changed state from-parent) t
+            (parent-changed state to-parent) t)
       (if to-exists
           (let* ((to-content (cl-ds.common.rrb:sparse-rrb-node-content to-node))
                  (to-size (length to-content))
