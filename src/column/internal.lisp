@@ -112,7 +112,7 @@
 
 (defstruct concatenation-state
   iterator
-  (changed-parents (make-hash-table) :type hash-table)
+  (changed-parents #() :type vector)
   (masks (make-hash-table) :type hash-table)
   (max-index 0 :type non-negative-fixnum)
   (nodes #() :type vector)
@@ -138,7 +138,7 @@
                        (iterator concatenation-state-iterator)
                        (nodes concatenation-state-nodes)
                        (columns concatenation-state-columns)
-                       (parents concatenation-state-max-parents)
+                       (parents concatenation-state-parents)
                        (nodes-end concatenation-state-nodes-end))
            ,state))
      ,@body))
@@ -171,19 +171,19 @@
     (gethash index masks 0)))
 
 
-(-> (setf parent-changed) (boolean concatenation-state fixnum) boolean)
-(defun (setf parent-changed) (new-value state parent-index)
+(-> (setf parent-changed) (boolean concatenation-state fixnum fixnum) boolean)
+(defun (setf parent-changed) (new-value state column parent-index)
   (with-concatenation-state (state)
     (if new-value
-        (setf (gethash parent-index changed-parents) t)
-        (remhash parent-index changed-parents))
+        (setf (gethash parent-index (aref changed-parents column)) t)
+        (remhash parent-index (aref changed-parents column)))
     new-value))
 
 
-(-> parent-changed (concatenation-state fixnum) boolean)
-(defun parent-changed (state parent-index)
+(-> parent-changed (concatenation-state fixnum fixnum) boolean)
+(defun parent-changed (state column parent-index)
   (with-concatenation-state (state)
-    (nth-value 0 (gethash parent-index changed-parents))))
+    (nth-value 0 (gethash parent-index (aref changed-parents column)))))
 
 
 (-> occupied-space (concatenation-state fixnum) fixnum)
@@ -236,8 +236,8 @@
                           (cl-ds.common.abstract:acquire-ownership
                            to-node column-tag))))
       (declare (type list from-node to-node))
-      (setf (parent-changed state from-parent) t
-            (parent-changed state to-parent) t)
+      (setf (parent-changed state column-index from-parent) t
+            (parent-changed state column-index to-parent) t)
       (if to-exists
           (let* ((to-content (cl-ds.common.rrb:sparse-rrb-node-content to-node))
                  (to-size (length to-content))
@@ -347,7 +347,23 @@
     (finally (return state))))
 
 
-(defun update-parents (state))
+(-> child-index (fixnum fixnum) fixnum)
+(defun child-index (parent-index child-position)
+  (logior (ash parent-index cl-ds.common.rrb:+bit-count+)
+          child-position))
+
+
+(defun update-parents (state column)
+  (with-concatenation-state (state)
+    (iterate
+      (with column-parents = (aref parents column))
+      (for (index changed) in-hashtable changed-parents)
+      (for node = (gethash index column-parents))
+      (for mask = 0)
+      (iterate
+        (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+        (for child-index = (child-index index i))
+        (for child = (node state column child-index))))))
 
 
 (defun concatenate-trees (iterator)
