@@ -235,6 +235,7 @@
            (to-owned (and to-exists
                           (cl-ds.common.abstract:acquire-ownership
                            to-node column-tag))))
+      (declare (type list from-node to-node))
       (setf (parent-changed state from-parent) t
             (parent-changed state to-parent) t)
       (if to-exists
@@ -258,7 +259,8 @@
                   (setf (aref to-content i) (aref from-content j))
                   (finally (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node)
                                  new-to-mask)))
-                (let ((new-content (make-array new-to-size :element-type element-type)))
+                (let ((new-content (make-array new-to-size
+                                               :element-type element-type)))
                   (iterate
                     (for i from 0 below to-size)
                     (setf (aref new-content i) (aref to-content i)))
