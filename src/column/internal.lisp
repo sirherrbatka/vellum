@@ -357,13 +357,17 @@
   (with-concatenation-state (state)
     (iterate
       (with column-parents = (aref parents column))
-      (for (index changed) in-hashtable changed-parents)
+      (for (index changed) in-hashtable (aref changed-parents column))
       (for node = (gethash index column-parents))
       (for mask = 0)
       (iterate
         (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
         (for child-index = (child-index index i))
-        (for child = (node state column child-index))))))
+        (for child = (node state column child-index))
+        (setf mask (dpb 1 (byte 1 i) mask)))
+      (if (zerop mask)
+          cl-ds.utils:todo
+          cl-ds.utils:todo))))
 
 
 (defun concatenate-trees (iterator)
