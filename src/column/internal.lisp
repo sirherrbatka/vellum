@@ -112,6 +112,7 @@
 
 (defstruct concatenation-state
   iterator
+  (changed-parents (make-hash-table) :type hash-table)
   (masks (make-hash-table) :type hash-table)
   (max-index 0 :type non-negative-fixnum)
   (nodes #() :type vector)
@@ -132,6 +133,7 @@
 
 (defmacro with-concatenation-state ((state) &body body)
   `(bind (((:accessors (masks concatenation-state-masks)
+                       (changed-parents concatenation-state-changed-parents)
                        (max-index concatenation-state-max-index)
                        (iterator concatenation-state-iterator)
                        (nodes concatenation-state-nodes)
@@ -167,6 +169,21 @@
            (type fixnum index))
   (with-concatenation-state (state)
     (gethash index masks 0)))
+
+
+(-> (setf parent-changed) (boolean concatenation-state fixnum) boolean)
+(defun (setf parent-changed) (new-value state parent-index)
+  (with-concatenation-state (state)
+    (if new-value
+        (setf (gethash parent-index changed-parents) t)
+        (remhash parent-index changed-parents))
+    new-value))
+
+
+(-> parent-changed (concatenation-state fixnum) boolean)
+(defun parent-changed (state parent-index)
+  (with-concatenation-state (state)
+    (nth-value 0 (gethash parent-index changed-parents))))
 
 
 (-> occupied-space (concatenation-state fixnum) fixnum)
