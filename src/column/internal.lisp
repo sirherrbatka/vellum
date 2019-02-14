@@ -374,11 +374,30 @@
                                   (parent-index index))
                   t)
             (remhash index column-parents))
-          (if (cl-ds.common.abstract:acquire-ownership node tag)
-              cl-ds.utils:todo
-              (let ((parent-index (parent-index index)))
-                (setf (parent-changed current-state column parent-index) t)
-                cl-ds.utils:todo))))))
+          (let ((new-content
+                  (~>> node
+                       cl-ds.common.rrb:sparse-rrb-node-content
+                       array-element-type
+                       (make-array (logcount mask) :element-type _))))
+            (iterate
+              (with new-content =
+                    (~>> node
+                         cl-ds.common.rrb:sparse-rrb-node-content
+                         array-element-type
+                         (make-array (logcount mask) :element-type _)))
+              (with index = 0)
+              (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+              (unless (ldb-test (byte 1 i) mask)
+                (next-iteration))
+              (for child-index = (child-index index i))
+              (for child = (node state column child-index))
+              (setf (aref new-content index) child)
+              (incf index))
+            (if (cl-ds.common.abstract:acquire-ownership node tag)
+                cl-ds.utils:todo
+                (let ((parent-index (parent-index index)))
+                  (setf (parent-changed current-state column parent-index) t)
+                  cl-ds.utils:todo)))))))
 
 
 (defun concatenate-trees (iterator)
