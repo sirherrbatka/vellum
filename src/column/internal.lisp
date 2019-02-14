@@ -395,7 +395,8 @@
                                                 nodes parents)))
               (iterate
                 (for i from 0 below (length nodes))
-                (update-parents state current-state i))))))))
+                (update-parents state current-state i))
+              current-state))))))
 
 
 (defun remove-nulls-in-trees (iterator)
