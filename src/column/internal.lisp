@@ -376,10 +376,8 @@
             (remhash index column-parents))
           (if (cl-ds.common.abstract:acquire-ownership node tag)
               cl-ds.utils:todo
-              (progn
-                (setf (parent-changed current-state column
-                                      (parent-index index))
-                      t)
+              (let ((parent-index (parent-index index)))
+                (setf (parent-changed current-state column parent-index) t)
                 cl-ds.utils:todo))))))
 
 
