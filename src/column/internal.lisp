@@ -390,9 +390,12 @@
             (let ((state
                     (impl (1+ d)
                           (children (map 'vector #'children nodes))
-                          nodes)))
-              (update-parents state)
-              (shift-content iterator columns nodes parents)))))))
+                          nodes))
+                  (current-state (shift-content iterator columns
+                                                nodes parents)))
+              (iterate
+                (for i from 0 below (length nodes))
+                (update-parents state current-state i))))))))
 
 
 (defun remove-nulls-in-trees (iterator)
