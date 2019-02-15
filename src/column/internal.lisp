@@ -437,6 +437,9 @@
   (declare (optimize (debug 3)))
   (bind ((columns (~>> iterator read-columns
                        (remove-if #'null _ :key #'column-root)))
+         (just-one-column (~> columns
+                              length
+                              (eql 1)))
          (depth (access-depth iterator))
          ((:flet truncate-mask (mask))
           (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0)
@@ -454,18 +457,23 @@
             (for i from 0)
             (for old-bitmask = (cl-ds.common.rrb:sparse-rrb-node-bitmask
                                 node))
-            (for this-missing = (~> old-bitmask truncate-mask))
-            (for unique-missing = (truncate-mask
-                                   (logandc2 this-missing missing-mask)))
-            (for new-bitmask = (~> (logxor old-bitmask missing-mask)
-                                   (logand unique-missing)
+            (for this-missing = (missing-bitmask node))
+            (for unique-missing = (if just-one-column
+                                      0
+                                      (~> this-missing
+                                          (logandc2 missing-mask)
+                                          truncate-mask)))
+            (for new-bitmask = (~> (logandc2 old-bitmask missing-mask)
+                                   (logandc2 unique-missing)
                                    truncate-mask))
+            (format t "~b:~b:~b~%" unique-missing new-bitmask old-bitmask)
             (assert (eql (logcount new-bitmask)
                          (logcount old-bitmask)))
             (unless (eql new-bitmask old-bitmask)
               (let* ((column (aref columns i))
                      (tag (cl-ds.common.abstract:read-ownership-tag column))
-                     (owned (cl-ds.common.abstract:acquire-ownership node tag)))
+                     (owned (cl-ds.common.abstract:acquire-ownership node
+                                                                     tag)))
                 (unless owned
                   (setf node (cl-ds.common.rrb:deep-copy-sparse-rrb-node node
                                                                          tag)
