@@ -229,7 +229,8 @@
 
 (defmethod (setf column-size) (new-size (column sparse-material-column))
   (check-type new-size non-negative-fixnum)
-  cl-ds.utils:todo)
+  (let ((current-size (access-column-size column)))
+    cl-ds.utils:todo))
 
 
 (defmethod remove-nulls ((iterator sparse-material-column-iterator))

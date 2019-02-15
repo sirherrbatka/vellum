@@ -762,4 +762,4 @@
       (finally
        (iterate
          (for column in-vector columns)
-         (setf (column-size column) maximum-size))))))
+         (setf (access-column-size column) maximum-size))))))
