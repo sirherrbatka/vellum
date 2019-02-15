@@ -737,3 +737,7 @@
     (if (cl-ds.meta:null-bucket-p root)
         nil
         root)))
+
+
+(defun trim-depth (iterator)
+  cl-ds.utils:todo)
