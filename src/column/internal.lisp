@@ -433,13 +433,18 @@
 
 
 (defun remove-nulls-in-trees (iterator)
+  (declare (optimize (debug 3)))
   (bind ((columns (~>> iterator read-columns
                        (remove-if #'null _ :key #'column-root)))
          (depth (access-depth iterator))
+         ((:flet truncate-mask (mask))
+          (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0)
+               mask))
          ((:flet missing-bitmask (node))
           (~> node
               cl-ds.common.rrb:sparse-rrb-node-bitmask
-              lognot))
+              lognot
+              truncate-mask))
          ((:labels impl (d nodes))
           (iterate
             (with missing-mask = (reduce #'logand nodes
@@ -448,10 +453,12 @@
             (for i from 0)
             (for old-bitmask = (cl-ds.common.rrb:sparse-rrb-node-bitmask
                                 node))
-            (for this-missing = (lognot old-bitmask))
-            (for unique-missing = (logandc2 this-missing missing-mask))
-            (for new-bitmask = (logand (logxor old-bitmask missing-mask)
-                                       unique-missing))
+            (for this-missing = (~> old-bitmask truncate-mask))
+            (for unique-missing = (truncate-mask
+                                   (logandc2 this-missing missing-mask)))
+            (for new-bitmask = (~> (logxor old-bitmask missing-mask)
+                                   (logand unique-missing)
+                                   truncate-mask))
             (assert (eql (logcount new-bitmask)
                          (logcount old-bitmask)))
             (unless (eql new-bitmask old-bitmask)

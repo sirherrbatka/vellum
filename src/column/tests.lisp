@@ -1,6 +1,6 @@
 (in-package #:cl-df.column)
 
-(prove:plan (+ 768 50))
+(prove:plan (+ 768 50 (- 256 50)))
 
 (let* ((column (make-sparse-material-column))
        (iterator (make-iterator column)))
