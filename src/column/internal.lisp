@@ -424,7 +424,12 @@
           (lret ((result (make-hash-table)))
             (setf (gethash 0 result) element)))
          (roots (map 'vector #'pack-root-into-hashtable columns)))
-    (impl 0 roots nil)))
+    (impl 0 roots nil)
+    (iterate
+      (for column in-vector columns)
+      (for root-table in-vector roots)
+      (for root = (gethash 0 root-table))
+      (setf (cl-ds.dicts.srrb:access-tree column) root))))
 
 
 (defun remove-nulls-in-trees (iterator)
