@@ -740,4 +740,10 @@
 
 
 (defun trim-depth (iterator)
-  cl-ds.utils:todo)
+  (bind ((columns (read-columns iterator))
+         (maximum-size (reduce #'max columns
+                               :key #'cl-ds.dicts.srrb:scan-index-bound))
+         (desired-depth (~> maximum-size
+                            integer-length
+                            (ceiling cl-ds.common.rrb:+bit-count+))))
+    cl-ds.utils:todo))
