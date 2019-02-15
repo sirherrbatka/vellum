@@ -741,9 +741,25 @@
 
 (defun trim-depth (iterator)
   (bind ((columns (read-columns iterator))
-         (maximum-size (reduce #'max columns
-                               :key #'cl-ds.dicts.srrb:scan-index-bound))
-         (desired-depth (~> maximum-size
-                            integer-length
-                            (ceiling cl-ds.common.rrb:+bit-count+))))
-    cl-ds.utils:todo))
+         ((:labels skip (node))
+          (if (or (cl-ds.meta:null-bucket-p node)
+                  (~> node
+                      cl-ds.common.rrb:sparse-rrb-node-bitmask
+                      (eql 1)
+                      not))
+              node
+              (skip (cl-ds.common.rrb:sparse-nref node 0)))))
+    (iterate
+      (for column in-vector columns)
+      (for tree-index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
+      (maximize tree-index-bound into maximum-size)
+      (for index-bound = (+ cl-ds.common.rrb:+maximum-children-count+
+                            tree-index-bound))
+      (for root = (cl-ds.dicts.srrb:access-tree column))
+      (setf (cl-ds.dicts.srrb:access-tree-index-bound column) tree-index-bound
+            (cl-ds.dicts.srrb:access-index-bound column) index-bound
+            (cl-ds.dicts.srrb:access-tree column) (skip root))
+      (finally
+       (iterate
+         (for column in-vector columns)
+         (setf (column-size column) maximum-size))))))
