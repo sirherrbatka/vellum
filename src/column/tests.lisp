@@ -56,7 +56,6 @@
       (prove:is (column-at column i) :null)))
   (setf iterator (make-iterator column))
   (remove-nulls iterator)
-  (finish-iterator iterator)
   (iterate
     (for i from 0 below (- 256 50))
     (for content = (column-at column i))
