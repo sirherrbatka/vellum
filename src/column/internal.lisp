@@ -116,7 +116,7 @@
   (masks (make-hash-table) :type hash-table)
   (max-index 0 :type non-negative-fixnum)
   (nodes #() :type vector)
-  (parents #() :type vector)
+  (parents #() :type (or null vector))
   (columns #() :type vector))
 
 
@@ -411,7 +411,7 @@
           (unless (eql d depth)
             (let ((state
                     (impl (1+ d)
-                          (children (map 'vector #'children nodes))
+                          (map 'vector #'children nodes)
                           nodes))
                   (current-state (shift-content iterator columns
                                                 nodes parents)))
@@ -422,7 +422,8 @@
               current-state)))
          ((:flet pack-root-into-hashtable (element))
           (lret ((result (make-hash-table)))
-            (setf (gethash 0 result) element)))
+            (setf (gethash 0 result)
+                  (cl-ds.dicts.srrb:access-tree element))))
          (roots (map 'vector #'pack-root-into-hashtable columns)))
     (impl 0 roots nil)
     (iterate
