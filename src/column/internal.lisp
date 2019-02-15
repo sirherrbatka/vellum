@@ -415,10 +415,16 @@
                           nodes))
                   (current-state (shift-content iterator columns
                                                 nodes parents)))
-              (iterate
-                (for i from 0 below (length nodes))
-                (update-parents state current-state i))
-              current-state))))))
+              (unless (null parents)
+                (iterate
+                  (for i from 0 below (length nodes))
+                  (update-parents state current-state i)))
+              current-state)))
+         ((:flet pack-root-into-hashtable (element))
+          (lret ((result (make-hash-table)))
+            (setf (gethash 0 result) element)))
+         (roots (map 'vector #'pack-root-into-hashtable columns)))
+    (impl 0 roots nil)))
 
 
 (defun remove-nulls-in-trees (iterator)
