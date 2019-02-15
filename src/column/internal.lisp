@@ -466,7 +466,9 @@
             (for new-bitmask = (~> (logandc2 old-bitmask missing-mask)
                                    (logandc2 unique-missing)
                                    truncate-mask))
-            (format t "~b:~b:~b~%" unique-missing new-bitmask old-bitmask)
+            (format t "~b:~b:~b:~b~%"
+                    unique-missing new-bitmask
+                    old-bitmask missing-mask)
             (assert (eql (logcount new-bitmask)
                          (logcount old-bitmask)))
             (unless (eql new-bitmask old-bitmask)
