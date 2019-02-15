@@ -437,12 +437,13 @@
   (declare (optimize (debug 3)))
   (bind ((columns (~>> iterator read-columns
                        (remove-if #'null _ :key #'column-root)))
-         (just-one-column (~> columns
-                              length
-                              (eql 1)))
          (depth (access-depth iterator))
          ((:flet truncate-mask (mask))
-          (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0)
+          (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
+         ((:flet truncate-mask-to (mask removed-count))
+          (ldb (byte (- cl-ds.common.rrb:+maximum-children-count+
+                        removed-count)
+                     0)
                mask))
          ((:flet missing-bitmask (node))
           (~> node
@@ -453,22 +454,16 @@
           (iterate
             (with missing-mask = (reduce #'logand nodes
                                          :key #'missing-bitmask))
+            (with missing-count = (logcount missing-mask))
             (for node in-vector nodes)
             (for i from 0)
             (for old-bitmask = (cl-ds.common.rrb:sparse-rrb-node-bitmask
                                 node))
-            (for this-missing = (missing-bitmask node))
-            (for unique-missing = (if just-one-column
-                                      0
-                                      (~> this-missing
-                                          (logandc2 missing-mask)
-                                          truncate-mask)))
-            (for new-bitmask = (~> (logandc2 old-bitmask missing-mask)
-                                   (logandc2 unique-missing)
+            (for new-bitmask = (~> (logior old-bitmask missing-mask)
+                                   (ash (- missing-count))
                                    truncate-mask))
-            (format t "~b:~b:~b:~b~%"
-                    unique-missing new-bitmask
-                    old-bitmask missing-mask)
+            (format t "~b:~b:~b~%"
+                    old-bitmask new-bitmask missing-mask)
             (assert (eql (logcount new-bitmask)
                          (logcount old-bitmask)))
             (unless (eql new-bitmask old-bitmask)
