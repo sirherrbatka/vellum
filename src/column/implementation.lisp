@@ -200,7 +200,8 @@
                                              position
                                              &rest all
                                              &key value)
-  (declare (ignore all))
+  (declare (ignore all)
+           (optimize (debug 3)))
   (check-type position non-negative-integer)
   (when (eql value :null)
     (error 'setting-to-null

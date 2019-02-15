@@ -66,6 +66,7 @@
              :type vector
              :initform (vect)
              :reader read-buffers)
-   (%changes :initarg :change-mask
-             :type (vector boolean)
-             :accessor read-changes)))
+   (%changes :initarg :changes
+             :initform (vect)
+             :type vector
+             :reader read-changes)))
