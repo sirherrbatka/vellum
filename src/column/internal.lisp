@@ -386,17 +386,18 @@
                        array-element-type
                        (make-array (logcount mask) :element-type _))))
             (iterate
-              (with index = 0)
+              (with content-position = 0)
               (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
               (unless (ldb-test (byte 1 i) mask)
                 (next-iteration))
               (for child-index = (child-index index i))
               (for child = (node state column child-index))
-              (setf (aref new-content index) child)
-              (incf index))
+              (setf (aref new-content content-position) child)
+              (incf content-position))
             (if (cl-ds.common.abstract:acquire-ownership parent tag)
                 (setf (cl-ds.common.rrb:sparse-rrb-node-content parent)
-                      new-content)
+                      new-content
+                      (cl-ds.common.rrb:sparse-rrb-node-bitmask parent) mask)
                 (let* ((parent-index (parent-index index))
                        (new-node (make-node iterator column mask
                                             :content new-content)))
@@ -405,6 +406,7 @@
 
 
 (defun concatenate-trees (iterator)
+  (declare (optimize (debug 3)))
   (bind ((columns (~>> iterator read-columns
                        (remove-if #'null _ :key #'column-root)))
          (depth (access-depth iterator))
@@ -413,6 +415,7 @@
                                                     columns
                                                     nodes
                                                     parent-state)))
+            (break)
             (unless (eql d depth)
               (impl (1+ d)
                     (map 'vector #'children nodes)
@@ -422,6 +425,7 @@
               (iterate
                 (for i from 0 below (length nodes))
                 (update-parents current-state i)))
+            (break)
             current-state))
          ((:flet pack-root-into-hashtable (element))
           (lret ((result (make-hash-table)))
