@@ -1,6 +1,6 @@
 (in-package #:cl-df.column)
 
-(prove:plan (+ 768 50 256))
+(prove:plan (+ 768 50 256 1))
 
 (let* ((column (make-sparse-material-column))
        (iterator (make-iterator column)))
@@ -38,7 +38,8 @@
     (prove:is (column-at column i) j)))
 
 (let* ((column (make-sparse-material-column))
-       (iterator (make-iterator column)))
+       (iterator (make-iterator column))
+       (not-deleted (make-hash-table)))
   (iterate
     (for i from 0 below 256)
     (setf (iterator-at iterator 0) i)
@@ -59,7 +60,9 @@
   (iterate
     (for i from 0 below (- 256 50))
     (for content = (column-at column i))
+    (setf (gethash content not-deleted) t)
     (prove:isnt content :null))
+  (prove:is (hash-table-count not-deleted) (- 256 50))
   (iterate
     (for i from (- 256 50) below 256)
     (for content = (column-at column i))
