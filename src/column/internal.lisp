@@ -93,10 +93,6 @@
                 (cl-ds.common.rrb:sparse-nref n i)))))))
 
 
-(defun mask (table index)
-  (gethash index table 0))
-
-
 (defun gather-masks (nodes)
   (iterate outer
     (with result = (make-hash-table))
@@ -177,6 +173,11 @@
     (gethash index masks 0)))
 
 
+(defun (setf mask) (mask state index)
+  (with-concatenation-state (state)
+    (setf (gethash index masks) mask)))
+
+
 (-> (setf parent-changed) (boolean concatenation-state fixnum fixnum) boolean)
 (defun (setf parent-changed) (new-value state column parent-index)
   (unless (null state)
@@ -213,6 +214,82 @@
   (ash child-index (- cl-ds.common.rrb:+bit-count+)))
 
 
+(define-symbol-macro mask-bytes (byte cl-ds.common.rrb:+maximum-children-count+ 0))
+
+
+(defun move-to-existing-column (state from to from-mask to-mask column-index)
+  (with-concatenation-state (state)
+    (bind ((column (aref columns column-index))
+           (column-tag (cl-ds.common.abstract:read-ownership-tag column))
+           (from-node (node state column-index from))
+           (to-node (node state column-index to))
+           (free-space (- cl-ds.common.rrb:+maximum-children-count+
+                          (logcount to-mask)))
+           (from-content (cl-ds.common.rrb:sparse-rrb-node-content from-node))
+           (from-size (cl-ds.common.rrb:sparse-rrb-node-size from-node))
+           (element-type (array-element-type from-content))
+           (from-owned (cl-ds.common.abstract:acquire-ownership
+                        from-node column-tag))
+           (to-owned (cl-ds.common.abstract:acquire-ownership
+                      to-node column-tag))
+           (to-content (cl-ds.common.rrb:sparse-rrb-node-content to-node))
+           (to-size (cl-ds.common.rrb:sparse-rrb-node-size to-node))
+           (real-to-mask (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node))
+           (real-from-mask (cl-ds.common.rrb:sparse-rrb-node-bitmask from-node))
+           (shift-value (min free-space (logcount real-from-mask)))
+           (shifted-children-mask (ldb (byte shift-value 0) real-from-mask))
+           (shifted-from-mask (ash shifted-children-mask shift-value))
+           (shifted-count (logcount shifted-from-mask))
+           (new-from-mask (ash real-from-mask (- free-space)))
+           (new-to-mask (ldb mask-bytes
+                             (logior real-to-mask shifted-from-mask)))
+           (new-to-size (logcount new-to-mask)))
+      (declare (type list from-node to-node))
+      (when (zerop new-from-mask)
+        (setf (node state column-index from) nil))
+      (if (and to-owned (>= to-size new-to-size))
+          (iterate
+            (for j from 0 below from-size)
+            (for i from (logcount to-mask) below to-size)
+            (repeat shifted-count)
+            (setf (aref to-content i) (aref from-content j))
+            (finally (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node)
+                           new-to-mask)))
+          (let ((new-content (make-array new-to-size
+                                         :element-type element-type)))
+            (assert (not (= new-to-size to-size)))
+            (iterate
+              (for i from 0 below to-size)
+              (setf (aref new-content i) (aref to-content i)))
+            (iterate
+              (for i from to-size below new-to-size)
+              (for j from 0)
+              (setf (aref new-content i) (aref from-content j)))
+            (setf (node state column-index to)
+                  (make-node iterator column new-to-mask
+                             :content new-content))))
+      (cond ((zerop new-from-mask)
+             (setf (node state column-index from) nil))
+            (from-owned
+             (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask from-node)
+                   new-from-mask)
+             (iterate
+               (with new-from-size = (logcount new-from-mask))
+               (for i from (- from-size new-from-size) below from-size)
+               (for j from 0 below new-from-size)
+               (setf (aref from-content j) (aref from-content i))))
+            (t (let* ((new-from (make-node iterator
+                                           column new-from-mask
+                                           :type element-type))
+                      (new-content (cl-ds.common.rrb:sparse-rrb-node-content
+                                    new-from)))
+                 (iterate
+                   (for i from shifted-count)
+                   (for j from 0 below (logcount new-from-mask))
+                   (setf (aref new-content j) (aref from-content i)))
+                 (setf (node state column-index from) new-from)))))))
+
+
 (-> move-children-in-column (concatenation-state
                              fixnum fixnum
                              cl-ds.common.rrb:sparse-rrb-mask
@@ -229,91 +306,22 @@
            (column-tag (cl-ds.common.abstract:read-ownership-tag column))
            (from-node (node state column-index from))
            (to-node (node state column-index to))
-           (free-space (- cl-ds.common.rrb:+maximum-children-count+
-                          (logcount to-mask)))
-           (from-exists t) ; from is always supposed to be there
-           (from-content (cl-ds.common.rrb:sparse-rrb-node-content from-node))
-           (from-size (cl-ds.common.rrb:sparse-rrb-node-size from-node))
-           (element-type (array-element-type from-content))
            (to-exists (not (null to-node)))
-           (from-owned (and from-exists
-                            (cl-ds.common.abstract:acquire-ownership
-                             from-node column-tag)))
-           (to-owned (and to-exists
-                          (cl-ds.common.abstract:acquire-ownership
-                           to-node column-tag))))
+           (from-owned (cl-ds.common.abstract:acquire-ownership
+                        from-node column-tag)))
       (declare (type list from-node to-node))
       (setf (parent-changed state column-index from-parent) t
             (parent-changed state column-index to-parent) t)
       (if to-exists
-          (let* ((to-content (cl-ds.common.rrb:sparse-rrb-node-content to-node))
-                 (to-size (cl-ds.common.rrb:sparse-rrb-node-size to-node))
-                 (real-to-mask (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node))
-                 (real-from-mask (cl-ds.common.rrb:sparse-rrb-node-bitmask from-node))
-                 (shift-value (min free-space (logcount real-from-mask)))
-                 (shifted-children-mask (ldb (byte shift-value 0) real-from-mask))
-                 (shifted-from-mask (ash shifted-children-mask shift-value))
-                 (shifted-count (logcount shifted-from-mask))
-                 (new-from-mask (ash real-from-mask (- free-space)))
-                 (new-to-mask (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0)
-                                   (logior real-to-mask shifted-from-mask)))
-                 (new-to-size (logcount new-to-mask)))
-            (format t "~b ~b ~b ~b ~b ~a ~b~%"
-                    new-from-mask new-to-mask
-                    real-from-mask real-to-mask
-                    shifted-from-mask
-                    free-space
-                    shifted-children-mask)
-            (when (zerop new-from-mask)
-              (setf (node state column-index from) nil))
-            (if (and to-owned (>= to-size new-to-size))
-                (iterate
-                  (for j from 0 below from-size)
-                  (for i from (logcount real-to-mask) below to-size)
-                  (repeat shifted-count)
-                  (setf (aref to-content i) (aref from-content j))
-                  (finally (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node)
-                                 new-to-mask)))
-                (let ((new-content (make-array new-to-size
-                                               :element-type element-type)))
-                  (assert (not (= new-to-size to-size)))
-                  (iterate
-                    (for i from 0 below to-size)
-                    (setf (aref new-content i) (aref to-content i)))
-                  (iterate
-                    (for i from to-size below new-to-size)
-                    (for j from 0)
-                    (setf (aref new-content i) (aref from-content j)))
-                  (setf (node state column-index to)
-                        (make-node iterator column new-to-mask
-                                   :content new-content))))
-            (cond ((zerop new-from-mask)
-                   (setf (node state column-index from) nil))
-                  (from-owned
-                   (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask from-node)
-                         new-from-mask)
-                   (iterate
-                     (with new-from-size = (logcount new-from-mask))
-                     (for i from (- from-size new-from-size) below from-size)
-                     (for j from 0 below new-from-size)
-                     (setf (aref from-content j) (aref from-content i))))
-                  (t (let* ((new-from (make-node iterator
-                                                 column new-from-mask
-                                                 :type element-type))
-                            (new-content (cl-ds.common.rrb:sparse-rrb-node-content
-                                          new-from)))
-                       (iterate
-                         (for i from shifted-count)
-                         (for j from 0 below (logcount new-from-mask))
-                         (setf (aref new-content j) (aref from-content i)))
-                       (setf (node state column-index from) new-from)))))
-          (progn
-            (setf (node state column-index to)
-                  (if from-owned
-                      from-node
-                      (cl-ds.common.rrb:deep-copy-sparse-rrb-node
-                       from-node column-tag))
-                  (node state column-index from) nil))))))
+          (move-to-existing-column state from to
+                                   from-mask to-mask
+                                   column-index)
+          (setf (node state column-index to)
+                (if from-owned
+                    from-node
+                    (cl-ds.common.rrb:deep-copy-sparse-rrb-node
+                     from-node 0 column-tag))
+                (node state column-index from) nil)))))
 
 
 (-> move-children-in-columns (concatenation-state
@@ -329,6 +337,7 @@
 
 
 (defun move-children (state from to)
+  (declare (optimize (debug 3)))
   (with-concatenation-state (state)
     (let* ((to-mask (mask state to))
            (from-mask (mask state from))
@@ -337,20 +346,27 @@
            (required-space (logcount from-mask)))
       (declare (type fixnum required-space free-space)
                (type cl-ds.common.rrb:sparse-rrb-mask to-mask from-mask))
-      (cond ((zerop required-space) 0)
-            ((zerop free-space) 1)
-            ((>= free-space required-space)
-             (move-children-in-columns state
-                                       from to
-                                       from-mask
-                                       to-mask)
-             0)
-            (t
-             (move-children-in-columns state
-                                       from to
-                                       from-mask
-                                       to-mask)
-             1)))))
+      (prog1
+          (cond ((zerop required-space) 0)
+                ((zerop free-space) 1)
+                ((>= free-space required-space)
+                 (move-children-in-columns state
+                                           from to
+                                           from-mask
+                                           to-mask)
+                 0)
+                (t
+                 (move-children-in-columns state
+                                           from to
+                                           from-mask
+                                           to-mask)
+                 1))
+        (setf (mask state from) (ash from-mask (- free-space))
+              (mask state to) (ldb mask-bytes
+                                   (logior to-mask
+                                           (ash from-mask
+                                                (min free-space
+                                                     required-space)))))))))
 
 
 (defun shift-content (state)
