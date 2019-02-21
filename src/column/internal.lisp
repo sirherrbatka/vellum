@@ -223,8 +223,9 @@
            (column-tag (cl-ds.common.abstract:read-ownership-tag column))
            (from-node (node state column-index from))
            (to-node (node state column-index to))
+           (taken (logcount to-mask))
            (free-space (- cl-ds.common.rrb:+maximum-children-count+
-                          (logcount to-mask)))
+                          taken))
            (from-content (cl-ds.common.rrb:sparse-rrb-node-content from-node))
            (from-size (cl-ds.common.rrb:sparse-rrb-node-size from-node))
            (element-type (array-element-type from-content))
@@ -236,9 +237,7 @@
            (to-size (cl-ds.common.rrb:sparse-rrb-node-size to-node))
            (real-to-mask (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node))
            (real-from-mask (cl-ds.common.rrb:sparse-rrb-node-bitmask from-node))
-           (shift-value (min free-space (logcount real-from-mask)))
-           (shifted-children-mask (ldb (byte shift-value 0) real-from-mask))
-           (shifted-from-mask (ash shifted-children-mask shift-value))
+           (shifted-from-mask (ldb mask-bytes (ash real-from-mask taken)))
            (shifted-count (logcount shifted-from-mask))
            (new-from-mask (ash real-from-mask (- free-space)))
            (new-to-mask (ldb mask-bytes
@@ -307,9 +306,12 @@
            (from-node (node state column-index from))
            (to-node (node state column-index to))
            (to-exists (not (null to-node)))
+           (from-exists (not (null from-node)))
            (from-owned (cl-ds.common.abstract:acquire-ownership
                         from-node column-tag)))
       (declare (type list from-node to-node))
+      (unless from-exists
+        (return-from move-children-in-column nil))
       (setf (parent-changed state column-index from-parent) t
             (parent-changed state column-index to-parent) t)
       (if to-exists
@@ -321,7 +323,8 @@
                     from-node
                     (cl-ds.common.rrb:deep-copy-sparse-rrb-node
                      from-node 0 column-tag))
-                (node state column-index from) nil)))))
+                (node state column-index from) nil))
+      nil)))
 
 
 (-> move-children-in-columns (concatenation-state
@@ -341,8 +344,9 @@
   (with-concatenation-state (state)
     (let* ((to-mask (mask state to))
            (from-mask (mask state from))
+           (taken (logcount to-mask))
            (free-space (- cl-ds.common.rrb:+maximum-children-count+
-                          (logcount to-mask)))
+                          taken))
            (required-space (logcount from-mask)))
       (declare (type fixnum required-space free-space)
                (type cl-ds.common.rrb:sparse-rrb-mask to-mask from-mask))
@@ -364,9 +368,7 @@
         (setf (mask state from) (ash from-mask (- free-space))
               (mask state to) (ldb mask-bytes
                                    (logior to-mask
-                                           (ash from-mask
-                                                (min free-space
-                                                     required-space)))))))))
+                                           (ash from-mask taken))))))))
 
 
 (defun shift-content (state)
