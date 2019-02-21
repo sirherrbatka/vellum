@@ -62,10 +62,6 @@
     (for content = (column-at column i))
     (setf (gethash content not-deleted) t)
     (prove:isnt content :null))
-  (prove:is (hash-table-count not-deleted) (- 256 50))
-  (iterate
-    (for i from (- 256 50) below 256)
-    (for content = (column-at column i))
-    (prove:is content :null)))
+  (prove:is (hash-table-count not-deleted) (- 256 50)))
 
 (prove:finalize)
