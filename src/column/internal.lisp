@@ -255,7 +255,6 @@
                         from-node column-tag))
            (to-owned (cl-ds.common.abstract:acquire-ownership
                       to-node column-tag))
-           (to-size (logcount to-mask))
            (to-content (cl-ds.common.rrb:sparse-rrb-node-content to-node))
            (real-to-size (cl-ds.common.rrb:sparse-rrb-node-size to-node))
            (real-to-mask (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node))
@@ -284,7 +283,7 @@
                            new-to-mask)))
           (let ((new-content (make-array new-to-size
                                          :element-type element-type)))
-            (assert (> new-to-size to-size))
+            (assert (> new-to-size taken))
             (iterate
               (for i from 0 below real-to-size)
               (setf (aref new-content i) (aref to-content i)))
