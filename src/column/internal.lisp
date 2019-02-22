@@ -273,10 +273,11 @@
       (assert (<= (logcount new-from-mask) (logcount from-mask)))
       (when (zerop new-from-mask)
         (setf (node state column-index from) nil))
-      (if (and to-owned (>= to-size new-to-size))
+      (if (and to-owned
+               (>= (length to-content) new-to-size))
           (iterate
             (for j from 0 below from-size)
-            (for i from (logcount to-mask) below to-size)
+            (for i from (logcount real-to-mask) below (length to-content))
             (repeat shifted-count)
             (setf (aref to-content i) (aref from-content j))
             (finally (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node)
