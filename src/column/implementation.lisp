@@ -143,8 +143,15 @@
     (for column-size = (column-size column))
     (for shift = (cl-ds.dicts.srrb:access-shift column))
     (for stack in-vector (read-stacks iterator))
-    (setf (cl-ds.dicts.srrb:access-tree column) (first-elt stack)
-          (cl-ds.dicts.srrb:access-shift column) (max shift depth))
+    (for tree-shift = (max shift depth))
+    (for size = (if (first-elt stack)
+                    (~> stack first-elt
+                        (cl-ds.common.rrb:sparse-rrb-tree-size tree-shift))
+                    0))
+    (setf (cl-ds.dicts.srrb:access-tree column) (or (first-elt stack)
+                                                    cl-ds.meta:null-bucket)
+          (cl-ds.dicts.srrb:access-tree-size column) size
+          (cl-ds.dicts.srrb:access-shift column) tree-shift)
     (for index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
     (setf (cl-ds.dicts.srrb:access-tree-index-bound column) index-bound
           (access-column-size column) (max column-size index)
