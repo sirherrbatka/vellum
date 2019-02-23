@@ -6,7 +6,8 @@
 
 
 (defclass standard-header ()
-  ((%column-names :type hash-table
-                  :initarg :column-names
-                  :initform (make-hash-table :test 'eql
-                                             :size 128))))
+  ((%column-aliases :type hash-table
+                    :initarg :column-aliases
+                    :reader read-column-aliases
+                    :initform (make-hash-table :test 'eql
+                                               :size 128))))

@@ -26,7 +26,8 @@
                (:module "header"
                 :components ((:file "package")
                              (:file "protocol")
-                             (:file "types")))
+                             (:file "types")
+                             (:file "implementation")))
                (:module "table"
                 :components ((:file "package")
                              (:file "generics")))
