@@ -4,3 +4,5 @@
 (defgeneric alias-to-index (header alias))
 
 (defgeneric index-to-alias (header index))
+
+(defgeneric make-header (class &rest columns))

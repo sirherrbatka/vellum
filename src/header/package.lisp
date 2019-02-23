@@ -8,4 +8,5 @@
    #:alias-to-index
    #:fundamental-header
    #:index-to-alias
+   #:make-header
    #:standard-header))
