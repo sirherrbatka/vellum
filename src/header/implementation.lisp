@@ -14,3 +14,8 @@
     (declare (type fixnum i))
     (for (alias i) in-hashtable (read-column-aliases header))
     (finding alias such-that (= index i))))
+
+
+(defmethod make-header ((class (eql 'standard-header))
+                        &rest columns)
+  cl-ds.utils:todo)

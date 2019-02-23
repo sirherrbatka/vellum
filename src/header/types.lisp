@@ -10,4 +10,7 @@
                     :initarg :column-aliases
                     :reader read-column-aliases
                     :initform (make-hash-table :test 'eql
-                                               :size 128))))
+                                               :size 128))
+   (%column-types :type simple-vector
+                  :initarg :column-types
+                  :reader read-column-types)))
