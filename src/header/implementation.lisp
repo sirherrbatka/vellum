@@ -6,3 +6,11 @@
   (nth-value 0 (~>> header
                     read-column-aliases
                     (gethash alias))))
+
+
+(defmethod index-to-alias ((header standard-header)
+                           (index integer))
+  (iterate
+    (declare (type fixnum i))
+    (for (alias i) in-hashtable (read-column-aliases header))
+    (finding alias such-that (= index i))))
