@@ -124,7 +124,8 @@
                       (read-stacks iterator))
   (initialize-iterator-column column
                               (~> iterator read-stacks last-elt)
-                              (~> iterator read-buffers last-elt)))
+                              (~> iterator read-buffers last-elt))
+  iterator)
 
 
 (defmethod make-iterator ((column sparse-material-column))
