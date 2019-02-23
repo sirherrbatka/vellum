@@ -24,7 +24,9 @@
                              (:file "implementation")
                              (:test-file "tests")))
                (:module "header"
-                :components ((:file "package")))
+                :components ((:file "package")
+                             (:file "protocol")
+                             (:file "types")))
                (:module "table"
                 :components ((:file "package")
                              (:file "generics")))
