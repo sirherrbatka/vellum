@@ -106,8 +106,28 @@
     nil))
 
 
+(defmethod augment-iterator ((iterator sparse-material-column-iterator)
+                             (column sparse-material-column))
+  (cl-ds.dicts.srrb:transactional-insert-tail!
+   column (cl-ds.common.abstract:read-ownership-tag column))
+  (vector-push-extend column (read-columns iterator))
+  (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+)
+                      (read-buffers iterator))
+  (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+
+                                  :initial-element nil
+                                  :element-type 'boolean)
+                      (read-changes iterator))
+  (assert (= (access-depth iterator)
+             (cl-ds.dicts.srrb:access-shift column)))
+  (vector-push-extend (make-array cl-ds.common.rrb:+maximal-shift+
+                                  :initial-element nil)
+                      (read-stacks iterator))
+  (initialize-iterator-column column
+                              (~> iterator read-stacks last-elt)
+                              (~> iterator read-buffers last-elt)))
+
+
 (defmethod make-iterator ((column sparse-material-column))
-  (declare (optimize (debug 3)))
   (cl-ds.dicts.srrb:transactional-insert-tail!
    column (cl-ds.common.abstract:read-ownership-tag column))
   (lret ((result (make 'sparse-material-column-iterator)))
