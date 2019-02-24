@@ -1,7 +1,7 @@
 (in-package #:cl-df.column)
 
 
-(defclass fundamental-column ()
+(defclass fundamental-column (cl-ds:traversable)
   ())
 
 
