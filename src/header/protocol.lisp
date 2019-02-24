@@ -5,4 +5,6 @@
 
 (defgeneric index-to-alias (header index))
 
+(defgeneric column-type (header column))
+
 (defgeneric make-header (class &rest columns))
