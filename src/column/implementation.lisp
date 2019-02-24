@@ -280,3 +280,8 @@
       make-sparse-material-column-range
       (cl-ds:traverse function))
   container)
+
+
+(defmethod cl-ds:traverse ((container sparse-material-column)
+                           function)
+  (cl-ds:traverse container function))
