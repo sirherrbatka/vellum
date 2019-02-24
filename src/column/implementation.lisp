@@ -276,5 +276,7 @@
 
 (defmethod cl-ds:across ((container sparse-material-column)
                          function)
-  (~> container cl-ds:whole-range (cl-ds:traverse function))
+  (~> container
+      make-sparse-material-column-range
+      (cl-ds:traverse function))
   container)
