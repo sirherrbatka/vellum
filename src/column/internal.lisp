@@ -839,3 +839,65 @@
        (iterate
          (for column in-vector columns)
          (setf (access-column-size column) maximum-size))))))
+
+
+(defclass sparse-material-column-range (cl-ds:fundamental-forward-range)
+  ((%iterator :initarg :iterator
+              :accessor access-iterator)
+   (%column :initarg :column
+            :reader read-column)
+   (%position :initarg :position
+              :accessor access-position)
+   (%initial-position :initarg :position
+                      :reader read-initial-position)))
+
+
+(defun range-iterator (range position)
+  (lret ((iterator (~> range read-column make-iterator)))
+    (move-iterator iterator position)))
+
+
+(defmethod cl-ds:reset! ((range sparse-material-column-range))
+  (setf (access-iterator range) (range-iterator range
+                                                (read-initial-position range))
+        (access-position range) (read-initial-position range))
+  range)
+
+
+(defmethod cl-ds:clone ((range sparse-material-column-range))
+  (make 'sparse-material-column
+        :iterator (range-iterator range
+                                  (access-position range))
+        :column (read-column range)
+        :position (access-position range)))
+
+
+(defmethod cl-ds:consume-front ((range sparse-material-column-range))
+  (let* ((iterator (access-iterator range))
+         (column (read-column range))
+         (position (access-position range))
+         (more (< position (column-size column))))
+    (values (if more
+                (progn
+                  (setf (access-position range) (1+ position))
+                  (iterator-at iterator 0))
+                nil)
+            more)))
+
+
+(defmethod cl-ds:peek-front ((range sparse-material-column-range))
+  (let* ((iterator (access-iterator range))
+         (column (read-column range))
+         (position (access-position range))
+         (more (< position (column-size column))))
+    (values (if more
+                (iterator-at iterator 0)
+                nil)
+            more)))
+
+
+(defun make-sparse-material-column-range (column)
+  (make 'sparse-material-column-range
+        :iterator (make-iterator column)
+        :column column
+        :position 0))

@@ -269,3 +269,7 @@
     (trim-depth iterator)
     nil
     ))
+
+
+(defmethod cl-ds:whole-range ((container sparse-material-column))
+  (make-sparse-material-column-range container))
