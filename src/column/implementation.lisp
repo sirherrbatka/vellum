@@ -267,9 +267,13 @@
     (remove-nulls-in-trees iterator)
     (concatenate-trees iterator)
     (trim-depth iterator)
-    nil
-    ))
+    nil))
 
 
 (defmethod cl-ds:whole-range ((container sparse-material-column))
   (make-sparse-material-column-range container))
+
+
+(defmethod cl-ds:across ((container sparse-material-column)
+                         function)
+  (~> container cl-ds:whole-range (cl-ds:traverse function)))
