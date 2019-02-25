@@ -1,6 +1,6 @@
 (in-package #:cl-df.column)
 
-(prove:plan 1025)
+(prove:plan 1232)
 
 (let* ((column (make-sparse-material-column))
        (iterator (make-iterator column)))
@@ -62,6 +62,11 @@
     (for content = (column-at column i))
     (setf (gethash content not-deleted) t)
     (prove:isnt content :null))
-  (prove:is (hash-table-count not-deleted) (- 256 50)))
+  (prove:is (hash-table-count not-deleted) (- 256 50))
+  (let ((vector-data (cl-ds.alg:to-vector column)))
+    (prove:is (length vector-data) (- 256 50))
+    (iterate
+      (for i from 0 below (- 256 50))
+      (prove:is (aref vector-data i) (column-at column i)))))
 
 (prove:finalize)

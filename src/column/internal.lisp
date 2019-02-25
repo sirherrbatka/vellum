@@ -878,9 +878,10 @@
          (position (access-position range))
          (more (< position (column-size column))))
     (values (if more
-                (progn
+                (prog1
+                    (iterator-at iterator 0)
                   (setf (access-position range) (1+ position))
-                  (iterator-at iterator 0))
+                  (move-iterator iterator 1))
                 nil)
             more)))
 
