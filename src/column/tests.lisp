@@ -1,6 +1,6 @@
 (in-package #:cl-df.column)
 
-(prove:plan 1233)
+(prove:plan 1745)
 
 (let* ((column (make-sparse-material-column))
        (iterator (make-iterator column)))
@@ -69,5 +69,22 @@
       (for i from 0 below (- 256 50))
       (prove:is (aref vector-data i) (column-at column i))))
   (prove:is (column-size column) (- 256 50)))
+
+(let* ((column1 (make-sparse-material-column))
+       (column2 (make-sparse-material-column))
+       (iterator (make-iterator column1)))
+  (augment-iterator iterator column2)
+  (iterate
+    (for i from 0 below 256)
+    (for j from 512)
+    (setf (iterator-at iterator 0) i)
+    (setf (iterator-at iterator 1) j)
+    (move-iterator iterator 1))
+  (finish-iterator iterator)
+  (iterate
+    (for i from 0 below 256)
+    (for j from 512)
+    (prove:is (column-at column1 i) i)
+    (prove:is (column-at column2 i) j)))
 
 (prove:finalize)
