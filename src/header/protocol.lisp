@@ -10,3 +10,5 @@
 (defgeneric make-header (class &rest columns))
 
 (defgeneric validate-column-specification (class column-specification))
+
+(defgeneric column-count (header))

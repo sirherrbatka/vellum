@@ -82,3 +82,7 @@
              :value column
              :text "No column with such index."))
     (aref types column)))
+
+
+(defmethod column-count ((header standard-header))
+  (~> header read-column-types length))
