@@ -59,10 +59,10 @@
                           (unless (null alias)
                             (setf (gethash alias result) i))
                           (finally (return result)))
-        :type (map 'vector
-                   (cl-ds.utils:or* (rcurry #'getf :type)
-                                    (constantly t))
-                   columns)))
+        :column-types (map 'vector
+                           (cl-ds.utils:or* (rcurry #'getf :type)
+                                            (constantly t))
+                           columns)))
 
 
 (defmethod column-type ((header standard-header)
