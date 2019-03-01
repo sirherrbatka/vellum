@@ -3,19 +3,29 @@
 
 (defmethod alias-to-index ((header standard-header)
                            (alias symbol))
-  ;; should raise exception if column was not found...
-  (nth-value 0 (~>> header
-                    read-column-aliases
-                    (gethash alias))))
+  (let* ((aliases (read-column-aliases header))
+         (index (gethash alias aliases)))
+    (when (null index)
+      (error 'no-column
+             :bounds (hash-table-keys aliases)
+             :value alias
+             :text "No column with such alias."))
+    index))
 
 
 (defmethod index-to-alias ((header standard-header)
                            (index integer))
-  ;; should raise exception if column was not found...
-  (iterate
-    (declare (type fixnum i))
-    (for (alias i) in-hashtable (read-column-aliases header))
-    (finding alias such-that (= index i))))
+  (check-type index non-negative-integer)
+  (or (iterate
+        (declare (type fixnum i))
+        (for (alias i) in-hashtable (read-column-aliases header))
+        (finding alias such-that (= index i)))
+      (error 'no-column
+             :bounds (~> header
+                         read-column-aliases
+                         hash-table-values)
+             :value index
+             :text "No alias with such index.")))
 
 
 (defmethod make-header ((class (eql 'standard-header))
@@ -25,10 +35,18 @@
 
 (defmethod column-type ((header standard-header)
                         (column symbol))
-  (let ((index (alias-to-index header column)))
-    (column-type header index)))
+  (~>> (alias-to-index header column)
+       (column-type header)))
 
 
 (defmethod column-type ((header standard-header)
                         (column integer))
-  (~> header read-column-types (aref column)))
+  (check-type column non-negative-integer)
+  (let* ((types (read-column-types header))
+         (length (length types)))
+    (unless (< column length)
+      (error 'no-column
+             :bounds (iota length)
+             :value column
+             :text "No column with such index."))
+    (aref types column)))

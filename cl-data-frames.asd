@@ -27,6 +27,7 @@
                 :components ((:file "package")
                              (:file "protocol")
                              (:file "types")
+                             (:file "conditions")
                              (:file "implementation")))
                (:module "table"
                 :components ((:file "package")
