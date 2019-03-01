@@ -28,9 +28,41 @@
              :text "No alias with such index.")))
 
 
+(defmethod validate-column-specification ((class (eql 'standard-header))
+                                          column-specification)
+  ;; column-specification may or may not contain the type and alias
+  ;; we will ignore the unknown/unsupported types so this specific method will
+  ;; be usable not only alone, but also as a part of the extended validation
+  ;; in subclasses of the standard-header.
+  (let ((type (getf column-specification :type))
+        (alias (getf column-specification :alias)))
+    (unless (null type)
+      (check-type type (or list symbol)))
+    (unless (null alias)
+      (check-type alias symbol))
+    column-specification))
+
+
+(defmethod make-header :before ((class symbol) &rest columns)
+  (map nil (curry #'validate-column-specification class) columns))
+
+
 (defmethod make-header ((class (eql 'standard-header))
                         &rest columns)
-  cl-ds.utils:todo)
+  (make 'standard-header
+        :column-aliases (iterate
+                          (with result = (make-hash-table
+                                          :size (length columns)))
+                          (for column in columns)
+                          (for i from 0)
+                          (for alias = (getf column :alias))
+                          (unless (null alias)
+                            (setf (gethash alias result) i))
+                          (finally (return result)))
+        :type (map 'vector
+                   (cl-ds.utils:or* (rcurry #'getf :type)
+                                    (constantly 't))
+                   columns)))
 
 
 (defmethod column-type ((header standard-header)

@@ -9,4 +9,5 @@
    #:fundamental-header
    #:index-to-alias
    #:make-header
-   #:standard-header))
+   #:standard-header
+   #:validate-column-specification))

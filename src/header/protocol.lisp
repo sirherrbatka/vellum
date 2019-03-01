@@ -8,3 +8,5 @@
 (defgeneric column-type (header column))
 
 (defgeneric make-header (class &rest columns))
+
+(defgeneric validate-column-specification (class column-specification))
