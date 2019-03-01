@@ -61,7 +61,7 @@
                           (finally (return result)))
         :type (map 'vector
                    (cl-ds.utils:or* (rcurry #'getf :type)
-                                    (constantly 't))
+                                    (constantly t))
                    columns)))
 
 
