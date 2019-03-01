@@ -44,7 +44,9 @@
 
 
 (defmethod make-header :before ((class symbol) &rest columns)
-  (map nil (curry #'validate-column-specification class) columns))
+  (map nil
+       (curry #'validate-column-specification class)
+       columns))
 
 
 (defmethod make-header ((class (eql 'standard-header))
