@@ -17,6 +17,4 @@
 
 (defgeneric (setf row-at) (new-value row position))
 
-(defgeneric next-row (row))
-
-(defgeneric invoke-with-header (header data function))
+(defgeneric decorate-data (header data))
