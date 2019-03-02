@@ -7,8 +7,10 @@
   (:export
    #:alias-to-index
    #:column-count
+   #:decorate-data
    #:fundamental-header
    #:index-to-alias
    #:make-header
+   #:row-at
    #:standard-header
    #:validate-column-specification))
