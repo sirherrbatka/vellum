@@ -25,6 +25,7 @@
                              (:test-file "tests")))
                (:module "header"
                 :components ((:file "package")
+                             (:file "variables")
                              (:file "protocol")
                              (:file "types")
                              (:file "conditions")

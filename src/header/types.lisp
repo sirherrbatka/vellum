@@ -12,3 +12,16 @@
    (%column-types :type simple-vector
                   :initarg :column-types
                   :reader read-column-types)))
+
+
+(defclass fundamental-row ()
+  ())
+
+
+(defclass standard-row (fundamental-row)
+  ((%header :type fundamental-header
+            :initarg :header
+            :reader read-header)
+   (%content :type 'simple-vector
+             :initarg :content
+             :reader read-content)))

@@ -3,8 +3,6 @@
 
 (defvar *transform-in-place* nil)
 
-(defvar *row*)
-
 (defgeneric hstack (frame &rest more-frames))
 
 (defgeneric vstack (frame &rest more-frames))
