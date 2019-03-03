@@ -6,17 +6,17 @@
   (:nicknames #:cl-df.header)
   (:export
    #:alias-to-index
+   #:body
    #:column-count
-   #:fundamental-header
-   #:frame-range-mixin
    #:decorate
+   #:forward-proxy-frame-range
+   #:frame-range-mixin
+   #:fundamental-header
    #:index-to-alias
    #:make-header
    #:row-at
-   #:standard-header
-   #:forward-proxy-frame-range
    #:rr
-   #:body
+   #:standard-header
+   #:validate-column-specification
    #:value
-   #:with-header
-   #:validate-column-specification))
+   #:with-header))
