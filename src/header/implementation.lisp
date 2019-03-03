@@ -88,3 +88,21 @@
 
 (defmethod column-count ((header standard-header))
   (~> header read-column-types length))
+
+
+(defmethod cl-ds:consume-front ((range frame-range-mixin))
+  (bind (((:values data more) (call-next-method)))
+    (if (null more)
+        (values nil nil)
+        (let ((row (make-row (header) range data)))
+          (set-row row)
+          (values row t)))))
+
+
+(defmethod cl-ds:peek-front ((range frame-range-mixin))
+  (bind (((:values data more) (call-next-method)))
+    (if (null more)
+        (values nil nil)
+        (let ((row (make-row (header) range data)))
+          (set-row row)
+          (values row t)))))

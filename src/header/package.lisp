@@ -7,7 +7,6 @@
   (:export
    #:alias-to-index
    #:column-count
-   #:decorate-data
    #:fundamental-header
    #:index-to-alias
    #:make-header

@@ -26,7 +26,9 @@
                (:module "header"
                 :components ((:file "package")
                              (:file "variables")
+                             (:file "macros")
                              (:file "protocol")
+                             (:file "functions")
                              (:file "types")
                              (:file "conditions")
                              (:file "implementation")))

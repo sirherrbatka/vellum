@@ -18,10 +18,5 @@
   ())
 
 
-(defclass standard-row (fundamental-row)
-  ((%header :type fundamental-header
-            :initarg :header
-            :reader read-header)
-   (%content :type 'simple-vector
-             :initarg :content
-             :reader read-content)))
+(defclass frame-range-mixin ()
+  ())

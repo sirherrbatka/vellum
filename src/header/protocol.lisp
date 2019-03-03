@@ -13,8 +13,10 @@
 
 (defgeneric column-count (header))
 
-(defgeneric row-at (row position))
+(defgeneric row-at (header row position))
 
-(defgeneric (setf row-at) (new-value row position))
+(defgeneric (setf row-at) (new-value header row position))
 
 (defgeneric decorate-data (header data))
+
+(defgeneric make-row (header range data))
