@@ -12,8 +12,10 @@
    #:forward-proxy-frame-range
    #:frame-range-mixin
    #:fundamental-header
+   #:header
    #:index-to-alias
    #:make-header
+   #:row
    #:row-at
    #:rr
    #:standard-header

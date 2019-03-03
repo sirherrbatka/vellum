@@ -25,4 +25,5 @@
     (when header
       (cl-ds:consume-front result))
     (make 'cl-df.header:forward-proxy-frame-range
-          :original-range result)))
+          :original-range result
+          :header (cl-df.header:header))))
