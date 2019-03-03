@@ -198,17 +198,36 @@
 
 (defmethod convert ((value string)
                     (type (eql 'integer)))
-  (parse-integer value))
+  (handler-case (parse-integer value)
+    (error (e)
+      (declare (ignore e))
+      (error 'conversion-failed))))
 
 
 (defmethod convert ((value string)
                     (type (eql 'float)))
-  (parse-float value))
+  (handler-case (parse-float value)
+    (error (e)
+      (declare (ignore e))
+      (error 'conversion-failed))))
 
 
 (defmethod convert ((value string)
                     (type (eql 'number)))
-  (parse-number value))
+  (handler-case (parse-number value)
+    (error (e)
+      (declare (ignore e))
+      (error 'conversion-failed))))
+
+
+(defmethod convert ((value string)
+                    (type (eql 'string)))
+  value)
+
+
+(defmethod convert (value
+                    (type (eql 't)))
+  value)
 
 
 (defmethod convert ((value string)
@@ -225,3 +244,24 @@
                 (for elt in '("FALSE" "F" "NIL" "0"))
                 (finding elt such-that (same elt value))
                 (finally (error 'conversion-failed)))))))
+
+
+(defmethod row-at ((header standard-header)
+                   (row vector)
+                   (column integer))
+  (declare (type (array t (*)) row))
+  (check-type column non-negative-integer)
+  (let ((length (array-dimension row 0)))
+    (unless (< column length)
+      (error 'no-column
+             :bounds (iota length)
+             :value column
+             :text "No column with such index."))
+    (aref row column)))
+
+
+(defmethod row-at ((header standard-header)
+                   (row vector)
+                   (column symbol))
+  (~>> (alias-to-index header column)
+       (row-at header row)))
