@@ -22,7 +22,8 @@
 
 
 (defclass frame-range-mixin ()
-  ())
+  ((%header :initarg :header
+            :reader read-header)))
 
 
 (defclass forward-proxy-frame-range (frame-range-mixin

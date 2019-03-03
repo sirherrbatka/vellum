@@ -17,5 +17,6 @@
    #:forward-proxy-frame-range
    #:rr
    #:body
+   #:value
    #:with-header
    #:validate-column-specification))

@@ -162,7 +162,9 @@
 
 (defmethod decorate-data ((header standard-header)
                           (data cl-ds:fundamental-forward-range))
-  (make 'forward-proxy-frame-range :original-range (cl-ds:clone data)))
+  (make 'forward-proxy-frame-range
+        :original-range (cl-ds:clone data)
+        :header header))
 
 
 (defmethod make-row ((header standard-header)
@@ -193,7 +195,9 @@
   (lret ((result (convert source (column-type header index))))
     (unless (funcall (column-predicate header index)
                      result)
-      (error 'predicate-failed))))
+      (error 'predicate-failed
+             :column-number index
+             :value result))))
 
 
 (defmethod convert ((value string)
@@ -201,7 +205,9 @@
   (handler-case (parse-integer value)
     (error (e)
       (declare (ignore e))
-      (error 'conversion-failed))))
+      (error 'conversion-failed
+             :target-type type
+             :value value))))
 
 
 (defmethod convert ((value string)
@@ -209,7 +215,9 @@
   (handler-case (parse-float value)
     (error (e)
       (declare (ignore e))
-      (error 'conversion-failed))))
+      (error 'conversion-failed
+             :target-type type
+             :value value))))
 
 
 (defmethod convert ((value (eql nil))
@@ -222,7 +230,9 @@
   (handler-case (parse-number value)
     (error (e)
       (declare (ignore e))
-      (error 'conversion-failed))))
+      (error 'conversion-failed
+             :target-type type
+             :value value))))
 
 
 (defmethod convert ((value string)
