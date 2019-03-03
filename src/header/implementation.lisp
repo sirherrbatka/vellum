@@ -110,6 +110,7 @@
 
 (defmethod cl-ds:traverse ((range frame-range-mixin)
                            function)
+  (ensure-functionf function)
   (call-next-method range
                     (lambda (data)
                       (let ((row (make-row (header) range data)))
@@ -119,6 +120,7 @@
 
 (defmethod cl-ds:across ((range frame-range-mixin)
                          function)
+  (ensure-functionf function)
   (call-next-method range
                     (lambda (data)
                       (let ((row (make-row (header) range data)))
