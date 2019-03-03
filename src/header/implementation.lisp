@@ -106,3 +106,21 @@
         (let ((row (make-row (header) range data)))
           (set-row row)
           (values row t)))))
+
+
+(defmethod cl-ds:traverse ((range frame-range-mixin)
+                           function)
+  (call-next-method range
+                    (lambda (data)
+                      (let ((row (make-row (header) range data)))
+                        (set-row row)
+                        (funcall function row)))))
+
+
+(defmethod cl-ds:across ((range frame-range-mixin)
+                         function)
+  (call-next-method range
+                    (lambda (data)
+                      (let ((row (make-row (header) range data)))
+                        (set-row row)
+                        (funcall function row)))))
