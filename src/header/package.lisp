@@ -8,6 +8,7 @@
    #:alias-to-index
    #:column-count
    #:fundamental-header
+   #:frame-range-mixin
    #:index-to-alias
    #:make-header
    #:row-at

@@ -28,3 +28,11 @@
 
 (defun decorate (range)
   (decorate-data (header) range))
+
+
+(defun rr (index)
+  (row-at (header) (row) index))
+
+
+(defun (setf rr) (new-value index)
+  (setf (row-at (header) (row) index) new-value))
