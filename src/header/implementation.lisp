@@ -35,11 +35,14 @@
   ;; be usable not only alone, but also as a part of the extended validation
   ;; in subclasses of the standard-header.
   (let ((type (getf column-specification :type))
-        (alias (getf column-specification :alias)))
+        (alias (getf column-specification :alias))
+        (predicate (getf column-specification :predicate)))
     (unless (null type)
       (check-type type (or list symbol)))
     (unless (null alias)
       (check-type alias symbol))
+    (unless (null predicate)
+      (ensure-function predicate))
     column-specification))
 
 
@@ -61,6 +64,10 @@
                           (unless (null alias)
                             (setf (gethash alias result) i))
                           (finally (return result)))
+        :predicates (map 'vector
+                         (cl-ds.utils:or* (rcurry #'getf :predicate)
+                                          (constantly (constantly t)))
+                         columns)
         :column-types (map 'vector
                            (cl-ds.utils:or* (rcurry #'getf :type)
                                             (constantly t))

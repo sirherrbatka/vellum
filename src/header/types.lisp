@@ -9,6 +9,9 @@
   ((%column-aliases :type hash-table
                     :initarg :column-aliases
                     :reader read-column-aliases)
+   (%predicates :type vector
+                :initarg :predicates
+                :reader read-predicates)
    (%column-types :type simple-vector
                   :initarg :column-types
                   :reader read-column-types)))
