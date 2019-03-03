@@ -117,12 +117,14 @@
 
 
 (defmethod cl-ds:consume-front ((range frame-range-mixin))
-  (bind (((:values data more) (call-next-method)))
-    (if (no more)
-        (values nil nil)
-        (let ((row (make-row (header) range data)))
-          (set-row row)
-          (values row t)))))
+  (restart-case
+      (bind (((:values data more) (call-next-method)))
+        (if (no more)
+            (values nil nil)
+            (let ((row (make-row (header) range data)))
+              (set-row row)
+              (values row t))))
+    (skip-row () (cl-ds:consume-front range))))
 
 
 (defmethod cl-ds:peek-front ((range frame-range-mixin))
@@ -139,9 +141,11 @@
   (ensure-functionf function)
   (call-next-method range
                     (lambda (data)
-                      (let ((row (make-row (header) range data)))
-                        (set-row row)
-                        (funcall function row)))))
+                      (restart-case
+                          (let ((row (make-row (header) range data)))
+                            (set-row row)
+                            (funcall function row))
+                        (skip-row () nil)))))
 
 
 (defmethod cl-ds:across ((range frame-range-mixin)
@@ -149,9 +153,11 @@
   (ensure-functionf function)
   (call-next-method range
                     (lambda (data)
-                      (let ((row (make-row (header) range data)))
-                        (set-row row)
-                        (funcall function row)))))
+                      (restart-case
+                          (let ((row (make-row (header) range data)))
+                            (set-row row)
+                            (funcall function row))
+                        (skip-row () nil)))))
 
 
 (defmethod decorate-data ((header standard-header)
@@ -188,3 +194,34 @@
     (unless (funcall (column-predicate header index)
                      result)
       (error 'predicate-failed))))
+
+
+(defmethod convert ((value string)
+                    (type (eql 'integer)))
+  (parse-integer value))
+
+
+(defmethod convert ((value string)
+                    (type (eql 'float)))
+  (parse-float value))
+
+
+(defmethod convert ((value string)
+                    (type (eql 'number)))
+  (parse-number value))
+
+
+(defmethod convert ((value string)
+                    (type (eql 'boolean)))
+  (flet ((same (a b)
+           (declare (type string a b))
+           (and (= (length a) (length b))
+                (every (lambda (a b)
+                         (char-equal (char-upcase a)
+                                     (char-upcase b)))
+                       a b))))
+    (or (member value '("TRUE" "T" "1") :test #'same)
+        (null (iterate
+                (for elt in '("FALSE" "F" "NIL" "0"))
+                (finding elt such-that (same elt value))
+                (finally (error 'conversion-failed)))))))

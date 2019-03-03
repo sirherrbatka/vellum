@@ -18,3 +18,8 @@
 (define-condition predicate-failed (cl-ds:operation-not-allowed)
   ()
   (:default-initargs :text "Predicate for value in the colum returned nil."))
+
+
+(define-condition conversion-failed (cl-ds:operation-not-allowed)
+  ()
+  (:default-initargs :text "Can't convert value."))

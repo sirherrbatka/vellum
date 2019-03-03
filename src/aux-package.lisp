@@ -238,6 +238,7 @@
   serapeum:unbox
   serapeum:vect
   serapeum:parse-number
+  serapeum:parse-float
   serapeum:ensure
   serapeum:random-in-range
   serapeum:finc
