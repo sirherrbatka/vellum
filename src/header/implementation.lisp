@@ -93,6 +93,25 @@
     (aref types column)))
 
 
+(defmethod column-predicate ((header standard-header)
+                             (column integer))
+  (check-type column non-negative-integer)
+  (let* ((predicates (read-predicates header))
+         (length (length predicates)))
+    (unless (< column length)
+      (error 'no-column
+             :bounds (iota length)
+             :value column
+             :text "No column with such index."))
+    (aref predicates column)))
+
+
+(defmethod column-predicate ((header standard-header)
+                             (column symbol))
+  (~>> (alias-to-index header column)
+       (column-predicate header)))
+
+
 (defmethod column-count ((header standard-header))
   (~> header read-column-types length))
 
@@ -160,3 +179,11 @@
     (for elt in data)
     (setf (aref result i) (make-value header elt i))
     (finally (return result))))
+
+(defmethod make-value ((header standard-header)
+                       source
+                       index)
+  (lret ((result (convert source (column-type header index))))
+    (unless (funcall (column-predicate header index)
+                     result)
+      cl-ds.utils:todo)))

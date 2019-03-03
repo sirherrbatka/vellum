@@ -24,3 +24,5 @@
 (defgeneric make-row (header range data))
 
 (defgeneric make-value (header source index))
+
+(defgeneric convert (value type))
