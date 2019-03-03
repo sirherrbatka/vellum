@@ -22,3 +22,5 @@
 (defgeneric decorate-data (header data))
 
 (defgeneric make-row (header range data))
+
+(defgeneric make-value (header source index))

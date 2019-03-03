@@ -38,7 +38,7 @@
         (alias (getf column-specification :alias))
         (predicate (getf column-specification :predicate)))
     (unless (null type)
-      (check-type type (or list symbol)))
+      (check-type type symbol))
     (unless (null alias)
       (check-type alias symbol))
     (unless (null predicate)
@@ -142,6 +142,21 @@
 
 (defmethod make-row ((header standard-header)
                      (range frame-range-mixin)
-                     data)
-  (check-type data sequence)
-  cl-ds.utils:todo)
+                     (data vector))
+  (iterate
+    (with result = (make-array (length data)))
+    (for i from 0)
+    (for elt in-vector data)
+    (setf (aref result i) (make-value header elt i))
+    (finally (return result))))
+
+
+(defmethod make-row ((header standard-header)
+                     (range frame-range-mixin)
+                     (data list))
+  (iterate
+    (with result = (make-array (length data)))
+    (for i from 0)
+    (for elt in data)
+    (setf (aref result i) (make-value header elt i))
+    (finally (return result))))
