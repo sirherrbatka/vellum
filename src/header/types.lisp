@@ -23,3 +23,8 @@
 
 (defclass frame-range-mixin ()
   ())
+
+
+(defclass forward-proxy-frame-range (frame-range-mixin
+                                     cl-ds.alg:forward-proxy-range)
+  ())

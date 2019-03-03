@@ -99,7 +99,7 @@
 
 (defmethod cl-ds:consume-front ((range frame-range-mixin))
   (bind (((:values data more) (call-next-method)))
-    (if (null more)
+    (if (no more)
         (values nil nil)
         (let ((row (make-row (header) range data)))
           (set-row row)
@@ -108,7 +108,7 @@
 
 (defmethod cl-ds:peek-front ((range frame-range-mixin))
   (bind (((:values data more) (call-next-method)))
-    (if (null more)
+    (if (no more)
         (values nil nil)
         (let ((row (make-row (header) range data)))
           (set-row row)
@@ -133,3 +133,8 @@
                       (let ((row (make-row (header) range data)))
                         (set-row row)
                         (funcall function row)))))
+
+
+(defmethod decorate-data ((header standard-header)
+                          (data cl-ds:fundamental-forward-range))
+  (make 'proxy-frame-range :original-range (cl-ds:clone data)))
