@@ -180,10 +180,11 @@
     (setf (aref result i) (make-value header elt i))
     (finally (return result))))
 
+
 (defmethod make-value ((header standard-header)
                        source
                        index)
   (lret ((result (convert source (column-type header index))))
     (unless (funcall (column-predicate header index)
                      result)
-      cl-ds.utils:todo)))
+      (error 'predicate-failed))))

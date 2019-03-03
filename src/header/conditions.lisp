@@ -13,3 +13,8 @@
 (define-condition no-header (cl-ds:operation-not-allowed)
   ()
   (:default-initargs :text "No active header."))
+
+
+(define-condition predicate-failed (cl-ds:operation-not-allowed)
+  ()
+  (:default-initargs :text "Predicate for value in the colum returned nil."))
