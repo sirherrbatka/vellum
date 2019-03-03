@@ -9,7 +9,8 @@
   :depends-on ( :iterate      :serapeum
                 :prove        :cl-data-structures
                 :lparallel    :metabang-bind
-                :alexandria   :documentation-utils-extensions)
+                :cl-csv       :alexandria
+                :documentation-utils-extensions)
   :defsystem-depends-on (:prove-asdf)
   :serial T
   :pathname "src"
@@ -39,4 +40,5 @@
                 :components ((:file "package")
                              (:file "generics")))
                (:module "csv"
-                :components ())))
+                :components ((:file "package")
+                             (:file "implementation")))))

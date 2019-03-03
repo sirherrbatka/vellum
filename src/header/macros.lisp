@@ -5,3 +5,10 @@
   `(let ((*header* ,header)
          (*row* (box nil)))
      ,@body))
+
+
+(defmacro body (&body body)
+  (with-gensyms (!arg)
+    `(lambda (,!arg)
+       (declare (ignore ,!arg))
+       ,@body)))

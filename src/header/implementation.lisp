@@ -162,7 +162,7 @@
 
 (defmethod decorate-data ((header standard-header)
                           (data cl-ds:fundamental-forward-range))
-  (make 'proxy-frame-range :original-range (cl-ds:clone data)))
+  (make 'forward-proxy-frame-range :original-range (cl-ds:clone data)))
 
 
 (defmethod make-row ((header standard-header)
@@ -210,6 +210,11 @@
     (error (e)
       (declare (ignore e))
       (error 'conversion-failed))))
+
+
+(defmethod convert ((value (eql nil))
+                    type)
+  :null)
 
 
 (defmethod convert ((value string)
