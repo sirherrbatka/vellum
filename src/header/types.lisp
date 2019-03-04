@@ -17,10 +17,6 @@
                   :reader read-column-types)))
 
 
-(defclass fundamental-row ()
-  ())
-
-
 (defclass frame-range-mixin ()
   ((%header :initarg :header
             :reader read-header)))
