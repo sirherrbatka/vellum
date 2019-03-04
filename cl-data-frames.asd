@@ -37,7 +37,8 @@
                (:module "table"
                 :components ((:file "package")
                              (:file "generics")
-                             (:file "types")))
+                             (:file "types")
+                             (:file "to-table")))
                (:module "api"
                 :components ((:file "package")
                              (:file "generics")))
