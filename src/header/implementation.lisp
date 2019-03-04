@@ -302,5 +302,10 @@
 
 (defmethod select-columns ((header standard-header)
                            columns)
-  (let ((selected (cl-ds.alg:to-vector columns)))
-    ))
+  (let ((selected (~> columns
+                      (cl-ds.alg:on-each (lambda (x)
+                                           (etypecase x
+                                             (symbol (alias-to-index header x))
+                                             (non-negative-integer x))))
+                      cl-ds.alg:to-vector)))
+    cl-ds.utils:todo))
