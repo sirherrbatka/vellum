@@ -328,7 +328,8 @@
       (for s in selected)
       (for alias = (third s))
       (when (null alias) (next-iteration))
-      (setf (gethash alias aliases) i))
+      (unless (null (shiftf (gethash alias aliases) i))
+        (error 'alias-duplicated :alias alias)))
     (make 'standard-header
           :column-aliases aliases
           :predicates predicates
