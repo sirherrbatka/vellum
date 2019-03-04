@@ -280,3 +280,10 @@
                    (column symbol))
   (~>> (alias-to-index header column)
        (row-at header row)))
+
+
+(defmethod concatenate-headers ((header standard-header)
+                                &rest more-headers)
+  (push header more-headers)
+  (let ((aliases (unique-aliases more-headers)))
+    ))

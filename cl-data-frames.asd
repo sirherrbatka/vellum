@@ -32,6 +32,7 @@
                              (:file "functions")
                              (:file "types")
                              (:file "conditions")
+                             (:file "internal")
                              (:file "implementation")))
                (:module "table"
                 :components ((:file "package")
