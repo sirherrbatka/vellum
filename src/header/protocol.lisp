@@ -26,3 +26,9 @@
 (defgeneric make-value (header source index))
 
 (defgeneric convert (value type))
+
+(defgeneric insert-column-into-header (header index column-specification))
+
+(defgeneric replace-column-in-header (header index column-specification))
+
+(defgeneric remove-column-in-header (header index))

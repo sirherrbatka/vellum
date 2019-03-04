@@ -15,7 +15,10 @@
    #:fundamental-header
    #:header
    #:index-to-alias
+   #:insert-column-into-header
    #:make-header
+   #:remove-column-in-header
+   #:replace-column-in-header
    #:row
    #:row-at
    #:rr
