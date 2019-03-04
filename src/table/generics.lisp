@@ -19,10 +19,6 @@
 
 (defgeneric row-erase (row))
 
-(defgeneric row-at (row column))
-
-(defgeneric (setf row-at) (row column))
-
 (defgeneric column-count (frame))
 
 (defgeneric (setf column-count) (new-value frame))
