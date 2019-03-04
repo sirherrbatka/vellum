@@ -287,5 +287,11 @@
 (defmethod concatenate-headers ((header standard-header)
                                 &rest more-headers)
   (push header more-headers)
-  (let ((aliases (unique-aliases more-headers)))
-    ))
+  (let* ((aliases (unique-aliases more-headers))
+         (types (apply #'concatenate 'vector
+                       (mapcar #'read-column-types more-headers)))
+         (predicates (apply #'concatenate 'vector
+                            (mapcar #'read-predicates more-headers))))
+    (make 'standard-header :column-aliases aliases
+                           :column-type types
+                           :predicates predicates)))
