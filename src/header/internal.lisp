@@ -11,5 +11,5 @@
     (iterate
       (for (alias value) in-hashtable (read-column-aliases header))
       (unless (null (shiftf (gethash alias result) (+ offset value)))
-        cl-ds.utils:todo))
+        (error 'alias-duplicated :alias alias)))
     (finally (return result))))

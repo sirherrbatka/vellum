@@ -39,3 +39,13 @@
                      (cl-ds:read-text condition)
                      (value condition)
                      (target-type condition)))))
+
+
+(define-condition alias-duplicated (cl-ds:operation-not-allowed)
+  ((%alias :initarg :alias
+           :reader alias))
+  (:default-initargs :text "Detected alias duplication.")
+  (:report (lambda (condition stream)
+             (format stream "~a Duplicated alias: ~A."
+                     (cl-ds:read-text condition)
+                     (alias condition)))))
