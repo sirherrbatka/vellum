@@ -295,3 +295,23 @@
     (make 'standard-header :column-aliases aliases
                            :column-type types
                            :predicates predicates)))
+
+
+(defmethod insert-column-into-header ((header standard-header)
+                                      (column symbol)
+                                      column-specification)
+  (~>> (alias-to-index header column)
+       (insert-column-into-header header _ column-specification)))
+
+
+(defmethod replace-column-in-header ((header standard-header)
+                                     (column symbol)
+                                     column-specification)
+  (~>> (alias-to-index header column)
+       (replace-column-in-header header _ column-specification)))
+
+
+(defmethod remove-column-in-header ((header standard-header)
+                                    (column symbol))
+  (~>> (alias-to-index header column)
+       (remove-column-in-header header)))
