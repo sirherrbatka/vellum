@@ -32,3 +32,5 @@
 (defgeneric (setf column-at) (frame column))
 
 (defgeneric column-name (frame column))
+
+(defgeneric header (frame))
