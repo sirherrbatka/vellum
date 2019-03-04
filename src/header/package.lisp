@@ -8,6 +8,7 @@
    #:alias-to-index
    #:body
    #:brr
+   #:concatenate-headers
    #:column-count
    #:decorate
    #:forward-proxy-frame-range

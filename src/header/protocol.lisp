@@ -32,3 +32,5 @@
 (defgeneric replace-column-in-header (header index column-specification))
 
 (defgeneric remove-column-in-header (header index))
+
+(defgeneric concatenate-headers (header &rest more-headers))
