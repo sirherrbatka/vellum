@@ -302,10 +302,34 @@
 
 (defmethod select-columns ((header standard-header)
                            columns)
-  (let ((selected (~> columns
-                      (cl-ds.alg:on-each (lambda (x)
-                                           (etypecase x
-                                             (symbol (alias-to-index header x))
-                                             (non-negative-integer x))))
-                      cl-ds.alg:to-vector)))
-    cl-ds.utils:todo))
+  (bind (((:flet ignore-in-header (fn))
+          (lambda (&rest all)
+            (ignore-errors (apply fn header all))))
+         ((:flet in-header (fn))
+          (lambda (&rest all)
+            (apply fn header all)))
+         ((:flet index (x))
+          (etypecase x
+            (symbol (alias-to-index header x))
+            (non-negative-integer x)))
+         (selected (~> columns
+                       (cl-ds.alg:on-each
+                        (compose (juxt (in-header #'column-type)
+                                       (in-header #'column-predicate)
+                                       (ignore-in-header #'index-to-alias))
+                                 #'index))
+                       cl-ds.alg:to-vector))
+         (predicates (map 'vector #'second selected))
+         (aliases (make-hash-table :size (length selected)))
+         (types (map 'vector #'first selected)))
+    (declare (type vector selected))
+    (iterate
+      (for i from 0)
+      (for s in selected)
+      (for alias = (third s))
+      (when (null alias) (next-iteration))
+      (setf (gethash alias aliases) i))
+    (make 'standard-header
+          :column-aliases aliases
+          :predicates predicates
+          :column-types types)))
