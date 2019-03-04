@@ -7,6 +7,7 @@
   (:export
    #:alias-to-index
    #:body
+   #:brr
    #:column-count
    #:decorate
    #:forward-proxy-frame-range

@@ -10,6 +10,7 @@
 
 (rexport :cl-data-frames
   cl-df.header:body
+  cl-df.header:brr
   cl-df.header:standard-header
   cl-df.header:with-header
   cl-df.header:rr
