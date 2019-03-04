@@ -315,3 +315,28 @@
                                     (column symbol))
   (~>> (alias-to-index header column)
        (remove-column-in-header header)))
+
+
+(defmethod remove-column-in-header ((header standard-header)
+                                    (column integer))
+  (check-type column non-negative-integer)
+  (let* ((types (read-column-types header))
+         (predicates (read-predicates header))
+         (aliases (read-column-aliases header))
+         (length (length types)))
+    (unless (< column length)
+      (error 'no-column
+             :bounds (iota length)
+             :value column
+             :text "No column with such index."))
+    (let ((types (cl-ds.utils:copy-without types column))
+          (predicates (cl-ds.utils:copy-without predicates column))
+          (new-aliases (make-hash-table :size (hash-table-size aliases))))
+      (iterate
+        (for (key value) in-hashtable aliases)
+        (when (eql value column) (next-iteration))
+        (setf (gethash key new-aliases) value))
+      (make 'standard-header
+            :column-aliases new-aliases
+            :types types
+            :predicates predicates))))
