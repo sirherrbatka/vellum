@@ -13,7 +13,7 @@
 
 (defgeneric at (frame column row))
 
-(defgeneric (setf frame-at) (new-value frame column row))
+(defgeneric (setf at) (new-value frame column row))
 
 (defgeneric transform (frame function &key in-place start end))
 
@@ -21,15 +21,9 @@
 
 (defgeneric column-count (frame))
 
-(defgeneric (setf column-count) (new-value frame))
-
 (defgeneric row-count (frame))
 
 (defgeneric (setf row-count) (new-value frame))
-
-(defgeneric column-at (frame column))
-
-(defgeneric (setf column-at) (frame column))
 
 (defgeneric column-name (frame column))
 
