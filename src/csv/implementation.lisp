@@ -12,7 +12,7 @@
                                 (unquoted-empty-string-is-nil t)
                                 (trim-outer-whitespace t))
   (declare (ignore options))
-  (let* ((header (cl-df.header:header))
+  (let* ((frame-header (cl-df.header:header))
          (fn (lambda (x)
                (cl-csv:read-csv-row
                 x
@@ -27,4 +27,4 @@
       (cl-ds:consume-front result))
     (make 'cl-df.header:forward-proxy-frame-range
           :original-range result
-          :header header)))
+          :header frame-header)))
