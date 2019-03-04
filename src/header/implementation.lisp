@@ -325,7 +325,7 @@
     (declare (type vector selected))
     (iterate
       (for i from 0)
-      (for s in selected)
+      (for s in-vector selected)
       (for alias = (third s))
       (when (null alias) (next-iteration))
       (unless (null (shiftf (gethash alias aliases) i))
