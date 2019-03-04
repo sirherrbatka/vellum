@@ -27,10 +27,6 @@
 
 (defgeneric convert (value type))
 
-(defgeneric insert-column-into-header (header column column-specification))
-
-(defgeneric replace-column-in-header (header column column-specification))
-
-(defgeneric remove-column-in-header (header column))
-
 (defgeneric concatenate-headers (header &rest more-headers))
+
+(defgeneric select-columns (header columns))
