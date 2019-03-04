@@ -1,6 +1,9 @@
 (in-package #:cl-data-frames.header)
 
 
+(def constantly-t (constantly t))
+
+
 (defmethod alias-to-index ((header standard-header)
                            (alias symbol))
   (let* ((aliases (read-column-aliases header))
@@ -68,11 +71,11 @@
                           (finally (return result)))
         :predicates (map 'vector
                          (cl-ds.utils:or* (rcurry #'getf :predicate)
-                                          (constantly (constantly t)))
+                                          (constantly constantly-t))
                          columns)
         :column-types (map 'vector
                            (cl-ds.utils:or* (rcurry #'getf :type)
-                                            (constantly t))
+                                            constantly-t)
                            columns)))
 
 
@@ -340,3 +343,36 @@
             :column-aliases new-aliases
             :types types
             :predicates predicates))))
+
+
+(defmethod replace-column-in-header ((header standard-header)
+                                     (column integer)
+                                     column-specification)
+  (check-type column non-negative-integer)
+  (let* ((types (~> header read-column-types copy-array))
+         (predicates (~> header read-predicates copy-array))
+         (aliases (~> header read-column-aliases copy-hash-table))
+         (length (length types))
+         (new-type (getf column-specification :type))
+         (new-predicate (getf column-specification :predicate))
+         (new-alias (getf column-specification :predicate)))
+    (check-type new-alias symbol)
+    (check-type new-type symbol)
+    (unless (null new-predicate)
+      (ensure-functionf new-predicate))
+    (unless (< column length)
+      (error 'no-column
+             :bounds (iota length)
+             :value column
+             :text "No column with such index."))
+    (setf (aref types column) (or new-type t))
+    (setf (aref predicates column) (or new-predicate constantly-t))
+    (handler-case (let ((alias (index-to-alias header column)))
+                    (remhash alias aliases))
+      (no-column (e) (declare (ignore e))))
+    (unless (null new-alias)
+      (setf (gethash new-alias aliases) column))
+    (make 'standard-header
+          :column-aliases aliases
+          :types types
+          :predicates predicates)))
