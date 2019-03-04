@@ -12,3 +12,7 @@
     `(lambda (,!arg)
        (declare (ignore ,!arg))
        ,@body)))
+
+
+(defmacro brr (column)
+  `(body (rr ,column)))
