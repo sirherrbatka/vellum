@@ -61,8 +61,10 @@
                           (for column in columns)
                           (for i from 0)
                           (for alias = (getf column :alias))
-                          (unless (null alias)
-                            (setf (gethash alias result) i))
+                          (when (null alias)
+                            (next-iteration))
+                          (unless (null (shiftf (gethash alias result) i))
+                            (error 'alias-duplicated :alias alias))
                           (finally (return result)))
         :predicates (map 'vector
                          (cl-ds.utils:or* (rcurry #'getf :predicate)
