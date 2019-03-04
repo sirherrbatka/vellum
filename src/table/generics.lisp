@@ -23,8 +23,6 @@
 
 (defgeneric row-count (frame))
 
-(defgeneric (setf row-count) (new-value frame))
-
 (defgeneric column-name (frame column))
 
 (defgeneric header (frame))
