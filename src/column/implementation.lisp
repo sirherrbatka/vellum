@@ -284,4 +284,4 @@
 
 (defmethod cl-ds:traverse ((container sparse-material-column)
                            function)
-  (cl-ds:traverse container function))
+  (cl-ds:across container function))
