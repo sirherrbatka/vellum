@@ -10,26 +10,33 @@
           (key #'identity)
           (class 'standard-table))
 
-  (%iterator %columns)
+  (%iterator %columns %column-count %header)
 
   ((&rest all)
-   (let* ((header (cl-data-frames.header:header))
-          (column-count (cl-data-frames.header:column-count header)))
-     (setf %columns (make-array column-count))
-     (iterate
-       (for i from 0 below column-count)
-       (setf (aref %columns i)
-             (cl-df.column:make-sparse-material-column
-              :element-type (cl-df.header:column-type header i))))
-     (setf %iterator (~> %columns
-                         first-elt
-                         cl-df.column:make-iterator))
-     (iterate
-       (for i from 1 below column-count)
-       (for column = (aref %columns i))
-       (cl-df.column:augment-iterator %iterator column))))
+   (setf %header (cl-df.header:header)
+         %column-count (cl-data-frames.header:column-count %header)
+         %columns (make-array %column-count))
+   (iterate
+     (for i from 0 below %column-count)
+     (setf (aref %columns i)
+           (cl-df.column:make-sparse-material-column
+            :element-type (cl-df.header:column-type %header i))))
+   (setf %iterator (~> %columns
+                       first-elt
+                       cl-df.column:make-iterator))
+   (iterate
+     (for i from 1 below %column-count)
+     (for column = (aref %columns i))
+     (cl-df.column:augment-iterator %iterator column)))
 
   ((row)
-   cl-ds.utils:todo)
+   (iterate
+     (for i from 0 below %column-count)
+     (setf (cl-df.column:iterator-at %iterator i)
+           (cl-df.header:row-at %header row i)))
+   (cl-df.column:move-iterator %iterator 1))
 
-  (cl-ds.utils:todo))
+  ((cl-df.column:finish-iterator %iterator)
+   (make 'standard-table
+         :header %header
+         :columns %columns)))
