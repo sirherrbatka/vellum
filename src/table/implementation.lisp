@@ -24,3 +24,11 @@
                                                column)
             row)
         new-value))
+
+
+(defmethod (setf at) (new-value
+                      (frame standard-table)
+                      (column integer)
+                      (row integer))
+  (check-type column non-negative-integer)
+  (check-type row non-negative-integer))
