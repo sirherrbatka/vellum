@@ -1,7 +1,6 @@
 (in-package #:cl-df.csv)
 
 
-
 (defmethod cl-df:from-file ((format (eql ':csv))
                             (input pathname)
                             &rest options
