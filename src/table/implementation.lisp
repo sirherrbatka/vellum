@@ -32,3 +32,7 @@
                       (row integer))
   (check-type column non-negative-integer)
   (check-type row non-negative-integer))
+
+
+(defmethod column-count ((frame standard-table))
+  (~> frame header cl-df.header:column-count))
