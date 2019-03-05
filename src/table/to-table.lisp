@@ -12,7 +12,7 @@
 
   (%iterator %columns %column-count %header)
 
-  ((&rest all)
+  ((&key &allow-other-keys)
    (setf %header (cl-df.header:header)
          %column-count (cl-data-frames.header:column-count %header)
          %columns (make-array %column-count))
