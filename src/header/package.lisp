@@ -18,6 +18,7 @@
    #:index-to-alias
    #:make-header
    #:select-columns
+   #:no-column
    #:column-type
    #:row
    #:row-at
