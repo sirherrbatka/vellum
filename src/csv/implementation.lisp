@@ -2,16 +2,16 @@
 
 
 
-(defmethod cl-df:from-stream ((format (eql ':csv))
-                              (input pathname)
-                              &rest options
-                              &key
-                                (separator #\,)
-                                (quote #\")
-                                (header t)
-                                (quoted-empty-string-is-nil nil)
-                                (unquoted-empty-string-is-nil t)
-                                (trim-outer-whitespace t))
+(defmethod cl-df:from-file ((format (eql ':csv))
+                            (input pathname)
+                            &rest options
+                            &key
+                              (separator #\,)
+                              (quote #\")
+                              (header t)
+                              (quoted-empty-string-is-nil nil)
+                              (unquoted-empty-string-is-nil t)
+                              (trim-outer-whitespace t))
   (declare (ignore options))
   (let ((frame-header (cl-df.header:header))
         (fn (lambda (x)
@@ -31,16 +31,16 @@
             :header frame-header))))
 
 
-(defmethod cl-df:from-stream ((format (eql ':csv))
-                              (input cl-ds:fundamental-forward-range)
-                              &rest options
-                              &key
-                                (separator #\,)
-                                (quote #\")
-                                (header t)
-                                (quoted-empty-string-is-nil nil)
-                                (unquoted-empty-string-is-nil t)
-                                (trim-outer-whitespace t))
+(defmethod cl-df:from-file ((format (eql ':csv))
+                            (input cl-ds:fundamental-forward-range)
+                            &rest options
+                            &key
+                              (separator #\,)
+                              (quote #\")
+                              (header t)
+                              (quoted-empty-string-is-nil nil)
+                              (unquoted-empty-string-is-nil t)
+                              (trim-outer-whitespace t))
   (declare (ignore options))
   (let* ((frame-header (cl-df.header:header))
          (fn (lambda (x)

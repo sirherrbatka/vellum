@@ -4,7 +4,7 @@
   (:use #:cl #:cl-data-frames.aux-package)
   (:nicknames #:cl-df)
   (:export
-   #:from-stream))
+   #:from-file))
 
 (in-package :cl-data-frames)
 
