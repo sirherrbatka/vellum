@@ -36,3 +36,8 @@
 
 (defmethod column-count ((frame standard-table))
   (~> frame header cl-df.header:column-count))
+
+
+(defmethod row-count ((frame standard-table))
+  (~> frame read-columns
+      (reduce #'max _ :key #'cl-df.column:column-size)))
