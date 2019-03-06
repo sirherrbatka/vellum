@@ -69,7 +69,9 @@
                           (when (null alias)
                             (next-iteration))
                           (unless (null (shiftf (gethash alias result) i))
-                            (error 'alias-duplicated :alias alias))
+                            (error 'alias-duplicated
+                                   :format-arguments (list alias)
+                                   :alias alias))
                           (finally (return result)))
         :predicates (map 'vector
                          (cl-ds.utils:or* (rcurry #'getf :predicate)
@@ -200,6 +202,7 @@
                      result)
       (error 'predicate-failed
              :column-number index
+             :format-arguments (list result index)
              :value result))))
 
 
@@ -209,6 +212,7 @@
     (error (e)
       (declare (ignore e))
       (error 'conversion-failed
+             :format-arguments (list value type)
              :target-type type
              :value value))))
 
@@ -219,6 +223,7 @@
     (error (e)
       (declare (ignore e))
       (error 'conversion-failed
+             :format-arguments (list value type)
              :target-type type
              :value value))))
 
@@ -234,6 +239,7 @@
     (error (e)
       (declare (ignore e))
       (error 'conversion-failed
+             :format-arguments (list value type)
              :target-type type
              :value value))))
 
@@ -261,7 +267,10 @@
         (null (iterate
                 (for elt in '("FALSE" "F" "NIL" "0"))
                 (finding elt such-that (same elt value))
-                (finally (error 'conversion-failed)))))))
+                (finally (error 'conversion-failed
+                                :target-type type
+                                :value value
+                                :format-arguments (list value type))))))))
 
 
 (defmethod row-at ((header standard-header)
@@ -328,7 +337,9 @@
       (for alias = (third s))
       (when (null alias) (next-iteration))
       (unless (null (shiftf (gethash alias aliases) i))
-        (error 'alias-duplicated :alias alias)))
+        (error 'alias-duplicated
+               :format-arguments (list alias)
+               :alias alias)))
     (make 'standard-header
           :column-aliases aliases
           :predicates predicates

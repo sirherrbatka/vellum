@@ -11,5 +11,7 @@
     (iterate
       (for (alias value) in-hashtable (read-column-aliases header))
       (unless (null (shiftf (gethash alias result) (+ offset value)))
-        (error 'alias-duplicated :alias alias)))
+        (error 'alias-duplicated
+               :alias alias
+               :format-arguments alias)))
     (finally (return result))))
