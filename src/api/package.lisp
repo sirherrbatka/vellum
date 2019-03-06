@@ -4,6 +4,7 @@
   (:use #:cl #:cl-data-frames.aux-package)
   (:nicknames #:cl-df)
   (:export
+   #:row-cant-be-created
    #:from-file))
 
 (in-package :cl-data-frames)

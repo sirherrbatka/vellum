@@ -42,6 +42,7 @@
                              (:file "implementation")))
                (:module "api"
                 :components ((:file "package")
+                             (:file "conditions")
                              (:file "generics")))
                (:module "csv"
                 :components ((:file "package")

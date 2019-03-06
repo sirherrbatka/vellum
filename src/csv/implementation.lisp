@@ -15,13 +15,16 @@
   (declare (ignore options))
   (let ((frame-header (cl-df.header:header))
         (fn (lambda (x)
-              (cl-csv:read-csv-row
-               x
-               :separator separator
-               :trim-outer-whitespace trim-outer-whitespace
-               :unquoted-empty-string-is-nil unquoted-empty-string-is-nil
-               :quoted-empty-string-is-nil quoted-empty-string-is-nil
-               :quote quote))))
+              (handler-case
+                  (cl-csv:read-csv-row
+                   x
+                   :separator separator
+                   :trim-outer-whitespace trim-outer-whitespace
+                   :unquoted-empty-string-is-nil unquoted-empty-string-is-nil
+                   :quoted-empty-string-is-nil quoted-empty-string-is-nil
+                   :quote quote)
+                (cl-csv:csv-parse-error (e)
+                  (error 'cl-data-frames:row-cant-be-created :cause e))))))
     (cl-ds.fs:with-file-ranges ((result (cl-ds.fs:line-by-line input)))
       (setf result (funcall transform result))
       (when header
@@ -46,13 +49,16 @@
   (declare (ignore options))
   (let* ((frame-header (cl-df.header:header))
          (fn (lambda (x)
-               (cl-csv:read-csv-row
-                x
-                :separator separator
-                :trim-outer-whitespace trim-outer-whitespace
-                :unquoted-empty-string-is-nil unquoted-empty-string-is-nil
-                :quoted-empty-string-is-nil quoted-empty-string-is-nil
-                :quote quote)))
+               (handler-case
+                   (cl-csv:read-csv-row
+                    x
+                    :separator separator
+                    :trim-outer-whitespace trim-outer-whitespace
+                    :unquoted-empty-string-is-nil unquoted-empty-string-is-nil
+                    :quoted-empty-string-is-nil quoted-empty-string-is-nil
+                    :quote quote)
+                 (cl-csv:csv-parse-error (e)
+                   (error 'cl-df:row-cant-be-created :cause e)))))
          (result (~> input
                      (cl-ds.alg:on-each
                       (lambda (x)
