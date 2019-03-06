@@ -19,6 +19,7 @@
     (unless (< row length)
       (error 'cl-df.header:no-column
              :bounds (iota length)
+             :format-arguments (list column)
              :value column))
     (~> (aref columns column)
         (cl-df.column:column-at row))))

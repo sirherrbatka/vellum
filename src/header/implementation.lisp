@@ -13,7 +13,7 @@
              :bounds (hash-table-keys aliases)
              :argument 'alias
              :value alias
-             :format-control "No column with such alias."))
+             :format-arguments (list alias)))
     index))
 
 
@@ -30,7 +30,7 @@
                          hash-table-values)
              :argument 'index
              :value index
-             :format-control "No alias with such index.")))
+             :format-arguments (list index))))
 
 
 (defmethod validate-column-specification ((class (eql 'standard-header))
@@ -97,7 +97,7 @@
              :bounds (iota length)
              :argument 'column
              :value column
-             :format-control "No column with such index."))
+             :format-arguments (list column)))
     (aref types column)))
 
 
@@ -111,7 +111,7 @@
              :bounds (iota length)
              :argument 'column
              :value column
-             :format-control "No column with such index."))
+             :format-arguments (list column)))
     (aref predicates column)))
 
 
@@ -275,7 +275,7 @@
              :bounds (iota length)
              :argument 'column
              :value column
-             :format-control "No column with such index."))
+             :format-arguments (list column)))
     (aref row column)))
 
 

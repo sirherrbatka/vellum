@@ -2,7 +2,8 @@
 
 
 (define-condition no-column (cl-ds:argument-not-in-allowed-set)
-  ())
+  ()
+  (:default-initargs :format-control "No column ~a."))
 
 
 (define-condition no-row (cl-ds:operation-not-allowed)
