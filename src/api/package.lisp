@@ -14,4 +14,5 @@
   cl-df.header:standard-header
   cl-df.header:with-header
   cl-df.header:rr
+  cl-df.header:skip-row
   cl-df.header:make-header)

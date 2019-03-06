@@ -20,6 +20,7 @@
    #:select-columns
    #:no-column
    #:column-type
+   #:skip-row
    #:row
    #:row-at
    #:rr

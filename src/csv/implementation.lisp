@@ -23,7 +23,7 @@
                :quoted-empty-string-is-nil quoted-empty-string-is-nil
                :quote quote))))
     (cl-ds.fs:with-file-ranges ((result (cl-ds.fs:line-by-line input)))
-      (setf (funcall transform result))
+      (setf result (funcall transform result))
       (when header
         (cl-ds:consume-front result))
       (cl-ds.fs:close-inner-stream result)
@@ -36,7 +36,6 @@
                             (input cl-ds:fundamental-forward-range)
                             &rest options
                             &key
-                              (filter (constantly t))
                               (transform #'identity)
                               (separator #\,)
                               (quote #\")
@@ -57,15 +56,12 @@
          (result (~> input
                      (cl-ds.alg:on-each
                       (lambda (x)
-                        (if (not (funcall filter x))
-                            nil
-                            (cl-ds.fs:with-file-ranges
-                                ((inner (cl-ds.alg:on-each
-                                         x #'cl-ds.fs:line-by-line)))
-                              (setf inner (funcall transform x))
-                              (when header
-                                (cl-ds:consume-front inner))
-                              (cl-ds.alg:on-each inner fn)))))
+                        (cl-ds.fs:with-file-ranges
+                            ((inner (cl-ds.fs:line-by-line x)))
+                          (setf inner (funcall transform inner))
+                          (when header
+                            (cl-ds:consume-front inner))
+                          (cl-ds.alg:on-each inner fn))))
                      (cl-ds.alg:without #'null)
                      cl-ds.alg:chain-traversable)))
     (make 'cl-df.header:forward-proxy-frame-range
