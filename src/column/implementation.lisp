@@ -46,7 +46,7 @@
       (error 'no-such-column
              :bounds `(0 ,length)
              :value column
-             :text "There is no such column."))
+             :format-control "There is no such column."))
     (~> %buffers (aref column) (aref offset))))
 
 
@@ -66,7 +66,7 @@
       (error 'no-such-column
              :bounds `(0 ,length)
              :value column
-             :text "There is no such column."))
+             :format-control "There is no such column."))
     (unless (eql new-value old-value)
       (setf (~> %changes (aref column) (aref offset)) t))
     new-value))
@@ -233,7 +233,7 @@
   (when (eql value :null)
     (error 'setting-to-null
            :argument 'value
-           :text "Setting content of the column to :null is not allowed. Use ERASE! instead."))
+           :format-control "Setting content of the column to :null is not allowed. Use ERASE! instead."))
   (bind (((:values result status) (call-next-method)))
     (when (and (cl-ds:changed status)
                (> position (access-column-size structure)))

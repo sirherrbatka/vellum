@@ -784,7 +784,7 @@
              :bounds `(0 ,column-size)
              :value index
              :argument 'index
-             :text "Column index out of column bounds."))
+             :format-control "Column index out of column bounds."))
     (bind (((:values value found)
             (cl-ds.dicts.srrb:sparse-rrb-vector-at column index)))
       (if found value :null))))
@@ -799,7 +799,7 @@
              :bounds `(0 ,column-size)
              :value index
              :argument 'index
-             :text "Column index out of column bounds."))
+             :format-control "Column index out of column bounds."))
     (cl-ds.meta:position-modification #'(setf cl-ds:at)
                                       column
                                       column

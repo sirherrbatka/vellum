@@ -11,8 +11,9 @@
     (when (null index)
       (error 'no-column
              :bounds (hash-table-keys aliases)
+             :argument 'alias
              :value alias
-             :text "No column with such alias."))
+             :format-control "No column with such alias."))
     index))
 
 
@@ -27,8 +28,9 @@
              :bounds (~> header
                          read-column-aliases
                          hash-table-values)
+             :argument 'index
              :value index
-             :text "No alias with such index.")))
+             :format-control "No alias with such index.")))
 
 
 (defmethod validate-column-specification ((class (eql 'standard-header))
@@ -93,8 +95,9 @@
     (unless (< column length)
       (error 'no-column
              :bounds (iota length)
+             :argument 'column
              :value column
-             :text "No column with such index."))
+             :format-control "No column with such index."))
     (aref types column)))
 
 
@@ -106,8 +109,9 @@
     (unless (< column length)
       (error 'no-column
              :bounds (iota length)
+             :argument 'column
              :value column
-             :text "No column with such index."))
+             :format-control "No column with such index."))
     (aref predicates column)))
 
 
@@ -269,8 +273,9 @@
     (unless (< column length)
       (error 'no-column
              :bounds (iota length)
+             :argument 'column
              :value column
-             :text "No column with such index."))
+             :format-control "No column with such index."))
     (aref row column)))
 
 

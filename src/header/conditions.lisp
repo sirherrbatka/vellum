@@ -1,18 +1,18 @@
 (in-package #:cl-data-frames.header)
 
 
-(define-condition no-column (cl-ds:not-in-allowed-set)
+(define-condition no-column (cl-ds:argument-not-in-allowed-set)
   ())
 
 
 (define-condition no-row (cl-ds:operation-not-allowed)
   ()
-  (:default-initargs :text "No active row."))
+  (:default-initargs :format-control "No active row."))
 
 
 (define-condition no-header (cl-ds:operation-not-allowed)
   ()
-  (:default-initargs :text "No active header."))
+  (:default-initargs :format-control "No active header."))
 
 
 (define-condition predicate-failed (cl-ds:operation-not-allowed)
@@ -20,7 +20,7 @@
            :reader value)
    (%column-number :initarg :column-number
                    :reader column-number))
-  (:default-initargs :text "Predicate for value in the colum returned nil.")
+  (:default-initargs :format-control "Predicate for value in the colum returned nil.")
   (:report (lambda (condition stream)
              (format stream "~a The value is: ~a. The column number is ~a.~%"
                      (cl-ds:read-text condition)
@@ -33,7 +33,7 @@
            :reader value)
    (%target-type :initarg :target-type
                  :reader target-type))
-  (:default-initargs :text "Can't convert value.")
+  (:default-initargs :format-control "Can't convert value.")
   (:report (lambda (condition stream)
              (format stream "~a The value is: ~a. The column type is ~a.~%"
                      (cl-ds:read-text condition)
@@ -44,7 +44,7 @@
 (define-condition alias-duplicated (cl-ds:operation-not-allowed)
   ((%alias :initarg :alias
            :reader alias))
-  (:default-initargs :text "Detected alias duplication.")
+  (:default-initargs :format-control "Detected alias duplication.")
   (:report (lambda (condition stream)
              (format stream "~a Duplicated alias: ~A."
                      (cl-ds:read-text condition)
