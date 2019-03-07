@@ -8,5 +8,5 @@
 
 (define-condition file-input-row-cant-be-created
     (row-cant-be-created
-     file-error)
+     cl-ds:file-releated-error)
   ())

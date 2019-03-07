@@ -13,9 +13,9 @@
          :quoted-empty-string-is-nil quoted-empty-string-is-nil
          :quote quote)
       (cl-csv:csv-parse-error (e)
-        (error 'cl-data-frames:row-cant-be-created
+        (error 'cl-data-frames:file-input-row-cant-be-created
                :cause e
-               :pathname pathname)))))
+               :path pathname)))))
 
 
 (defmethod cl-df:from-file ((format (eql ':csv))
