@@ -10,7 +10,8 @@
                 :prove        :cl-data-structures
                 :lparallel    :metabang-bind
                 :cl-csv       :alexandria
-                :documentation-utils-extensions)
+                :documentation-utils-extensions
+                :gzip-stream)
   :defsystem-depends-on (:prove-asdf)
   :serial T
   :pathname "src"
