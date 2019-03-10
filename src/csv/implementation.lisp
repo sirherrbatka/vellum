@@ -22,6 +22,7 @@
                             (input pathname)
                             &rest options
                             &key
+                              (gzip nil)
                               (separator #\,)
                               (transform #'identity)
                               (quote #\")
