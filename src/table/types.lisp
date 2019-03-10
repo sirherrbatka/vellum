@@ -11,3 +11,8 @@
    (%columns :reader read-columns
              :initarg :columns
              :type vector)))
+
+
+(defmethod cl-ds.utils:cloning-information append ((table standard-table))
+  '((:header header)
+    (:column read-columns)))
