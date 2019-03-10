@@ -13,5 +13,5 @@
       (unless (null (shiftf (gethash alias result) (+ offset value)))
         (error 'alias-duplicated
                :alias alias
-               :format-arguments alias)))
+               :format-arguments (list alias))))
     (finally (return result))))
