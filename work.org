@@ -1,0 +1,3 @@
+* DONE Validate column signature slots in the initialize-instance.
+  CLOSED: [2019-03-10 nie 16:52]
+** signal error if signature is wrong

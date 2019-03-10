@@ -19,6 +19,14 @@
   (column-signature header (alias-to-index header alias)))
 
 
+(defmethod initialize-instance :after ((object column-signature)
+                                       &key &allow-other-keys)
+  (bind (((:slots %type %predicate %alias) object))
+    (check-type %type symbol)
+    (check-type %alias symbol)
+    (ensure-functionf %predicate)))
+
+
 (defmethod column-signature ((header standard-header)
                              (index integer))
   (check-type index non-negative-integer)

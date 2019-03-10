@@ -25,6 +25,5 @@
    #:row-at
    #:rr
    #:standard-header
-   #:validate-column-specification
    #:value
    #:with-header))
