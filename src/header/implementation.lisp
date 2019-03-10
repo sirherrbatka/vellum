@@ -1,9 +1,6 @@
 (in-package #:cl-data-frames.header)
 
 
-(def constantly-t (constantly t))
-
-
 (defmethod alias-to-index ((header standard-header)
                            (alias symbol))
   (let* ((aliases (read-column-aliases header))
@@ -17,114 +14,79 @@
     index))
 
 
+(defmethod column-signature ((header standard-header)
+                             (alias symbol))
+  (column-signature header (alias-to-index header alias)))
+
+
+(defmethod column-signature ((header standard-header)
+                             (index integer))
+  (check-type index non-negative-integer)
+  (let* ((column-signatures (read-column-signatures header))
+         (length (length column-signatures)))
+    (unless (< index length)
+      (error 'no-column
+             :bounds `(< 0 ,length)
+             :argument 'index
+             :value index
+             :format-arguments (list index)))
+    (~> column-signatures (aref index))))
+
+
 (defmethod index-to-alias ((header standard-header)
                            (index integer))
   (check-type index non-negative-integer)
-  (or (iterate
-        (declare (type fixnum i))
-        (for (alias i) in-hashtable (read-column-aliases header))
-        (finding alias such-that (= index i)))
-      (error 'no-column
-             :bounds (~> header
-                         read-column-aliases
-                         hash-table-values)
-             :argument 'index
-             :value index
-             :format-arguments (list index))))
+  (let* ((signature (column-signature header index))
+         (alias (read-alias signature)))
+    (if (null alias)
+        (error 'no-column
+               :bounds `(< 0 ,(~> header read-column-signatures length))
+               :argument 'index
+               :value index
+               :format-control "No alias for column ~a."
+               :format-arguments (list index))
+        alias)))
 
 
-(defmethod validate-column-specification ((class (eql 'standard-header))
-                                          column-specification)
-  ;; column-specification may or may not contain the type and alias
-  ;; we will ignore the unknown/unsupported types so this specific method will
-  ;; be usable not only alone, but also as a part of the extended validation
-  ;; in subclasses of the standard-header.
-  (let ((type (getf column-specification :type))
-        (alias (getf column-specification :alias))
-        (predicate (getf column-specification :predicate)))
-    (unless (null type)
-      (check-type type symbol))
-    (unless (null alias)
-      (check-type alias symbol))
-    (unless (null predicate)
-      (ensure-function predicate))
-    column-specification))
-
-
-(defmethod make-header :before ((class symbol) &rest columns)
-  (map nil
-       (curry #'validate-column-specification class)
-       columns))
-
-
-(defmethod make-header ((class (eql 'standard-header))
-                        &rest columns)
-  (make 'standard-header
-        :column-aliases (iterate
-                          (with result = (make-hash-table
-                                          :size (length columns)))
-                          (for column in columns)
-                          (for i from 0)
-                          (for alias = (getf column :alias))
-                          (when (null alias)
-                            (next-iteration))
-                          (unless (null (shiftf (gethash alias result) i))
-                            (error 'alias-duplicated
-                                   :format-arguments (list alias)
-                                   :alias alias))
-                          (finally (return result)))
-        :predicates (map 'vector
-                         (cl-ds.utils:or* (rcurry #'getf :predicate)
-                                          (constantly constantly-t))
-                         columns)
-        :column-types (map 'vector
-                           (cl-ds.utils:or* (rcurry #'getf :type)
-                                            constantly-t)
-                           columns)))
+(defmethod make-header (class &rest columns)
+  (let* ((result (make class))
+         (signature-class (read-column-signature-class result))
+         (column-signatures (map 'vector
+                                 (lambda (c)
+                                   (apply #'make signature-class c))
+                                 columns))
+         (aliases (iterate
+                    (with result = (make-hash-table
+                                    :size (length column-signatures)))
+                    (for column in-vector column-signatures)
+                    (for i from 0)
+                    (for alias = (read-alias column))
+                    (when (null alias) (next-iteration))
+                    (unless (null (shiftf (gethash alias result) i))
+                      (error 'alias-duplicated
+                             :format-arguments (list alias)
+                             :alias alias))
+                    (finally (return result)))))
+    (setf (slot-value result '%column-signatures) column-signatures
+          (slot-value result '%column-aliases) aliases)
+    result))
 
 
 (defmethod column-type ((header standard-header)
-                        (column symbol))
-  (~>> (alias-to-index header column)
-       (column-type header)))
-
-
-(defmethod column-type ((header standard-header)
-                        (column integer))
-  (check-type column non-negative-integer)
-  (let* ((types (read-column-types header))
-         (length (length types)))
-    (unless (< column length)
-      (error 'no-column
-             :bounds (iota length)
-             :argument 'column
-             :value column
-             :format-arguments (list column)))
-    (aref types column)))
+                        column)
+  (~>> (column-signature header column)
+       read-type))
 
 
 (defmethod column-predicate ((header standard-header)
                              (column integer))
   (check-type column non-negative-integer)
-  (let* ((predicates (read-predicates header))
-         (length (length predicates)))
-    (unless (< column length)
-      (error 'no-column
-             :bounds (iota length)
-             :argument 'column
-             :value column
-             :format-arguments (list column)))
-    (aref predicates column)))
-
-
-(defmethod column-predicate ((header standard-header)
-                             (column symbol))
-  (~>> (alias-to-index header column)
-       (column-predicate header)))
+  (~>> (column-signature header column)
+       read-predicate))
 
 
 (defmethod column-count ((header standard-header))
-  (~> header read-column-types length))
+  (~> header read-column-signatures length))
 
 
 (defmethod cl-ds:consume-front ((range frame-range-mixin))
@@ -299,48 +261,28 @@
                                 &rest more-headers)
   (push header more-headers)
   (let* ((aliases (unique-aliases more-headers))
-         (types (apply #'concatenate 'vector
-                       (mapcar #'read-column-types more-headers)))
-         (predicates (apply #'concatenate 'vector
-                            (mapcar #'read-predicates more-headers))))
+         (signatures (apply #'concatenate 'vector
+                            (mapcar #'read-column-signatures more-headers))))
     (make 'standard-header :column-aliases aliases
-                           :column-type types
-                           :predicates predicates)))
+                           :column-signatures signatures)))
 
 
 (defmethod select-columns ((header standard-header)
                            columns)
-  (bind (((:flet ignore-in-header (fn))
-          (lambda (&rest all)
-            (ignore-errors (apply fn header all))))
-         ((:flet in-header (fn))
-          (lambda (&rest all)
-            (apply fn header all)))
-         ((:flet index (x))
-          (etypecase x
-            (symbol (alias-to-index header x))
-            (non-negative-integer x)))
-         (selected (~> columns
-                       (cl-ds.alg:on-each
-                        (compose (juxt (in-header #'column-type)
-                                       (in-header #'column-predicate)
-                                       (ignore-in-header #'index-to-alias))
-                                 #'index))
+  (bind ((selected (~> (cl-ds.alg:on-each (curry #'column-signature header)
+                                          columns)
                        cl-ds.alg:to-vector))
-         (predicates (map 'vector #'second selected))
-         (aliases (make-hash-table :size (length selected)))
-         (types (map 'vector #'first selected)))
+         (aliases (make-hash-table :size (length selected))))
     (declare (type vector selected))
     (iterate
       (for i from 0)
       (for s in-vector selected)
-      (for alias = (third s))
+      (for alias = (read-alias s))
       (when (null alias) (next-iteration))
       (unless (null (shiftf (gethash alias aliases) i))
         (error 'alias-duplicated
                :format-arguments (list alias)
                :alias alias)))
-    (make 'standard-header
-          :column-aliases aliases
-          :predicates predicates
-          :column-types types)))
+    (make (class-of header)
+          :column-signatures selected
+          :column-aliases aliases)))
