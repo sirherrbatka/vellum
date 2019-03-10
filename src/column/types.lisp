@@ -38,6 +38,11 @@
                  :documentation "Highest index+1 in this column.")))
 
 
+(defmethod cl-ds.utils:cloning-information append
+    ((column sparse-material-column))
+  '((:column-size column-size)))
+
+
 (defun make-sparse-material-column (&key (element-type t))
   (make 'sparse-material-column
         :ownership-tag (cl-ds.common.abstract:make-ownership-tag)

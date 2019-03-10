@@ -4,4 +4,6 @@
   (:use #:cl #:cl-data-frames.aux-package)
   (:nicknames #:cl-df.table)
   (:export
-   ))
+   #:to-table
+   #:vstack
+   #:hstack))

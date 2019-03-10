@@ -9,23 +9,6 @@
   t)
 
 
-(defmethod cl-ds:replica ((column sparse-material-column) &optional isolate)
-  (check-type isolate boolean)
-  (lret ((result (make 'sparse-material-column
-                       :column-size (access-column-size column)
-                       :root (cl-ds.common.rrb:access-root column)
-                       :shift (cl-ds.common.rrb:access-shift column)
-                       :size (cl-ds.common.rrb:access-size column)
-                       :tail-size (cl-ds.common.rrb:access-tail-size column)
-                       :ownership-tag (cl-ds.common.abstract:make-ownership-tag)
-                       :tail (and #1=(cl-ds.common.rrb:access-tail column)
-                                  (copy-array #1#)))))
-    (when isolate
-      (cl-ds.common.abstract:write-ownership-tag
-       (cl-ds.common.abstract:make-ownership-tag)
-       column))))
-
-
 (defmethod column-at ((column sparse-material-column) index)
   (sparse-material-column-at column index))
 
@@ -82,7 +65,6 @@
 (defmethod move-iterator
     ((iterator sparse-material-column-iterator)
      times)
-  (declare (optimize (debug 3)))
   (check-type times non-negative-fixnum)
   (when (zerop times)
     (return-from move-iterator nil))
@@ -157,6 +139,7 @@
 
 
 (defmethod finish-iterator ((iterator sparse-material-column-iterator))
+  (change-leafs iterator)
   (iterate
     (with depth = (access-depth iterator))
     (with index = (access-index iterator))
@@ -175,7 +158,7 @@
           (cl-ds.dicts.srrb:access-shift column) tree-shift)
     (for index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
     (setf (cl-ds.dicts.srrb:access-tree-index-bound column) index-bound
-          (access-column-size column) (max column-size index)
+          (access-column-size column) (max column-size (1+ index))
           (cl-ds.dicts.srrb:access-index-bound column)
           (+ index-bound cl-ds.common.rrb:+maximum-children-count+))))
 

@@ -13,8 +13,11 @@
 (rexport :cl-data-frames
   cl-df.header:body
   cl-df.header:brr
-  cl-df.header:standard-header
-  cl-df.header:with-header
+  cl-df.header:make-header
   cl-df.header:rr
   cl-df.header:skip-row
-  cl-df.header:make-header)
+  cl-df.header:standard-header
+  cl-df.header:with-header
+  cl-df.table:hstack
+  cl-df.table:to-table
+  cl-df.table:vstack)

@@ -24,7 +24,7 @@
     (prove:is (column-at column i) j))
   (setf iterator (make-iterator column))
   (iterate
-    (for j from 128 downto 0)
+    (for j from 128 above 0)
     (setf (iterator-at iterator 0) j)
     (move-iterator iterator 1))
   (finish-iterator iterator)
