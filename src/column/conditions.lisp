@@ -19,10 +19,6 @@
   ())
 
 
-(define-condition iterator-reached-end (iterator-error
-                                        cl-ds:textual-error)
-  ())
-
 (define-condition setting-to-null (column-error
-                                   cl-ds:invalid-argument)
+                                   cl-ds:invalid-value)
   ())
