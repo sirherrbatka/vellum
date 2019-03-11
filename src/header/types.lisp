@@ -52,3 +52,8 @@
 (defclass forward-proxy-frame-range (frame-range-mixin
                                      cl-ds.alg:forward-proxy-range)
   ())
+
+
+(defmethod cl-ds.utils:cloning-information append
+    ((signature frame-range-mixin))
+  '((:header read-header)))
