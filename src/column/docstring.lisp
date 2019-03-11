@@ -26,8 +26,5 @@
      :exceptional-situations ("Will signal INDEX-OUT-OF-COLUMN-BOUNDS if INDEX is out of column bounds."
                               "Will signal type-error if INDEX is not INTEGER.")))
 
-  (function (setf column-size)
-    (:description "Set size of the COLUMN."))
-
   (function column-size
     (:description "The total size of the COLUMN.")))

@@ -31,16 +31,12 @@
 (defclass sparse-material-column
     (cl-ds.dicts.srrb:transactional-sparse-rrb-vector
      fundamental-column)
-  ((%column-size :initarg :column-size
-                 :accessor access-column-size
-                 :reader column-size
-                 :writer write-column-size
-                 :documentation "Highest index+1 in this column.")))
+  ())
 
 
 (defmethod cl-ds.utils:cloning-information append
     ((column sparse-material-column))
-  '((:column-size column-size)))
+  '())
 
 
 (defun make-sparse-material-column (&key (element-type t))

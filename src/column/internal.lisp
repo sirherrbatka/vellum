@@ -778,7 +778,7 @@
 (defun sparse-material-column-at (column index)
   (declare (type sparse-material-column column))
   (check-type index integer)
-  (let ((column-size (access-column-size column)))
+  (let ((column-size (column-size column)))
     (unless (< -1 index column-size)
       (error 'index-out-of-column-bounds
              :bounds `(0 ,column-size)
@@ -793,7 +793,7 @@
 (defun (setf sparse-material-column-at) (new-value column index)
   (declare (type sparse-material-column column))
   (check-type index integer)
-  (let ((column-size (access-column-size column)))
+  (let ((column-size (column-size column)))
     (unless (< -1 index column-size)
       (error 'index-out-of-column-bounds
              :bounds `(0 ,column-size)
@@ -838,7 +838,7 @@
       (finally
        (iterate
          (for column in-vector columns)
-         (setf (access-column-size column) maximum-size))))))
+         (setf (cl-ds.dicts.srrb:access-tree-index-bound column) maximum-size))))))
 
 
 (defclass sparse-material-column-range (cl-ds:fundamental-forward-range)

@@ -158,14 +158,8 @@
           (cl-ds.dicts.srrb:access-shift column) tree-shift)
     (for index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
     (setf (cl-ds.dicts.srrb:access-tree-index-bound column) index-bound
-          (access-column-size column) (max column-size (1+ index))
           (cl-ds.dicts.srrb:access-index-bound column)
           (+ index-bound cl-ds.common.rrb:+maximum-children-count+))))
-
-
-(defmethod cl-ds:put-back! ((container fundamental-column) item)
-  (cl-ds.meta:position-modification #'cl-ds:put-back! container
-                                    container nil :value item))
 
 
 (defmethod cl-ds.meta:make-bucket ((operation cl-ds.meta:grow-function)
@@ -189,22 +183,6 @@
           cl-ds.common:empty-changed-eager-modification-operation-status))
 
 
-(defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:put!-function)
-                                             (structure sparse-material-column)
-                                             container
-                                             position
-                                             &rest all
-                                             &key value)
-  (bind (((:values container status)
-          (cl-ds.dicts.srrb:transactional-sparse-rrb-vector-grow
-           operation structure container
-           (access-column-size structure)
-           all value)))
-    (when (cl-ds:changed status)
-      (incf (access-column-size container)))
-    (values container status)))
-
-
 (defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:grow-function)
                                              (structure sparse-material-column)
                                              container
@@ -218,9 +196,6 @@
            :argument 'value
            :format-control "Setting content of the column to :null is not allowed. Use ERASE! instead."))
   (bind (((:values result status) (call-next-method)))
-    (when (and (cl-ds:changed status)
-               (> position (access-column-size structure)))
-      (setf (access-column-size structure) (1+ position)))
     (values result status)))
 
 
@@ -232,16 +207,12 @@
   (declare (ignore all))
   (check-type position non-negative-integer)
   (bind (((:values result status) (call-next-method)))
-    (when (and (cl-ds:changed status)
-               (= (1+ position) (access-column-size structure)))
-      (setf (access-column-size structure) position))
     (values result status)))
 
 
-(defmethod (setf column-size) (new-size (column sparse-material-column))
-  (check-type new-size non-negative-fixnum)
-  (let ((current-size (access-column-size column)))
-    cl-ds.utils:todo))
+(defmethod column-size ((column sparse-material-column))
+  (+ (cl-ds.dicts.srrb:access-tree-size column)
+     (~> column cl-ds.dicts.srrb:access-tail-mask integer-length)))
 
 
 (defmethod remove-nulls ((iterator sparse-material-column-iterator))
