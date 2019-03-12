@@ -1,6 +1,6 @@
 (in-package #:cl-df.column)
 
-(prove:plan 1755)
+(prove:plan 1754)
 
 (let* ((column (make-sparse-material-column))
        (iterator (make-iterator column)))
@@ -67,8 +67,7 @@
     (prove:is (length vector-data) (- 256 50))
     (iterate
       (for i from 0 below (- 256 50))
-      (prove:is (aref vector-data i) (column-at column i))))
-  (prove:is (column-size column) (- 256 50)))
+      (prove:is (aref vector-data i) (column-at column i)))))
 
 (let* ((column1 (make-sparse-material-column))
        (column2 (make-sparse-material-column))

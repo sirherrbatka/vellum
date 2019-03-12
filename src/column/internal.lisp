@@ -58,7 +58,7 @@
     (for stack in-vector (read-stacks iterator))
     (for column in-vector (read-columns iterator))
     (pad-stack iterator depth index new-depth stack column)
-    (setf (aref depths i) depth)))
+    (maxf (aref depths i) new-depth)))
 
 
 (defun initialize-iterator-column (column stack buffer)
@@ -873,7 +873,7 @@
   (let* ((iterator (access-iterator range))
          (column (read-column range))
          (position (access-position range))
-         (more (< position (column-size column))))
+         (more (< position (cl-ds:size column))))
     (values (if more
                 (prog1
                     (iterator-at iterator 0)

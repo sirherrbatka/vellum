@@ -144,12 +144,20 @@
   (iterate
     (for column in-vector (read-columns iterator))
     (for column-size = (column-size column))
-    (for shift = (cl-ds.dicts.srrb:access-shift column))
+    (for depth in-vector (read-depths iterator))
+    (setf (cl-ds.dicts.srrb:access-shift column) depth)
     (for stack in-vector (read-stacks iterator))
     (setf (cl-ds.dicts.srrb:access-tree column) (or (first-elt stack)
                                                     cl-ds.meta:null-bucket))
     (for index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
     (setf (cl-ds.dicts.srrb:access-tree-index-bound column) index-bound
+
+          (cl-ds.dicts.srrb:access-tree-size column)
+          (if (first-elt stack)
+              (~> stack first-elt
+                  (cl-ds.common.rrb:sparse-rrb-tree-size depth))
+              0)
+
           (cl-ds.dicts.srrb:access-index-bound column)
           (+ index-bound cl-ds.common.rrb:+maximum-children-count+))))
 
@@ -204,7 +212,7 @@
 
 
 (defmethod column-size ((column sparse-material-column))
-  (+ (cl-ds.dicts.srrb:access-tree-size column)
+  (+ (cl-ds.dicts.srrb:access-tree-index-bound column)
      (~> column cl-ds.dicts.srrb:access-tail-mask integer-length)))
 
 
@@ -224,6 +232,12 @@
     (remove-nulls-in-trees iterator)
     (concatenate-trees iterator)
     (trim-depth iterator)
+    (iterate
+      (for column in-vector %columns)
+      (setf (cl-ds.dicts.srrb:access-tree-size column)
+            (cl-ds.common.rrb:sparse-rrb-tree-size
+             (cl-ds.dicts.srrb:access-tree column)
+             (cl-ds.dicts.srrb:access-shift column))))
     nil))
 
 
