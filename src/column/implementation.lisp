@@ -191,11 +191,12 @@
     (values result status)))
 
 
-(defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:shrink-function)
-                                             (structure sparse-material-column)
-                                             container
-                                             position
-                                             &rest all)
+(defmethod cl-ds.meta:position-modification
+    ((operation cl-ds.meta:shrink-function)
+     (structure sparse-material-column)
+     container
+     position
+     &rest all)
   (declare (ignore all))
   (check-type position non-negative-integer)
   (bind (((:values result status) (call-next-method)))
