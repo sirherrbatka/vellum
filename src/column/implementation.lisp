@@ -99,8 +99,8 @@
                                   :initial-element nil
                                   :element-type 'boolean)
                       (read-changes iterator))
-  (assert (= (access-depth iterator)
-             (cl-ds.dicts.srrb:access-shift column)))
+  (vector-push-extend (cl-ds.dicts.srrb:access-shift column)
+                      (read-depths iterator))
   (vector-push-extend (make-array cl-ds.common.rrb:+maximal-shift+
                                   :initial-element nil)
                       (read-stacks iterator))
@@ -121,7 +121,8 @@
                                     :initial-element nil
                                     :element-type 'boolean)
                         (read-changes result))
-    (setf (access-depth result) (cl-ds.dicts.srrb:access-shift column))
+    (vector-push-extend (cl-ds.dicts.srrb:access-shift column)
+                        (read-depths result))
     (vector-push-extend (make-array cl-ds.common.rrb:+maximal-shift+
                                     :initial-element nil)
                         (read-stacks result))

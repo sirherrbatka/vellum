@@ -55,10 +55,12 @@
             :type vector
             :initform (vect)
             :reader read-stacks)
-   (%depth :initarg :depth
-           :type fixnum
-           :initform 0
-           :accessor access-depth)
+   (%depths :initarg :depths
+            :type (vector fixnum)
+            :initform (make-array 0 :element-type 'fixnum
+                                    :adjustable t
+                                    :fill-pointer 0)
+            :reader read-depths)
    (%index :initarg :index
            :accessor access-index
            :type fixnum
