@@ -208,8 +208,18 @@
 
 
 (defmethod remove-nulls ((iterator sparse-material-column-iterator))
-  (bind (((:slots %index %stacks %buffers %depth) iterator)
-         (index %index))
+  (bind (((:slots %index %columns %stacks %buffers %depth) iterator)
+         (depth (reduce #'max %columns
+                        :key #'cl-ds.dicts.srrb:access-shift))
+         ((:flet unify-shift (column))
+          (iterate
+            (for i from (cl-ds.dicts.srrb:access-shift column) below depth)
+            (for node
+                 initially (cl-ds.dicts.srrb:access-tree column)
+                 then (make-node iterator column 1
+                                 :content (vector node)))
+            (finally (setf (cl-ds.dicts.srrb:access-tree column) node)))))
+    (map nil #'unify-shift %columns)
     (remove-nulls-in-trees iterator)
     (concatenate-trees iterator)
     (trim-depth iterator)

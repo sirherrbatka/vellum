@@ -493,13 +493,7 @@
             current-state))
          ((:flet pack-root-into-hashtable (element))
           (lret ((result (make-hash-table)))
-            (iterate
-              (for i from (cl-ds.dicts.srrb:access-shift element) below depth)
-              (for node
-                   initially (cl-ds.dicts.srrb:access-tree element)
-                   then (make-node iterator element 1
-                                   :content (vector node)))
-              (finally (setf (gethash 0 result) node)))))
+            (setf (gethash 0 result) (cl-ds.dicts.srrb:access-tree element))))
          (roots (map 'vector #'pack-root-into-hashtable columns)))
     (impl 0 roots nil)
     (iterate
