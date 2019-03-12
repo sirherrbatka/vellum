@@ -183,12 +183,13 @@
           cl-ds.common:empty-changed-eager-modification-operation-status))
 
 
-(defmethod cl-ds.meta:position-modification ((operation cl-ds.meta:grow-function)
-                                             (structure sparse-material-column)
-                                             container
-                                             position
-                                             &rest all
-                                             &key value)
+(defmethod cl-ds.meta:position-modification
+    ((operation cl-ds.meta:grow-function)
+     (structure sparse-material-column)
+     container
+     position
+     &rest all
+     &key value)
   (declare (ignore all))
   (check-type position non-negative-integer)
   (when (eql value :null)
