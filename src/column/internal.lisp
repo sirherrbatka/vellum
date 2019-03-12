@@ -474,7 +474,9 @@
   (declare (optimize (debug 3)))
   (bind ((columns (~>> iterator read-columns
                        (remove-if #'null _ :key #'column-root)))
-         (depth (access-depth iterator))
+         (min-depth (~>> iterator read-columns
+                         (reduce #'min _
+                                 :key #'cl-ds.dicts.srrb:access-shift)))
          ((:labels impl (d nodes parent-state))
           (let ((current-state (concatenation-state iterator
                                                     columns
