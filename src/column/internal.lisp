@@ -48,15 +48,17 @@
 
 
 (defun pad-stacks (iterator new-depth)
-  (map nil
-       (curry #'pad-stack
-              iterator
-              (access-depth iterator)
-              (access-index iterator)
-              new-depth)
-       (read-stacks iterator)
-       (read-columns iterator))
-  (setf (access-depth iterator) new-depth))
+  (iterate
+    (with index = (access-index iterator))
+    (with depths = (read-depths iterator))
+    (for i from 0 below (~> iterator read-depths length))
+    (for depth in-vector depths)
+    (when (>= depth new-depth)
+      (next-iteration))
+    (for stack in-vector (read-stacks iterator))
+    (for column in-vector (read-columns iterator))
+    (pad-stack iterator depth index new-depth stack column)
+    (setf (aref depths i) depth)))
 
 
 (defun initialize-iterator-column (column stack buffer)
@@ -597,13 +599,12 @@
 
 
 (defun move-stacks (iterator new-index new-depth)
-  (let* ((depth (access-depth iterator)))
-    (when (> new-depth depth)
-      (pad-stacks iterator new-depth))
-    (iterate
-      (for stack in-vector (read-stacks iterator))
-      (move-stack depth new-index stack))
-    (setf (access-index iterator) new-index)))
+  (pad-stacks iterator new-depth)
+  (iterate
+    (for stack in-vector (read-stacks iterator))
+    (for depth in-vector (read-depths iterator))
+    (move-stack depth new-index stack))
+  (setf (access-index iterator) new-index))
 
 
 (defun mutate-leaf (column old-node change buffer)
@@ -681,9 +682,8 @@
 
 (defun change-leafs (iterator)
   (map nil
-       (curry #'change-leaf
-              iterator
-              (access-depth iterator))
+       (curry #'change-leaf iterator)
+       (read-depths iterator)
        (read-stacks iterator)
        (read-columns iterator)
        (read-changes iterator)
@@ -715,7 +715,7 @@
                        child))))))
 
 
-(defun reduce-stack (iterator depth index stack column)
+(defun reduce-stack (iterator index depth stack column)
   (iterate
     (with tag = (cl-ds.common.abstract:read-ownership-tag column))
     (with prev-node = (aref stack depth))
@@ -748,7 +748,8 @@
 
 (defun fill-buffers (iterator)
   (map nil
-       (curry #'fill-buffer (access-depth iterator))
+       (curry #'fill-buffer)
+       (read-depths iterator)
        (read-buffers iterator)
        (read-stacks iterator)))
 
@@ -757,8 +758,8 @@
   (map nil
        (curry #'reduce-stack
               iterator
-              (access-depth iterator)
               (access-index iterator))
+       (read-depths iterator)
        (read-stacks iterator)
        (read-columns iterator)))
 
