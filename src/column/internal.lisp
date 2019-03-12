@@ -516,14 +516,10 @@
   (declare (optimize (debug 3)))
   (bind ((columns (~>> iterator read-columns
                        (remove-if #'null _ :key #'column-root)))
-         (depth (access-depth iterator))
+         (depth (reduce #'max columns
+                        :key #'cl-data-structures.dicts.srrb:access-shift))
          ((:flet truncate-mask (mask))
           (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
-         ((:flet truncate-mask-to (mask removed-count))
-          (ldb (byte (- cl-ds.common.rrb:+maximum-children-count+
-                        removed-count)
-                     0)
-               mask))
          ((:flet missing-bitmask (node))
           (~> node
               cl-ds.common.rrb:sparse-rrb-node-bitmask

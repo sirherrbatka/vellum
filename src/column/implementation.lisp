@@ -142,21 +142,12 @@
 (defmethod finish-iterator ((iterator sparse-material-column-iterator))
   (change-leafs iterator)
   (iterate
-    (with depth = (access-depth iterator))
-    (with index = (access-index iterator))
     (for column in-vector (read-columns iterator))
     (for column-size = (column-size column))
     (for shift = (cl-ds.dicts.srrb:access-shift column))
     (for stack in-vector (read-stacks iterator))
-    (for tree-shift = (max shift depth))
-    (for size = (if (first-elt stack)
-                    (~> stack first-elt
-                        (cl-ds.common.rrb:sparse-rrb-tree-size tree-shift))
-                    0))
     (setf (cl-ds.dicts.srrb:access-tree column) (or (first-elt stack)
-                                                    cl-ds.meta:null-bucket)
-          (cl-ds.dicts.srrb:access-tree-size column) size
-          (cl-ds.dicts.srrb:access-shift column) tree-shift)
+                                                    cl-ds.meta:null-bucket))
     (for index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
     (setf (cl-ds.dicts.srrb:access-tree-index-bound column) index-bound
           (cl-ds.dicts.srrb:access-index-bound column)
