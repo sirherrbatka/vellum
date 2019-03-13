@@ -262,5 +262,29 @@
 (defmethod truncate-to-length ((column sparse-material-column)
                                length)
   (check-type length non-negative-fixnum)
-
-  )
+  (let ((tag (cl-ds.common.abstract:read-ownership-tag column)))
+    (cl-ds.dicts.srrb:transactional-insert-tail! column tag)
+    (bind ((shift (cl-ds.dicts.srrb:access-shift column))
+           ((:labels impl (node byte-position))
+            (let* ((i (ldb (byte cl-ds.common.rrb:+bit-count+
+                                 byte-position)
+                           (1- length)))
+                   (mask (cl-ds.common.rrb:sparse-rrb-node-bitmask node))
+                   (new-mask (ldb (byte i 0) mask))
+                   (owned (cl-ds.common.abstract:acquire-ownership node tag)))
+              (when (eql mask new-mask)
+                (return-from impl node))
+              (unless owned
+                (setf node (cl-ds.common.rrb:deep-copy-sparse-rrb-node node
+                                                                       tag)))
+              (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask node) new-mask)
+              (unless (or (zerop byte-position)
+                          (not (cl-ds.common.rrb:sparse-rrb-node-contains node
+                                                                          i)))
+                (setf #1=(cl-ds.common.rrb:sparse-nref node i)
+                      (impl #1# (- byte-position
+                                   cl-ds.common.rrb:+bit-count+))))
+              node)))
+      (setf #2=(cl-ds.dicts.srrb:access-tree column)
+            (impl #2# (* cl-ds.common.rrb:+bit-count+ shift)))
+      (trim-depth-in-column column))))

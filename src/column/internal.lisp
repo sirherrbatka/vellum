@@ -798,30 +798,26 @@
         root)))
 
 
-(defun trim-depth (iterator)
-  (bind ((columns (read-columns iterator))
-         ((:labels skip (node))
+(defun trim-depth-in-column (column)
+  (bind (((:labels skip (node))
           (if (or (cl-ds.meta:null-bucket-p node)
                   (~> node
                       cl-ds.common.rrb:sparse-rrb-node-bitmask
                       (eql 1)
                       not))
               node
-              (skip (cl-ds.common.rrb:sparse-nref node 0)))))
-    (iterate
-      (for column in-vector columns)
-      (for tree-index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
-      (maximize tree-index-bound into maximum-size)
-      (for index-bound = (+ cl-ds.common.rrb:+maximum-children-count+
-                            tree-index-bound))
-      (for root = (cl-ds.dicts.srrb:access-tree column))
-      (setf (cl-ds.dicts.srrb:access-tree-index-bound column) tree-index-bound
-            (cl-ds.dicts.srrb:access-index-bound column) index-bound
-            (cl-ds.dicts.srrb:access-tree column) (skip root))
-      (finally
-       (iterate
-         (for column in-vector columns)
-         (setf (cl-ds.dicts.srrb:access-tree-index-bound column) maximum-size))))))
+              (skip (cl-ds.common.rrb:sparse-nref node 0))))
+         (tree-index-bound (cl-ds.dicts.srrb:scan-index-bound column))
+         (index-bound (+ cl-ds.common.rrb:+maximum-children-count+
+                         tree-index-bound))
+         (root (cl-ds.dicts.srrb:access-tree column)))
+    (setf (cl-ds.dicts.srrb:access-tree-index-bound column) tree-index-bound
+          (cl-ds.dicts.srrb:access-index-bound column) index-bound
+          (cl-ds.dicts.srrb:access-tree column) (skip root))))
+
+
+(defun trim-depth (iterator)
+  (map nil #'trim-depth-in-column (read-columns iterator)))
 
 
 (defclass sparse-material-column-range (cl-ds:fundamental-forward-range)
