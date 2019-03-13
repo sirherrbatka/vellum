@@ -27,4 +27,6 @@
 
 (defgeneric column-name (frame column))
 
+(defgeneric column-type (frame column))
+
 (defgeneric header (frame))

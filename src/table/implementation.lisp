@@ -63,6 +63,10 @@
       (cl-df.header:index-to-alias column)))
 
 
+(defmethod column-type ((frame standard-table) column)
+  (~> frame header (cl-df.header:column-type column)))
+
+
 (defmethod hstack ((frame standard-table) &rest more-frames)
   (push frame more-frames)
   (map nil (lambda (x) (check-type x standard-table))
