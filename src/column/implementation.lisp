@@ -257,3 +257,10 @@
 (defmethod cl-ds:traverse ((container sparse-material-column)
                            function)
   (cl-ds:across container function))
+
+
+(defmethod truncate-to-length ((column sparse-material-column)
+                               length)
+  (check-type length non-negative-fixnum)
+
+  )

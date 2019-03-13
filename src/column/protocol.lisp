@@ -18,3 +18,4 @@
 (defgeneric augment-iterator (iterator column))
 (defgeneric finish-iterator (iterator))
 (defgeneric remove-nulls (iterator))
+(defgeneric truncate-to-length (column length))
