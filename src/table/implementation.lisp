@@ -88,7 +88,15 @@
           :columns new-columns)))
 
 
-(defmethod vslice ((frame standard-table) selector)
+(defun replica-or-not (in-place)
+  (check-type in-place boolean)
+  (if in-place
+      #'identity
+      (rcurry #'cl-ds:replica t)))
+
+
+(defmethod vslice ((frame standard-table) selector
+                   &key in-place *transform-in-place*)
   (let* ((header (header frame))
          (columns (read-columns frame))
          (column-indexes
@@ -137,12 +145,12 @@
           (cl-ds.utils:quasi-clone frame :columns new-columns)))))
 
 
-(defmethod hmask ((frame standard-table) mask)
+(defmethod hmask ((frame standard-table) mask
+                  &key (in-place *transform-in-place*))
   (bind ((columns (read-columns frame))
          (column-count (length columns))
          (new-columns (map 'vector
-                           (lambda (x)
-                             (cl-ds:replica x t))
+                           (replica-or-not in-place)
                            columns)))
     (let ((iterator (~> new-columns first-elt
                         cl-df.column:make-iterator)))
@@ -159,17 +167,16 @@
              (setf (cl-df.column:iterator-at iterator column-index) :null)))
          (cl-df.column:move-iterator iterator 1)))
       (cl-df.column:finish-iterator iterator)
-      (cl-ds.utils:quasi-clone frame :columns new-columns))))
+      (if in-place
+          frame
+          (cl-ds.utils:quasi-clone frame :columns new-columns)))))
 
 
 (defmethod transform ((frame standard-table) function
                       &key (in-place *transform-in-place*))
   (bind ((columns (read-columns frame))
          (new-columns (map 'vector
-                           (if in-place
-                               #'identity
-                               (lambda (x)
-                                 (cl-ds:replica x t)))
+                           (replica-or-not in-place)
                            columns)))
     cl-ds.utils:todo
     (if in-place

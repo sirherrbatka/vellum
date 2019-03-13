@@ -11,7 +11,7 @@
 
 (defgeneric vslice (frame selector))
 
-(defgeneric hmask (frame mask))
+(defgeneric hmask (frame mask &key in-place))
 
 (defgeneric at (frame column row))
 
