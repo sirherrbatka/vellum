@@ -14,5 +14,6 @@
    #:hstack
    #:row-count
    #:to-table
+   #:transform
    #:vslice
    #:vstack))

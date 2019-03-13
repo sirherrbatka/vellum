@@ -160,3 +160,18 @@
          (cl-df.column:move-iterator iterator 1)))
       (cl-df.column:finish-iterator iterator)
       (cl-ds.utils:quasi-clone frame :columns new-columns))))
+
+
+(defmethod transform ((frame standard-table) function
+                      &key (in-place *transform-in-place*))
+  (bind ((columns (read-columns frame))
+         (new-columns (map 'vector
+                           (if in-place
+                               #'identity
+                               (lambda (x)
+                                 (cl-ds:replica x t)))
+                           columns)))
+    cl-ds.utils:todo
+    (if in-place
+        frame
+        (cl-ds.utils:quasi-clone frame :columns new-columns))))

@@ -17,7 +17,7 @@
 
 (defgeneric (setf at) (new-value frame column row))
 
-(defgeneric transform (frame function &key in-place start end))
+(defgeneric transform (frame function &key in-place))
 
 (defgeneric row-erase (row))
 
