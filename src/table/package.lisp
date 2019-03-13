@@ -10,6 +10,9 @@
    #:column-type
    #:header
    #:hmask
+   #:hslice
    #:hstack
+   #:row-count
    #:to-table
+   #:vslice
    #:vstack))
