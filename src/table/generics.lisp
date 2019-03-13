@@ -11,6 +11,8 @@
 
 (defgeneric vslice (frame selector))
 
+(defgeneric hmask (frame mask))
+
 (defgeneric at (frame column row))
 
 (defgeneric (setf at) (new-value frame column row))

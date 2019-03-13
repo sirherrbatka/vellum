@@ -131,3 +131,28 @@
              (cl-df.column:move-iterator iterator 1)))
           (cl-df.column:finish-iterator iterator)
           (cl-ds.utils:quasi-clone frame :columns new-columns)))))
+
+
+(defmethod hmask ((frame standard-table) mask)
+  (bind ((columns (read-columns frame))
+         (column-count (length columns))
+         (new-columns (map 'vector
+                           (lambda (x)
+                             (cl-ds:replica x t))
+                           columns)))
+    (let ((iterator (~> new-columns first-elt
+                        cl-df.column:make-iterator)))
+      (iterate
+        (for i from 1 below column-count)
+        (cl-df.column:augment-iterator iterator (aref new-columns i)))
+      (cl-ds:traverse
+       mask
+       (lambda (accepted)
+         (when (not accepted)
+           (iterate
+             (for column in-vector new-columns)
+             (for column-index from 0 below column-count)
+             (setf (cl-df.column:iterator-at iterator column-index) :null)))
+         (cl-df.column:move-iterator iterator 1)))
+      (cl-df.column:finish-iterator iterator)
+      (cl-ds.utils:quasi-clone frame :columns new-columns))))
