@@ -1,17 +1,13 @@
 (in-package #:cl-df.table)
 
 
-(defmethod at ((frame standard-table)
-               (column symbol)
-               (row integer))
+(defmethod at ((frame standard-table) (column symbol) (row integer))
   (~> frame header
       (cl-df.header:alias-to-index column)
       (at frame _ row)))
 
 
-(defmethod at ((frame standard-table)
-               (column integer)
-               (row integer))
+(defmethod at ((frame standard-table) (column integer) (row integer))
   (check-type column non-negative-integer)
   (check-type row non-negative-integer)
   (let* ((columns (read-columns frame))
@@ -62,14 +58,12 @@
               :initial-value 0)))
 
 
-(defmethod column-name ((frame standard-table)
-                        (column integer))
+(defmethod column-name ((frame standard-table) (column integer))
   (~> frame header
       (cl-df.header:index-to-alias column)))
 
 
-(defmethod hstack ((frame standard-table)
-                   &rest more-frames)
+(defmethod hstack ((frame standard-table) &rest more-frames)
   (push frame more-frames)
   (map nil (lambda (x) (check-type x standard-table))
        more-frames)
@@ -90,8 +84,7 @@
           :columns new-columns)))
 
 
-(defmethod vslice ((frame standard-table)
-                   selector)
+(defmethod vslice ((frame standard-table) selector)
   (let* ((header (header frame))
          (columns (read-columns frame))
          (column-indexes
@@ -110,3 +103,31 @@
            :header new-header
            :column new-columns
            (cl-ds.utils:cloning-information frame))))
+
+
+(defmethod hslice ((frame standard-table) selector)
+  (bind ((columns (read-columns frame))
+         (column-count (length columns))
+         (new-columns (map 'vector
+                           (lambda (x)
+                             (cl-df.column:make-sparse-material-column
+                              :element-type (cl-df.column:column-type x)))
+                           columns)))
+    (if (emptyp new-columns)
+        (cl-ds.utils:quasi-clone frame :columns new-columns)
+        (let ((iterator (~> new-columns first-elt
+                            cl-df.column:make-iterator)))
+          (iterate
+            (for i from 1 below column-count)
+            (cl-df.column:augment-iterator iterator (aref new-columns i)))
+          (cl-ds:traverse
+           selector
+           (lambda (row)
+             (iterate
+               (for column in-vector new-columns)
+               (for column-index from 0 below column-count)
+               (setf (cl-df.column:iterator-at iterator column-index)
+                     (cl-df.column:column-at column row)))
+             (cl-df.column:move-iterator iterator 1)))
+          (cl-df.column:finish-iterator iterator)
+          (cl-ds.utils:quasi-clone frame :columns new-columns)))))
