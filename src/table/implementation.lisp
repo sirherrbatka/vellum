@@ -16,7 +16,7 @@
   (check-type row non-negative-integer)
   (let* ((columns (read-columns frame))
          (length (array-dimension columns 0)))
-    (unless (< row length)
+    (unless (< column length)
       (error 'cl-df.header:no-column
              :bounds (iota length)
              :format-arguments (list column)
@@ -40,7 +40,16 @@
                       (column integer)
                       (row integer))
   (check-type column non-negative-integer)
-  (check-type row non-negative-integer))
+  (check-type row non-negative-integer)
+  (let* ((columns (read-columns frame))
+         (length (array-dimension columns 0)))
+    (unless (< column length)
+      (error 'cl-df.header:no-column
+             :bounds (iota length)
+             :format-arguments (list column)
+             :value column))
+    (setf (cl-df.column:column-at (aref columns column) row)
+          new-value)))
 
 
 (defmethod column-count ((frame standard-table))
