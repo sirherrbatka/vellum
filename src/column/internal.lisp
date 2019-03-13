@@ -774,35 +774,21 @@
 
 (defun sparse-material-column-at (column index)
   (declare (type sparse-material-column column))
-  (check-type index integer)
-  (let ((column-size (column-size column)))
-    (unless (< -1 index column-size)
-      (error 'index-out-of-column-bounds
-             :bounds `(0 ,column-size)
-             :value index
-             :argument 'index
-             :format-control "Column index out of column bounds."))
-    (bind (((:values value found)
-            (cl-ds.dicts.srrb:sparse-rrb-vector-at column index)))
-      (if found value :null))))
+  (check-type index non-negative-integer)
+  (bind (((:values value found)
+          (cl-ds.dicts.srrb:sparse-rrb-vector-at column index)))
+    (if found value :null)))
 
 
 (defun (setf sparse-material-column-at) (new-value column index)
   (declare (type sparse-material-column column))
-  (check-type index integer)
-  (let ((column-size (column-size column)))
-    (unless (< -1 index column-size)
-      (error 'index-out-of-column-bounds
-             :bounds `(0 ,column-size)
-             :value index
-             :argument 'index
-             :format-control "Column index out of column bounds."))
-    (cl-ds.meta:position-modification #'(setf cl-ds:at)
-                                      column
-                                      column
-                                      index
-                                      :value new-value)
-    new-value))
+  (check-type index non-negative-integer)
+  (cl-ds.meta:position-modification #'(setf cl-ds:at)
+                                    column
+                                    column
+                                    index
+                                    :value new-value)
+  new-value)
 
 
 (defun column-root (column)
