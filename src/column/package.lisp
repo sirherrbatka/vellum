@@ -11,6 +11,7 @@
    #:column-type
    #:complex-iterator
    #:finish-iterator
+   #:truncate-to-length
    #:fundamental-column
    #:fundamental-iterator
    #:fundamental-pure-iterator
