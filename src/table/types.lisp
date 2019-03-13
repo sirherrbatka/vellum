@@ -9,6 +9,7 @@
   ((%header :reader header
             :initarg :header)
    (%columns :reader read-columns
+             :writer write-columns
              :initarg :columns
              :type vector)))
 

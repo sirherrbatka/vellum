@@ -150,7 +150,9 @@
   (bind ((columns (read-columns frame))
          (column-count (length columns))
          (new-columns (map 'vector
-                           (replica-or-not in-place)
+                           (if in-place
+                               #'cl-ds:become-transactional
+                               (rcurry #'cl-ds:replica t))
                            columns)))
     (let ((iterator (~> new-columns first-elt
                         cl-df.column:make-iterator)))
@@ -168,7 +170,9 @@
          (cl-df.column:move-iterator iterator 1)))
       (cl-df.column:finish-iterator iterator)
       (if in-place
-          frame
+          (progn
+            (write-columns new-columns frame)
+            frame)
           (cl-ds.utils:quasi-clone frame :columns new-columns)))))
 
 
@@ -176,9 +180,13 @@
                       &key (in-place *transform-in-place*))
   (bind ((columns (read-columns frame))
          (new-columns (map 'vector
-                           (replica-or-not in-place)
+                           (if in-place
+                               #'cl-ds:become-transactional
+                               (rcurry #'cl-ds:replica t))
                            columns)))
     cl-ds.utils:todo
     (if in-place
-        frame
+        (progn
+          (write-columns new-columns frame)
+          frame)
         (cl-ds.utils:quasi-clone frame :columns new-columns))))
