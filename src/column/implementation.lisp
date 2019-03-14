@@ -270,7 +270,7 @@
                                  byte-position)
                            (1- length)))
                    (mask (cl-ds.common.rrb:sparse-rrb-node-bitmask node))
-                   (new-mask (ldb (byte i 0) mask))
+                   (new-mask (ldb (byte (1+ i) 0) mask))
                    (owned (cl-ds.common.abstract:acquire-ownership node tag)))
               (when (eql mask new-mask)
                 (return-from impl node))

@@ -1,6 +1,6 @@
 (in-package #:cl-df.column)
 
-(prove:plan 1754)
+(prove:plan 2011)
 
 (let* ((column (make-sparse-material-column))
        (iterator (make-iterator column)))
@@ -36,6 +36,22 @@
     (for i from 128 below 256)
     (for j from 127 downto 0)
     (prove:is (column-at column i) j)))
+
+(let* ((column (make-sparse-material-column))
+       (iterator (make-iterator column)))
+  (iterate
+    (for i from 0 below 256)
+    (setf (iterator-at iterator 0) i)
+    (move-iterator iterator 1))
+  (finish-iterator iterator)
+  (truncate-to-length column 73)
+  (prove:is (column-size column) 73)
+  (iterate
+    (for i from 0 below 73)
+    (prove:is (column-at column i) i))
+  (iterate
+    (for i from 73 below 256)
+    (prove:is (column-at column i) :null)))
 
 (let* ((column (make-sparse-material-column))
        (iterator (make-iterator column))
