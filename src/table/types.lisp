@@ -17,3 +17,8 @@
 (defmethod cl-ds.utils:cloning-information append ((table standard-table))
   '((:header header)
     (:column read-columns)))
+
+
+(defclass table-row ()
+  ((%iterator :initarg :iterator
+              :accessor access-iterator)))
