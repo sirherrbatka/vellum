@@ -22,3 +22,7 @@
 (defclass table-row ()
   ((%iterator :initarg :iterator
               :accessor access-iterator)))
+
+
+(defclass setfable-table-row (table-row)
+  ())
