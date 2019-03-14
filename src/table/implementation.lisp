@@ -154,31 +154,31 @@
                            (if in-place
                                #'cl-ds:become-transactional
                                (rcurry #'cl-ds:replica t))
-                           columns)))
-    (let ((iterator (~> new-columns first-elt
-                        cl-df.column:make-iterator)))
-      (iterate
-        (for i from 1 below column-count)
-        (cl-df.column:augment-iterator iterator (aref new-columns i)))
-      (cl-ds:traverse
-       mask
-       (lambda (accepted)
-         (when (not accepted)
-           (iterate
-             (for column in-vector new-columns)
-             (for column-index from 0 below column-count)
-             (setf (cl-df.column:iterator-at iterator column-index) :null)))
-         (cl-df.column:move-iterator iterator 1)
-         (incf new-size)))
-      (cl-df.column:finish-iterator iterator)
-      (iterate
-        (for column in-vector new-columns)
-        (cl-df.column:truncate-to-length column new-size))
-      (if in-place
-          (progn
-            (write-columns new-columns frame)
-            frame)
-          (cl-ds.utils:quasi-clone frame :columns new-columns)))))
+                           columns))
+         (iterator (~> new-columns first-elt
+                       cl-df.column:make-iterator)))
+    (iterate
+      (for i from 1 below column-count)
+      (cl-df.column:augment-iterator iterator (aref new-columns i)))
+    (cl-ds:traverse
+     mask
+     (lambda (accepted)
+       (when (not accepted)
+         (iterate
+           (for column in-vector new-columns)
+           (for column-index from 0 below column-count)
+           (setf (cl-df.column:iterator-at iterator column-index) :null)))
+       (cl-df.column:move-iterator iterator 1)
+       (incf new-size)))
+    (cl-df.column:finish-iterator iterator)
+    (iterate
+      (for column in-vector new-columns)
+      (cl-df.column:truncate-to-length column new-size))
+    (if in-place
+        (progn
+          (write-columns new-columns frame)
+          frame)
+        (cl-ds.utils:quasi-clone frame :columns new-columns))))
 
 
 (defmethod transform ((frame standard-table) function
