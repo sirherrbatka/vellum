@@ -149,6 +149,7 @@
                   &key (in-place *transform-in-place*))
   (bind ((columns (read-columns frame))
          (column-count (length columns))
+         (new-size 0)
          (new-columns (map 'vector
                            (if in-place
                                #'cl-ds:become-transactional
@@ -167,8 +168,12 @@
              (for column in-vector new-columns)
              (for column-index from 0 below column-count)
              (setf (cl-df.column:iterator-at iterator column-index) :null)))
-         (cl-df.column:move-iterator iterator 1)))
+         (cl-df.column:move-iterator iterator 1)
+         (incf new-size)))
       (cl-df.column:finish-iterator iterator)
+      (iterate
+        (for column in-vector new-columns)
+        (cl-df.column:truncate-to-length column new-size))
       (if in-place
           (progn
             (write-columns new-columns frame)
