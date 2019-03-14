@@ -813,6 +813,10 @@
          (root (cl-ds.dicts.srrb:access-tree column)))
     (setf (cl-ds.dicts.srrb:access-tree-index-bound column) tree-index-bound
           (cl-ds.dicts.srrb:access-index-bound column) index-bound
+
+          (cl-ds.dicts.srrb:access-shift column)
+          (cl-ds.dicts.srrb:shift-for-position (1- tree-index-bound))
+
           (cl-ds.dicts.srrb:access-tree column) (skip root))))
 
 
