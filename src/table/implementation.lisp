@@ -95,8 +95,7 @@
       (rcurry #'cl-ds:replica t)))
 
 
-(defmethod vslice ((frame standard-table) selector
-                   &key in-place *transform-in-place*)
+(defmethod vslice ((frame standard-table) selector)
   (let* ((header (header frame))
          (columns (read-columns frame))
          (column-indexes
