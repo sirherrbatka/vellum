@@ -67,6 +67,10 @@
   (~> frame header (cl-df.header:column-type column)))
 
 
+(defmethod vstack ((frame standard-table) &rest more-frames)
+  cl-ds.utils:todo)
+
+
 (defmethod hstack ((frame standard-table) &rest more-frames)
   (push frame more-frames)
   (map nil (lambda (x) (check-type x standard-table))
