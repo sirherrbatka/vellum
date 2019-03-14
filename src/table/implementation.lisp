@@ -221,7 +221,8 @@
                 (progn
                   (write-columns new-columns frame)
                   frame)
-                (cl-ds.utils:quasi-clone frame :columns new-columns)))))))
+                (cl-ds.utils:quasi-clone frame
+                                         :columns new-columns)))))))
 
 
 (defmethod cl-df.header:row-at ((header cl-df.header:standard-header)
