@@ -142,7 +142,8 @@
                      (cl-df.column:column-at column row)))
              (cl-df.column:move-iterator iterator 1)))
           (cl-df.column:finish-iterator iterator)
-          (cl-ds.utils:quasi-clone frame :columns new-columns)))))
+          (cl-ds.utils:quasi-clone frame
+                                   :columns new-columns)))))
 
 
 (defmethod hmask ((frame standard-table) mask
