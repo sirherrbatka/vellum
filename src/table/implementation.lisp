@@ -208,3 +208,11 @@
                                 (row table-row)
                                 position)
   (~> row access-iterator (cl-df.column:iterator-at position)))
+
+
+(defmethod (setf cl-df.header:row-at) (new-value
+                                       (header cl-df.header:standard-header)
+                                       (row setfable-table-row)
+                                       position)
+  (setf (~> row access-iterator (cl-df.column:iterator-at position))
+        new-value))
