@@ -92,13 +92,6 @@
           :columns new-columns)))
 
 
-(defun replica-or-not (in-place)
-  (check-type in-place boolean)
-  (if in-place
-      #'identity
-      (rcurry #'cl-ds:replica t)))
-
-
 (defmethod vslice ((frame standard-table) selector)
   (let* ((header (header frame))
          (columns (read-columns frame))
