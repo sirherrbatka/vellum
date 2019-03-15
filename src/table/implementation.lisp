@@ -234,3 +234,7 @@
                                        position)
   (setf (~> row access-iterator (cl-df.column:iterator-at position))
         new-value))
+
+
+(defmethod cl-ds:whole-range ((container standard-table))
+  cl-ds.utils:todo)
