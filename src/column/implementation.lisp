@@ -20,36 +20,26 @@
 (defmethod iterator-at ((iterator sparse-material-column-iterator)
                         column)
   (check-type column integer)
+  (ensure-column-initialization iterator column)
   (bind (((:slots %columns %index %buffers) iterator)
          (buffers %buffers)
-         (length (fill-pointer buffers))
          (offset (offset %index)))
     (declare (type vector buffers))
-    (unless (< -1 column length)
-      (error 'no-such-column
-             :bounds `(0 ,length)
-             :value column
-             :format-control "There is no such column."))
-    (~> %buffers (aref column) (aref offset))))
+    (~> buffers (aref column) (aref offset))))
 
 
 (defmethod (setf iterator-at) (new-value
                                (iterator sparse-material-column-iterator)
                                column)
   (check-type column integer)
+  (ensure-column-initialization iterator column)
   (bind (((:slots %changes %bitmasks %columns %index %buffers) iterator)
          (buffers %buffers)
-         (length (fill-pointer buffers))
          (offset (offset %index))
          (buffer (aref buffers column))
          (old-value (aref buffer offset)))
     (declare (type vector buffers))
     (setf (aref buffer offset) new-value)
-    (unless (< -1 column length)
-      (error 'no-such-column
-             :bounds `(0 ,length)
-             :value column
-             :format-control "There is no such column."))
     (unless (eql new-value old-value)
       (setf (~> %changes (aref column) (aref offset)) t))
     new-value))
@@ -104,9 +94,7 @@
   (vector-push-extend (make-array cl-ds.common.rrb:+maximal-shift+
                                   :initial-element nil)
                       (read-stacks iterator))
-  (initialize-iterator-column column
-                              (~> iterator read-stacks last-elt)
-                              (~> iterator read-buffers last-elt))
+  (vector-push-extend nil (read-initialization-status iterator))
   iterator)
 
 
@@ -126,9 +114,7 @@
     (vector-push-extend (make-array cl-ds.common.rrb:+maximal-shift+
                                     :initial-element nil)
                         (read-stacks result))
-    (initialize-iterator-column column
-                                (~> result read-stacks last-elt)
-                                (~> result read-buffers last-elt))))
+    (vector-push-extend nil (read-initialization-status result))))
 
 
 (defmethod column-type ((column sparse-material-column))

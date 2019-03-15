@@ -46,7 +46,13 @@
 
 
 (defclass sparse-material-column-iterator (fundamental-pure-iterator)
-  ((%columns :initarg :columns
+  ((%initialization-status :initarg :initialization-status
+                           :type (vector boolean)
+                           :initform (make-array 0 :element-type 'boolean
+                                                   :adjustable t
+                                                   :fill-pointer 0)
+                           :reader read-initialization-status)
+   (%columns :initarg :columns
              :type vector
              :initform (vect)
              :reader read-columns)

@@ -61,16 +61,35 @@
     (maxf (aref depths i) new-depth)))
 
 
-(defun initialize-iterator-column (column stack buffer)
+(defun ensure-column-initialization (iterator column)
+  (bind (((:slots %initialization-status) iterator)
+         (status %initialization-status)
+         (length (fill-pointer status)))
+    (declare (type vector status))
+    (unless (< -1 column length)
+      (error 'no-such-column
+             :bounds `(0 ,length)
+             :value column
+             :format-control "There is no such column."))
+    (unless (aref status column)
+      (setf (aref status column) t)
+      (initialize-iterator-column
+       (access-index iterator)
+       (~> iterator read-columns (aref column))
+       (~> iterator read-stacks (aref column))
+       (~> iterator read-buffers (aref column))))))
+
+
+(defun initialize-iterator-column (index column stack buffer)
   (map-into stack (constantly nil))
   (setf (first-elt stack) (column-root column))
   (let ((shift (cl-ds.dicts.srrb:access-shift column)))
-    (move-stack shift 0 stack)
-    (fill-buffer shift buffer stack)))
+    (move-stack shift index stack)
+    (fill-buffer shift t buffer stack)))
 
 
 (defun initialize-iterator-columns (iterator)
-  (map nil #'initialize-iterator-column
+  (map nil (curry #'initialize-iterator-column (access-index iterator))
        (read-columns iterator)
        (read-stacks iterator)
        (read-buffers iterator)))
@@ -229,7 +248,7 @@
   (declare (type concatenation-state state)
            (type fixnum index))
   (- cl-ds.common.rrb:+maximum-children-count+
-     (space state index)))
+     (occupied-space state index)))
 
 
 (-> parent-index (fixnum) fixnum)
@@ -599,7 +618,9 @@
   (iterate
     (for stack in-vector (read-stacks iterator))
     (for depth in-vector (read-depths iterator))
-    (move-stack depth new-index stack))
+    (for initialized in-vector (read-initialization-status iterator))
+    (when initialized
+      (move-stack depth new-index stack)))
   (setf (access-index iterator) new-index))
 
 
@@ -659,8 +680,10 @@
     (make-node iterator column bitmask :content new-content)))
 
 
-(defun change-leaf (iterator depth stack column change buffer)
-  (cond ((every #'null change)
+(defun change-leaf (iterator initialized depth stack column change buffer)
+  (cond ((not initialized)
+         (return-from change-leaf nil))
+        ((every #'null change)
          (return-from change-leaf nil))
         ((every (curry #'eql :null) buffer)
          (setf (aref stack depth) nil))
@@ -679,6 +702,7 @@
 (defun change-leafs (iterator)
   (map nil
        (curry #'change-leaf iterator)
+       (read-initialization-status iterator)
        (read-depths iterator)
        (read-stacks iterator)
        (read-columns iterator)
@@ -711,7 +735,9 @@
                        child))))))
 
 
-(defun reduce-stack (iterator index depth stack column)
+(defun reduce-stack (iterator index initialized depth stack column)
+  (unless initialized
+    (return-from reduce-stack nil))
   (iterate
     (with tag = (cl-ds.common.abstract:read-ownership-tag column))
     (with prev-node = (aref stack depth))
@@ -730,7 +756,9 @@
   (first-elt stack))
 
 
-(defun fill-buffer (depth buffer stack)
+(defun fill-buffer (depth initialized buffer stack)
+  (unless initialized
+    (return-from fill-buffer nil))
   (let ((node (aref stack depth)))
     (when (null node)
       (return-from fill-buffer nil))
@@ -744,8 +772,9 @@
 
 (defun fill-buffers (iterator)
   (map nil
-       (curry #'fill-buffer)
+       #'fill-buffer
        (read-depths iterator)
+       (read-initialization-status iterator)
        (read-buffers iterator)
        (read-stacks iterator)))
 
@@ -755,6 +784,7 @@
        (curry #'reduce-stack
               iterator
               (access-index iterator))
+       (read-initialization-status iterator)
        (read-depths iterator)
        (read-stacks iterator)
        (read-columns iterator)))
@@ -763,13 +793,17 @@
 (defun clear-changes (iterator)
   (iterate
     (for change in-vector (read-changes iterator))
-    (map-into change (constantly nil))))
+    (for initialized in-vector (read-initialization-status iterator))
+    (when initialized
+      (map-into change (constantly nil)))))
 
 
 (defun clear-buffers (iterator)
   (iterate
     (for buffer in-vector (read-buffers iterator))
-    (map-into buffer (constantly :null))))
+    (for initialized in-vector (read-initialization-status iterator))
+    (when initialized
+      (map-into buffer (constantly :null)))))
 
 
 (defun sparse-material-column-at (column index)

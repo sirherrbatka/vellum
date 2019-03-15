@@ -18,6 +18,8 @@
   cl-df.header:skip-row
   cl-df.header:standard-header
   cl-df.header:with-header
+  cl-df.table:at
+  cl-df.table:transform
   cl-df.table:hstack
   cl-df.table:to-table
   cl-df.table:vstack)
