@@ -208,7 +208,8 @@
             (iterate
               (for i from 1 below column-count)
               (cl-df.column:augment-iterator iterator (aref new-columns i)))
-            (cl-df.header:set-row (make 'table-row :iterator iterator))
+            (cl-df.header:set-row (make 'setfable-table-row
+                                        :iterator iterator))
             (iterate
               (for i from 0 below old-size)
               (funcall function)
