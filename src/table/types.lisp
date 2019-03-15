@@ -26,3 +26,17 @@
 
 (defclass setfable-table-row (table-row)
   ())
+
+
+(defclass standard-table-range (cl-ds:fundamental-forward-range)
+  ((%iterator :initarg :iterator
+              :accessor access-iterator)
+   (%header :initarg :header
+            :reader read-header)
+   (%row :initarg :row
+         :type fixnum
+         :accessor access-row)
+   (%initial-row :initarg :row
+                 :type fixnum
+                 :reader read-row))
+  (:default-initargs :row 0))

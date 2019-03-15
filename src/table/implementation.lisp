@@ -238,4 +238,16 @@
 
 
 (defmethod cl-ds:whole-range ((container standard-table))
-  cl-ds.utils:todo)
+  (let* ((columns (read-columns container))
+         (columns-count (length columns))
+         (header (header container)))
+    (if (zerop columns-count)
+        cl-ds.utils:todo
+        (let ((iterator (~> columns first-elt
+                            cl-df.column:make-iterator)))
+          (iterate
+            (for i from 1 below columns-count)
+            (cl-df.column:augment-iterator iterator (aref columns i)))
+          (make 'standard-table-range
+                :iterator iterator
+                :header header)))))
