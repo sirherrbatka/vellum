@@ -43,3 +43,11 @@
                  :type fixnum
                  :reader read-row))
   (:default-initargs :row 0))
+
+
+(defmethod cl-ds.utils:cloning-information append
+    ((range standard-table-range))
+  '((:iterator access-iterator)
+    (:header read-header)
+    (:row access-row)
+    (:row-count read-row-count)))
