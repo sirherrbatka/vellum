@@ -72,3 +72,24 @@
              :initform (vect)
              :type vector
              :reader read-changes)))
+
+
+(defmethod cl-ds.utils:cloning-information append
+    ((iterator sparse-material-column-iterator))
+  '((:columns read-columns)
+    (:stacks read-stacks)
+    (:depths read-depths)
+    (:index access-index)
+    (:buffers read-buffers)
+    (:changes read-changes)))
+
+
+(defmethod cl-ds:clone ((iterator sparse-material-column-iterator))
+  (apply #'make (class-of iterator)
+         :columns (~> iterator read-columns copy-array)
+         :stacks (~>> iterator read-stacks (map 'vector #'copy-array))
+         :depths (~> iterator read-depths copy-array)
+         :index (access-index iterator)
+         :buffers (~> iterator read-buffers copy-array)
+         :changes (~> iterator read-changes copy-array)
+         (cl-ds.utils:cloning-information iterator)))

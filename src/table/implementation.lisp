@@ -253,3 +253,8 @@
                 :iterator iterator
                 :row-count row-count
                 :header header)))))
+
+
+(defmethod cl-ds:clone ((range standard-table-range))
+  (cl-ds.utils:quasi-clone range
+                           :iterator (~> range access-iterator cl-ds:clone)))
