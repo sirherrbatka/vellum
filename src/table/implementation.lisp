@@ -258,3 +258,36 @@
 (defmethod cl-ds:clone ((range standard-table-range))
   (cl-ds.utils:quasi-clone range
                            :iterator (~> range access-iterator cl-ds:clone)))
+
+
+(defmethod cl-ds:peek-front ((range standard-table-range))
+  (bind ((row-count (read-row-count range))
+         (row (access-row range))
+         (header (read-header range))
+         (column-count (cl-df.header:column-count header))
+         (iterator (access-iterator range)))
+    (if (< row row-count)
+        (iterate
+          (with result = (make-array column-count))
+          (for i from 0 below column-count)
+          (setf (aref result i) (cl-df.column:iterator-at iterator i))
+          (finally (return (values result t))))
+        (values nil nil))))
+
+
+(defmethod cl-ds:consume-front ((range standard-table-range))
+  (bind ((row-count (read-row-count range))
+         (row (access-row range))
+         (header (read-header range))
+         (column-count (cl-df.header:column-count header))
+         (iterator (access-iterator range)))
+    (if (< row row-count)
+        (iterate
+          (with result = (make-array column-count))
+          (for i from 0 below column-count)
+          (setf (aref result i) (cl-df.column:iterator-at iterator i))
+          (finally
+           (incf (access-row range))
+           (cl-df.column:move-iterator iterator 1)
+           (return (values result t))))
+        (values nil nil))))
