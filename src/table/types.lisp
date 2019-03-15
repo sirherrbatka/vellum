@@ -36,6 +36,9 @@
    (%row :initarg :row
          :type fixnum
          :accessor access-row)
+   (%row-count :initarg :row-count
+               :type fixnum
+               :reader read-row-count)
    (%initial-row :initarg :row
                  :type fixnum
                  :reader read-row))
