@@ -307,13 +307,12 @@
   (bind ((iterator (read-iterator range))
          (row (read-table-row range))
          (row-count (read-row-count range)))
-    (cl-df.header:with-header ((read-header range))
-      (cl-df.header:set-row row)
-      (iterate
-        (while (< (cl-df.column:index iterator) row-count))
-        (funcall function row)
-        (cl-df.column:move-iterator iterator 1))
-      (values nil nil))))
+    (cl-df.header:set-row row)
+    (iterate
+      (while (< (cl-df.column:index iterator) row-count))
+      (funcall function row)
+      (cl-df.column:move-iterator iterator 1))
+    (values nil nil)))
 
 
 (defmethod cl-ds:reset! ((range standard-table-range))
@@ -335,6 +334,7 @@
 (defmethod cl-ds.alg.meta:apply-range-function ((range standard-table)
                                                 function
                                                 &rest all)
-  (apply #'cl-ds.alg.meta:apply-range-function
-         (cl-ds:whole-range range)
-         function all))
+  (with-table (range)
+    (apply #'cl-ds.alg.meta:apply-range-function
+           (cl-ds:whole-range range)
+           function all)))
