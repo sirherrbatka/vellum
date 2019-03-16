@@ -265,3 +265,23 @@
       (setf #2=(cl-ds.dicts.srrb:access-tree column)
             (impl #2# (* cl-ds.common.rrb:+bit-count+ shift)))
       (trim-depth-in-column column))))
+
+
+(defmethod cl-ds:clone ((iterator sparse-material-column-iterator))
+  (apply #'make (class-of iterator)
+         :columns (~> iterator read-columns copy-array)
+         :stacks (~>> iterator read-stacks (map 'vector #'copy-array))
+         :depths (~> iterator read-depths copy-array)
+         :index (access-index iterator)
+         :buffers (~> iterator read-buffers copy-array)
+         :changes (~> iterator read-changes copy-array)
+         (cl-ds.utils:cloning-information iterator)))
+
+
+(defmethod cl-ds:reset! ((iterator sparse-material-column-iterator))
+  (change-leafs iterator)
+  (clear-changes iterator)
+  (clear-buffers iterator)
+  (map-into (read-initialization-status iterator) (constantly nil))
+  (setf (access-index iterator) (read-initial-index iterator))
+  iterator)
