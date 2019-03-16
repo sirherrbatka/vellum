@@ -284,6 +284,31 @@
         (values nil nil))))
 
 
+(defmethod cl-ds:traverse ((range standard-table-range)
+                           function)
+  (ensure-functionf function)
+  (bind ((iterator (read-iterator range))
+         (row (read-table-row range))
+         (row-count (read-row-count range)))
+    (cl-df.header:set-row row)
+    (iterate
+      (while (< (cl-df.column:index iterator) row-count))
+      (funcall function row)
+      (cl-df.column:move-iterator iterator 1))
+    (values nil nil)))
+
+
 (defmethod cl-ds:reset! ((range standard-table-range))
   (cl-ds:reset! (read-iterator range))
   range)
+
+
+(defmethod cl-ds:traverse ((table standard-table) function)
+  (cl-df.header:with-header ((header table))
+    (cl-ds:traverse (cl-ds:whole-range table)
+                    function))
+  table)
+
+
+(defmethod cl-ds:across ((table standard-table) function)
+  (cl-ds:traverse table function))

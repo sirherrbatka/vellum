@@ -16,4 +16,5 @@
    #:to-table
    #:transform
    #:vslice
+   #:with-table
    #:vstack))
