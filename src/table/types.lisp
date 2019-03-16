@@ -1,7 +1,7 @@
 (in-package #:cl-df.table)
 
 
-(defclass fundamental-table ()
+(defclass fundamental-table (cl-ds:traversable)
   ())
 
 
@@ -21,7 +21,7 @@
 
 (defclass table-row ()
   ((%iterator :initarg :iterator
-              :accessor access-iterator)))
+              :reader read-iterator)))
 
 
 (defclass setfable-table-row (table-row)
@@ -29,25 +29,18 @@
 
 
 (defclass standard-table-range (cl-ds:fundamental-forward-range)
-  ((%iterator :initarg :iterator
-              :accessor access-iterator)
+  ((%table-row :initarg :table-row
+               :reader read-table-row)
    (%header :initarg :header
             :reader read-header)
-   (%row :initarg :row
-         :type fixnum
-         :accessor access-row)
    (%row-count :initarg :row-count
                :type fixnum
-               :reader read-row-count)
-   (%initial-row :initarg :row
-                 :type fixnum
-                 :reader read-row))
+               :reader read-row-count))
   (:default-initargs :row 0))
 
 
 (defmethod cl-ds.utils:cloning-information append
     ((range standard-table-range))
-  '((:iterator access-iterator)
+  '((:table-row read-table-row)
     (:header read-header)
-    (:row access-row)
     (:row-count read-row-count)))

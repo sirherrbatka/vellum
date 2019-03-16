@@ -68,6 +68,7 @@
             :reader read-depths)
    (%index :initarg :index
            :accessor access-index
+           :reader index
            :type fixnum
            :initform 0)
    (%initial-index :initarg :inder

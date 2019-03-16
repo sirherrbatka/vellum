@@ -12,6 +12,7 @@
    #:complex-iterator
    #:finish-iterator
    #:truncate-to-length
+   #:index
    #:fundamental-column
    #:fundamental-iterator
    #:fundamental-pure-iterator
@@ -20,11 +21,3 @@
    #:make-sparse-material-column
    #:move-iterator
    #:sparse-material-column))
-
-(cl-data-frames.aux-package:rexport :cl-data-frames.column
-  cl-ds:erase!
-  cl-ds:update!
-  cl-ds:add!
-  cl-ds:update-if!
-  cl-ds:replica
-  cl-ds:put-back!)

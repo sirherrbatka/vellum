@@ -217,14 +217,14 @@
 (defmethod cl-df.header:row-at ((header cl-df.header:standard-header)
                                 (row table-row)
                                 position)
-  (~> row access-iterator (cl-df.column:iterator-at position)))
+  (~> row read-iterator (cl-df.column:iterator-at position)))
 
 
 (defmethod (setf cl-df.header:row-at) (new-value
                                        (header cl-df.header:standard-header)
                                        (row setfable-table-row)
                                        position)
-  (setf (~> row access-iterator (cl-df.column:iterator-at position))
+  (setf (~> row read-iterator (cl-df.column:iterator-at position))
         new-value))
 
 
@@ -242,16 +242,22 @@
 
 
 (defmethod cl-ds:clone ((range standard-table-range))
-  (cl-ds.utils:quasi-clone range
-                           :iterator (~> range access-iterator cl-ds:clone)))
+  (cl-ds.utils:quasi-clone
+   range
+   :table-row (make 'table-row :iterator
+                    (read-iterator range))))
+
+
+(defmethod read-iterator ((range standard-table-range))
+  (~> range read-table-row access-iterator))
 
 
 (defmethod cl-ds:peek-front ((range standard-table-range))
   (bind ((row-count (read-row-count range))
-         (row (access-row range))
+         (iterator (read-iterator range))
+         (row (cl-df.column:index iterator))
          (header (read-header range))
-         (column-count (cl-df.header:column-count header))
-         (iterator (access-iterator range)))
+         (column-count (cl-df.header:column-count header)))
     (if (< row row-count)
         (iterate
           (with result = (make-array column-count))
@@ -263,17 +269,21 @@
 
 (defmethod cl-ds:consume-front ((range standard-table-range))
   (bind ((row-count (read-row-count range))
-         (row (access-row range))
+         (iterator (read-iterator range))
+         (row (cl-df.column:index iterator))
          (header (read-header range))
-         (column-count (cl-df.header:column-count header))
-         (iterator (access-iterator range)))
+         (column-count (cl-df.header:column-count header)))
     (if (< row row-count)
         (iterate
           (with result = (make-array column-count))
           (for i from 0 below column-count)
           (setf (aref result i) (cl-df.column:iterator-at iterator i))
           (finally
-           (incf (access-row range))
            (cl-df.column:move-iterator iterator 1)
            (return (values result t))))
         (values nil nil))))
+
+
+(defmethod cl-ds:reset! ((range standard-table-range))
+  (cl-ds:reset! (read-iterator range))
+  range)
