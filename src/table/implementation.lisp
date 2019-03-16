@@ -234,7 +234,7 @@
          (row-count (row-count container))
          (header (header container)))
     (if (zerop columns-count)
-        cl-ds.utils:todo
+        (make 'cl-ds:empty-range)
         (make 'standard-table-range
               :iterator (make-iterator columns)
               :row-count row-count
