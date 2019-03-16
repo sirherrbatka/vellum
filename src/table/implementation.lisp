@@ -1,6 +1,11 @@
 (in-package #:cl-df.table)
 
 
+(defun make-iterator (columns)
+  (reduce #'cl-df.column:augment-iterator
+          columns :initial-value nil))
+
+
 (defmethod at ((frame standard-table) (column symbol) (row integer))
   (~> frame header
       (cl-df.header:alias-to-index column)
@@ -123,11 +128,7 @@
                            columns)))
     (if (emptyp new-columns)
         (cl-ds.utils:quasi-clone frame :columns new-columns)
-        (let ((iterator (~> new-columns first-elt
-                            cl-df.column:make-iterator)))
-          (iterate
-            (for i from 1 below column-count)
-            (cl-df.column:augment-iterator iterator (aref new-columns i)))
+        (let ((iterator (make-iterator columns)))
           (cl-ds:traverse
            selector
            (lambda (row)
@@ -156,14 +157,8 @@
     (if (zerop column-count)
         frame
         (cl-df.header:with-header ((header frame))
-          (let ((iterator (~> new-columns first-elt
-                              cl-df.column:make-iterator)))
-            (iterate
-              (for i from 1 below column-count)
-              (cl-df.column:augment-iterator iterator
-                                             (aref new-columns i)))
-            (cl-df.header:set-row (make 'table-row
-                                        :iterator iterator))
+          (let ((iterator (make-iterator new-columns)))
+            (cl-df.header:set-row (make 'table-row :iterator iterator))
             (block out
               (cl-ds:traverse
                mask
@@ -203,11 +198,7 @@
     (if (zerop column-count)
         frame
         (cl-df.header:with-header ((header frame))
-          (let ((iterator (~> new-columns first-elt
-                              cl-df.column:make-iterator)))
-            (iterate
-              (for i from 1 below column-count)
-              (cl-df.column:augment-iterator iterator (aref new-columns i)))
+          (let ((iterator (make-iterator new-columns)))
             (cl-df.header:set-row (make 'setfable-table-row
                                         :iterator iterator))
             (iterate
@@ -244,15 +235,10 @@
          (header (header container)))
     (if (zerop columns-count)
         cl-ds.utils:todo
-        (let ((iterator (~> columns first-elt
-                            cl-df.column:make-iterator)))
-          (iterate
-            (for i from 1 below columns-count)
-            (cl-df.column:augment-iterator iterator (aref columns i)))
-          (make 'standard-table-range
-                :iterator iterator
-                :row-count row-count
-                :header header)))))
+        (make 'standard-table-range
+              :iterator (make-iterator columns)
+              :row-count row-count
+              :header header))))
 
 
 (defmethod cl-ds:clone ((range standard-table-range))

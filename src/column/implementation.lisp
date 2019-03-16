@@ -78,6 +78,11 @@
     nil))
 
 
+(defmethod augment-iterator ((iterator (eql nil))
+                             (column sparse-material-column))
+  (make-iterator column))
+
+
 (defmethod augment-iterator ((iterator sparse-material-column-iterator)
                              (column sparse-material-column))
   (cl-ds.dicts.srrb:transactional-insert-tail!
@@ -99,22 +104,8 @@
 
 
 (defmethod make-iterator ((column sparse-material-column))
-  (cl-ds.dicts.srrb:transactional-insert-tail!
-   column (cl-ds.common.abstract:read-ownership-tag column))
-  (lret ((result (make 'sparse-material-column-iterator)))
-    (vector-push-extend column (read-columns result))
-    (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+)
-                        (read-buffers result))
-    (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+
-                                    :initial-element nil
-                                    :element-type 'boolean)
-                        (read-changes result))
-    (vector-push-extend (cl-ds.dicts.srrb:access-shift column)
-                        (read-depths result))
-    (vector-push-extend (make-array cl-ds.common.rrb:+maximal-shift+
-                                    :initial-element nil)
-                        (read-stacks result))
-    (vector-push-extend nil (read-initialization-status result))))
+  (let ((result (make 'sparse-material-column-iterator)))
+    (augment-iterator result column)))
 
 
 (defmethod column-type ((column sparse-material-column))
