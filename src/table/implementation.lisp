@@ -304,7 +304,7 @@
 
 
 (defmethod cl-ds:traverse ((table standard-table) function)
-  (cl-df.header:with-header ((header table))
+  (with-table (table)
     (cl-ds:traverse (cl-ds:whole-range table)
                     function))
   table)

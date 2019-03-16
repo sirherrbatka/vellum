@@ -37,12 +37,12 @@
                              (:file "implementation")))
                (:module "table"
                 :components ((:file "package")
+                             (:file "macros")
                              (:file "variables")
                              (:file "generics")
                              (:file "types")
                              (:file "to-table")
-                             (:file "implementation")
-                             (:file "macros")))
+                             (:file "implementation")))
                (:module "api"
                 :components ((:file "package")
                              (:file "conditions")

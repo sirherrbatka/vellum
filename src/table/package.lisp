@@ -4,6 +4,7 @@
   (:use #:cl #:cl-data-frames.aux-package)
   (:nicknames #:cl-df.table)
   (:export
+   #:*table*
    #:at
    #:column-count
    #:column-name
@@ -16,5 +17,5 @@
    #:to-table
    #:transform
    #:vslice
-   #:with-table
-   #:vstack))
+   #:vstack
+   #:with-table))
