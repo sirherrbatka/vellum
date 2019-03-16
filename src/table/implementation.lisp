@@ -197,7 +197,7 @@
                            columns)))
     (if (zerop column-count)
         frame
-        (cl-df.header:with-header ((header frame))
+        (with-table (frame)
           (let ((iterator (make-iterator new-columns)))
             (cl-df.header:set-row (make 'setfable-table-row
                                         :iterator iterator))
@@ -212,6 +212,23 @@
                   frame)
                 (cl-ds.utils:quasi-clone frame
                                          :columns new-columns)))))))
+
+
+(defmethod cl-df.header:row-at ((header cl-df.header:standard-header)
+                                (row table-row)
+                                (position symbol))
+  (cl-df.header:row-at header row (cl-df.header:alias-to-index header
+                                                               position)))
+
+
+(defmethod (setf cl-df.header:row-at) (new-value
+                                       (header cl-df.header:standard-header)
+                                       (row table-row)
+                                       (position symbol))
+  (setf (cl-df.header:row-at header row
+                             (cl-df.header:alias-to-index header
+                                                          position))
+        new-value))
 
 
 (defmethod cl-df.header:row-at ((header cl-df.header:standard-header)
@@ -236,7 +253,7 @@
     (if (zerop columns-count)
         (make 'cl-ds:empty-range)
         (make 'standard-table-range
-              :iterator (make-iterator columns)
+              :table-row (make 'table-row :iterator (make-iterator columns))
               :row-count row-count
               :header header))))
 
@@ -244,12 +261,12 @@
 (defmethod cl-ds:clone ((range standard-table-range))
   (cl-ds.utils:quasi-clone
    range
-   :table-row (make 'table-row :iterator
-                    (read-iterator range))))
+   :table-row (make 'table-row
+                    :iterator (cl-ds:clone (read-iterator range)))))
 
 
 (defmethod read-iterator ((range standard-table-range))
-  (~> range read-table-row access-iterator))
+  (~> range read-table-row read-iterator))
 
 
 (defmethod cl-ds:peek-front ((range standard-table-range))
@@ -290,12 +307,13 @@
   (bind ((iterator (read-iterator range))
          (row (read-table-row range))
          (row-count (read-row-count range)))
-    (cl-df.header:set-row row)
-    (iterate
-      (while (< (cl-df.column:index iterator) row-count))
-      (funcall function row)
-      (cl-df.column:move-iterator iterator 1))
-    (values nil nil)))
+    (cl-df.header:with-header ((read-header range))
+      (cl-df.header:set-row row)
+      (iterate
+        (while (< (cl-df.column:index iterator) row-count))
+        (funcall function row)
+        (cl-df.column:move-iterator iterator 1))
+      (values nil nil))))
 
 
 (defmethod cl-ds:reset! ((range standard-table-range))
@@ -312,3 +330,11 @@
 
 (defmethod cl-ds:across ((table standard-table) function)
   (cl-ds:traverse table function))
+
+
+(defmethod cl-ds.alg.meta:apply-range-function ((range standard-table)
+                                                function
+                                                &rest all)
+  (apply #'cl-ds.alg.meta:apply-range-function
+         (cl-ds:whole-range range)
+         function all))

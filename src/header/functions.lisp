@@ -30,9 +30,9 @@
   (decorate-data (header) range))
 
 
-(defun rr (index)
-  (row-at (header) (row) index))
+(defun rr (index &optional (row (row)))
+  (row-at (header) row index))
 
 
-(defun (setf rr) (new-value index)
-  (setf (row-at (header) (row) index) new-value))
+(defun (setf rr) (new-value index &optional (row (row)))
+  (setf (row-at (header) row index) new-value))

@@ -92,4 +92,5 @@
     (:depths read-depths)
     (:index access-index)
     (:buffers read-buffers)
+    (:initialization-status read-initialization-status)
     (:changes read-changes)))

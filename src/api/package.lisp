@@ -19,6 +19,7 @@
   cl-df.header:standard-header
   cl-df.header:with-header
   cl-df.table:at
+  cl-df.table:row-count
   cl-df.table:with-table
   cl-df.table:transform
   cl-df.table:hstack

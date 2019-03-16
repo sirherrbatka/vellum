@@ -35,8 +35,7 @@
             :reader read-header)
    (%row-count :initarg :row-count
                :type fixnum
-               :reader read-row-count))
-  (:default-initargs :row 0))
+               :reader read-row-count)))
 
 
 (defmethod cl-ds.utils:cloning-information append

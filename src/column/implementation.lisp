@@ -88,7 +88,8 @@
   (cl-ds.dicts.srrb:transactional-insert-tail!
    column (cl-ds.common.abstract:read-ownership-tag column))
   (vector-push-extend column (read-columns iterator))
-  (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+)
+  (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+
+                                  :initial-element :null)
                       (read-buffers iterator))
   (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+
                                   :initial-element nil
@@ -120,21 +121,23 @@
   (change-leafs iterator)
   (iterate
     (for column in-vector (read-columns iterator))
+    (for status in-vector (read-initialization-status iterator))
     (for column-size = (column-size column))
     (for depth in-vector (read-depths iterator))
     (setf (cl-ds.dicts.srrb:access-shift column) depth)
     (for stack in-vector (read-stacks iterator))
-    (setf (cl-ds.dicts.srrb:access-tree column) (or (first-elt stack)
-                                                    cl-ds.meta:null-bucket))
-    (for index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
-    (setf (cl-ds.dicts.srrb:access-tree-index-bound column) index-bound
-
+    (unless status
+      (next-iteration))
+    (setf (cl-ds.dicts.srrb:access-shift column) depth
           (cl-ds.dicts.srrb:access-tree-size column)
           (if (first-elt stack)
               (~> stack first-elt
                   (cl-ds.common.rrb:sparse-rrb-tree-size depth))
-              0)
-
+              0))
+    (setf (cl-ds.dicts.srrb:access-tree column) (or (first-elt stack)
+                                                    cl-ds.meta:null-bucket))
+    (for index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
+    (setf (cl-ds.dicts.srrb:access-tree-index-bound column) index-bound
           (cl-ds.dicts.srrb:access-index-bound column)
           (+ index-bound cl-ds.common.rrb:+maximum-children-count+))))
 
@@ -268,14 +271,16 @@
 
 
 (defmethod cl-ds:clone ((iterator sparse-material-column-iterator))
-  (apply #'make (class-of iterator)
+  (make (class-of iterator)
          :columns (~> iterator read-columns copy-array)
          :stacks (~>> iterator read-stacks (map 'vector #'copy-array))
          :depths (~> iterator read-depths copy-array)
          :index (access-index iterator)
          :buffers (~> iterator read-buffers copy-array)
          :changes (~> iterator read-changes copy-array)
-         (cl-ds.utils:cloning-information iterator)))
+         :initialization-status (~> iterator read-initialization-status
+                                    copy-array)
+         ))
 
 
 (defmethod cl-ds:reset! ((iterator sparse-material-column-iterator))
@@ -284,4 +289,5 @@
   (clear-buffers iterator)
   (map-into (read-initialization-status iterator) (constantly nil))
   (setf (access-index iterator) (read-initial-index iterator))
-  iterator)
+  iterator
+  )
