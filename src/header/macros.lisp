@@ -9,7 +9,7 @@
 
 (defmacro body (&body body)
   (with-gensyms (!arg)
-    `(lambda (,!arg)
+    `(lambda (&rest ,!arg)
        (declare (ignore ,!arg))
        ,@body)))
 
