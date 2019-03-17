@@ -136,9 +136,11 @@
 
 
 (defmethod decorate-data ((header standard-header)
-                          (data cl-ds:fundamental-forward-range))
+                          (data cl-ds:fundamental-forward-range)
+                          &key list-format)
   (make 'forward-proxy-frame-range
         :original-range (cl-ds:clone data)
+        :list-format list-format
         :header header))
 
 
@@ -156,12 +158,14 @@
 (defmethod make-row ((header standard-header)
                      (range frame-range-mixin)
                      (data list))
-  (iterate
-    (with result = (make-array (length data)))
-    (for i from 0)
-    (for elt in data)
-    (setf (aref result i) (make-value header elt i))
-    (finally (return result))))
+  (switch ((read-list-format range) :test eq)
+    (:pair (vector (car data) (cdr data)))
+    (nil (iterate
+           (with result = (make-array (length data)))
+           (for i from 0)
+           (for elt in data)
+           (setf (aref result i) (make-value header elt i))
+           (finally (return result))))))
 
 
 (defmethod make-value ((header standard-header)

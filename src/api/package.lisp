@@ -11,17 +11,18 @@
 (in-package :cl-data-frames)
 
 (rexport :cl-data-frames
-  cl-df.header:body
   cl-df.header:brr
+  cl-df.header:body
+  cl-df.header:decorate
   cl-df.header:make-header
   cl-df.header:rr
   cl-df.header:skip-row
   cl-df.header:standard-header
   cl-df.header:with-header
   cl-df.table:at
-  cl-df.table:row-count
-  cl-df.table:with-table
-  cl-df.table:transform
   cl-df.table:hstack
+  cl-df.table:row-count
   cl-df.table:to-table
-  cl-df.table:vstack)
+  cl-df.table:transform
+  cl-df.table:vstack
+  cl-df.table:with-table)

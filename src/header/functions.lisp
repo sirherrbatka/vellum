@@ -26,8 +26,9 @@
   *header*)
 
 
-(defun decorate (range)
-  (decorate-data (header) range))
+(defun decorate (range &key list-format (header (header)))
+  (check-type list-format (member nil :pair))
+  (decorate-data header range :list-format list-format))
 
 
 (defun rr (index &optional (row (row)))

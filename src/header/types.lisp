@@ -46,7 +46,9 @@
 
 (defclass frame-range-mixin ()
   ((%header :initarg :header
-            :reader read-header)))
+            :reader read-header)
+   (%list-format :initarg :list-format
+                 :reader read-list-format)))
 
 
 (defclass forward-proxy-frame-range (frame-range-mixin
@@ -56,4 +58,5 @@
 
 (defmethod cl-ds.utils:cloning-information append
     ((signature frame-range-mixin))
-  '((:header read-header)))
+  '((:header read-header)
+    (:list-format read-list-format)))

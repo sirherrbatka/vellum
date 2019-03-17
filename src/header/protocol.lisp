@@ -19,7 +19,7 @@
 
 (defgeneric (setf row-at) (new-value header row position))
 
-(defgeneric decorate-data (header data))
+(defgeneric decorate-data (header data &key &allow-other-keys))
 
 (defgeneric make-row (header range data))
 
