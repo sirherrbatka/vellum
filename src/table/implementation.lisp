@@ -26,20 +26,16 @@
         (cl-df.column:column-at row))))
 
 
-(defmethod (setf at) (new-value
-                      (frame standard-table)
-                      (column symbol)
-                      (row integer))
+(defmethod (setf at) (new-value (frame standard-table)
+                      (column symbol) (row integer))
   (setf (at frame (cl-df.header:alias-to-index (header frame)
                                                column)
             row)
         new-value))
 
 
-(defmethod (setf at) (new-value
-                      (frame standard-table)
-                      (column integer)
-                      (row integer))
+(defmethod (setf at) (new-value (frame standard-table)
+                      (column integer) (row integer))
   (check-type column non-negative-integer)
   (check-type row non-negative-integer)
   (let* ((columns (read-columns frame))
