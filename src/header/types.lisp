@@ -48,7 +48,8 @@
   ((%header :initarg :header
             :reader read-header)
    (%list-format :initarg :list-format
-                 :reader read-list-format)))
+                 :reader read-list-format))
+  (:default-initargs :list-format nil))
 
 
 (defclass forward-proxy-frame-range (frame-range-mixin

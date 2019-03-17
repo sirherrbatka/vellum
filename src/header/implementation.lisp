@@ -159,7 +159,8 @@
                      (range frame-range-mixin)
                      (data list))
   (switch ((read-list-format range) :test eq)
-    (:pair (vector (car data) (cdr data)))
+    (:pair (vector (make-value header (car data) 0)
+                   (make-value header (cdr data) 1)))
     (nil (iterate
            (with result = (make-array (length data)))
            (for i from 0)
@@ -216,6 +217,21 @@
              :format-arguments (list value type)
              :target-type type
              :value value))))
+
+
+(defmethod convert ((value number)
+                    (type (eql 'integer)))
+  (round value))
+
+
+(defmethod convert ((value number)
+                    (type (eql 'float)))
+  (coerce value 'float))
+
+
+(defmethod convert ((value number)
+                    (type (eql 'number)))
+  value)
 
 
 (defmethod convert ((value string)
