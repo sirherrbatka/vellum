@@ -139,7 +139,8 @@
     (for index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
     (setf (cl-ds.dicts.srrb:access-tree-index-bound column) index-bound
           (cl-ds.dicts.srrb:access-index-bound column)
-          (+ index-bound cl-ds.common.rrb:+maximum-children-count+))))
+          (* #1=cl-ds.common.rrb:+maximum-children-count+
+             (1+ (ceiling index-bound #1#))))))
 
 
 (defmethod cl-ds.meta:make-bucket ((operation cl-ds.meta:grow-function)

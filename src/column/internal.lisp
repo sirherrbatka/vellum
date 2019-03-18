@@ -843,8 +843,8 @@
               node
               (skip (cl-ds.common.rrb:sparse-nref node 0))))
          (tree-index-bound (cl-ds.dicts.srrb:scan-index-bound column))
-         (index-bound (+ cl-ds.common.rrb:+maximum-children-count+
-                         tree-index-bound))
+         (index-bound (* #1=cl-ds.common.rrb:+maximum-children-count+
+                         (1+ (ceiling tree-index-bound #1#))))
          (root (cl-ds.dicts.srrb:access-tree column)))
     (setf (cl-ds.dicts.srrb:access-tree-index-bound column) tree-index-bound
           (cl-ds.dicts.srrb:access-index-bound column) index-bound
