@@ -678,6 +678,8 @@
 
 
 (defun make-leaf (iterator column old-node change buffer)
+  (declare (type simple-vector buffer)
+           (optimize (speed 3)))
   (unless (null old-node)
     (iterate
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
@@ -694,7 +696,7 @@
     (iterate
       (with index = 0)
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-      (for v in-vector buffer)
+      (for v = (aref buffer i))
       (unless (eql v :null)
         (setf (aref new-content index) v
               (ldb (byte 1 i) bitmask) 1
@@ -724,19 +726,26 @@
 
 (defun change-leafs (iterator)
   (declare (optimize (speed 3) (safety 0)))
-  (let ((initialization-status (read-initialization-status iterator))
-        (depths (read-depths iterator))
-        (stacks (read-stacks iterator))
-        (columns (read-columns iterator))
-        (changes (read-changes iterator))
-        (buffers (read-buffers iterator)))
+  (let* ((initialization-status (read-initialization-status iterator))
+         (depths (read-depths iterator))
+         (stacks (read-stacks iterator))
+         (columns (read-columns iterator))
+         (changes (read-changes iterator))
+         (buffers (read-buffers iterator))
+         (length (length depths)))
     (declare (type simple-vector stacks columns changes buffers)
-             (type (simple-array fixnum (*)))
+             (type (simple-array fixnum (*)) depths)
              (type (simple-array boolean (*)) initialization-status))
-    (map nil
-         (lambda (i d s c ch b)
-           (change-leaf iterator i d s c ch b))
-         initialization-status depths stacks columns changes buffers)))
+    (iterate
+      (declare (type fixnum i))
+      (for i from 0 below length)
+      (change-leaf iterator
+                   (aref initialization-status i)
+                   (aref depths i)
+                   (aref stacks i)
+                   (aref columns i)
+                   (aref changes i)
+                   (aref buffers i)))))
 
 
 (defun copy-on-write-node (iterator parent child position tag column)
@@ -744,18 +753,28 @@
          nil)
         ((null parent)
          (make-node iterator column (ash 1 position)
-                    :content (vector child)))
+                    :content (lret ((vector (make-array 4)))
+                               (setf (first-elt vector) child))))
         ((and (null child)
               (eql 1 (cl-ds.common.rrb:sparse-rrb-node-size parent)))
          nil)
-        ((and (cl-ds.common.abstract:acquire-ownership parent tag))
+        ((cl-ds.common.abstract:acquire-ownership parent tag)
          (if (null child)
              (cl-ds.common.rrb:sparse-rrb-node-erase! parent position)
              (setf (cl-ds.common.rrb:sparse-nref parent position)
                    child))
          parent)
         (t (lret ((copy (cl-ds.common.rrb:deep-copy-sparse-rrb-node
-                         parent 0 tag)))
+                         parent
+                         (if (> (~> parent
+                                    cl-ds.common.rrb:sparse-rrb-node-content
+                                    length)
+                                (~> parent
+                                    cl-ds.common.rrb:sparse-rrb-node-size
+                                    1+))
+                             0
+                             nil)
+                         tag)))
              (if (null child)
                  (cl-ds.common.rrb:sparse-rrb-node-erase! copy position)
                  (setf (cl-ds.common.rrb:sparse-nref copy position)
