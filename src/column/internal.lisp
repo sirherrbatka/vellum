@@ -72,7 +72,7 @@
 (defun ensure-column-initialization (iterator column)
   (bind (((:slots %initialization-status) iterator)
          (status %initialization-status)
-         (length (fill-pointer status)))
+         (length (length status)))
     (declare (type vector status))
     (unless (< -1 column length)
       (error 'no-such-column

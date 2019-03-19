@@ -27,7 +27,7 @@
    (iterate
      (for i from 1 below %column-count)
      (for column = (aref %columns i))
-     (cl-df.column:augment-iterator %iterator column)))
+     (setf %iterator (cl-df.column:augment-iterator %iterator column))))
 
   ((row)
    (iterate
