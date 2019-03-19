@@ -54,17 +54,18 @@
                            :reader read-initialization-status)
    (%columns :initarg :columns
              :type vector
-             :initform (vect)
+             :initform #()
+             :accessor access-columns
              :reader read-columns)
    (%stacks :initarg :stacks
             :type vector
-            :initform (vect)
+            :initform #()
+            :accessor access-stacks
             :reader read-stacks)
    (%depths :initarg :depths
             :type (vector fixnum)
-            :initform (make-array 0 :element-type 'fixnum
-                                    :adjustable t
-                                    :fill-pointer 0)
+            :initform (make-array 0 :element-type 'fixnum)
+            :accessor access-depths
             :reader read-depths)
    (%index :initarg :index
            :accessor access-index
@@ -77,11 +78,13 @@
                    :initform 0)
    (%buffers :initarg :buffers
              :type vector
-             :initform (vect)
+             :initform #()
+             :accessor access-buffers
              :reader read-buffers)
    (%changes :initarg :changes
-             :initform (vect)
+             :initform #()
              :type vector
+             :accessor access-changes
              :reader read-changes)))
 
 

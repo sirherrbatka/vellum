@@ -86,25 +86,33 @@
   (make-iterator column))
 
 
+(defun into-vector-copy (element vector)
+  (lret ((result (map-into (make-array
+                            (1+ (length vector))
+                            :element-type (array-element-type vector))
+                           #'identity
+                           vector)))
+    (setf (last-elt result) element)))
+
+
 (defmethod augment-iterator ((iterator sparse-material-column-iterator)
                              (column sparse-material-column))
   (cl-ds.dicts.srrb:transactional-insert-tail!
    column (cl-ds.common.abstract:read-ownership-tag column))
-  (vector-push-extend column (read-columns iterator))
-  (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+
-                                  :initial-element :null)
-                      (read-buffers iterator))
-  (vector-push-extend (make-array cl-ds.common.rrb:+maximum-children-count+
-                                  :initial-element nil
-                                  :element-type 'boolean)
-                      (read-changes iterator))
-  (vector-push-extend (cl-ds.dicts.srrb:access-shift column)
-                      (read-depths iterator))
-  (vector-push-extend (make-array cl-ds.common.rrb:+maximal-shift+
-                                  :initial-element nil)
-                      (read-stacks iterator))
-  (vector-push-extend nil (read-initialization-status iterator))
-  iterator)
+  (make 'sparse-material-column-iterator
+        :initialization-status (into-vector-copy
+                                nil
+                                (read-initialization-status iterator))
+        :columns (into-vector-copy column (read-columns iterator))
+        :stacks (into-vector-copy (make-array cl-ds.common.rrb:+maximal-shift+
+                                              :initial-element nil)
+                                  (read-stacks iterator))
+        :buffers (into-vector-copy (make-array cl-ds.common.rrb:+maximum-children-count+
+                                               :initial-element :null)
+                                     (read-buffers iterator))
+        :depths (into-vector-copy (cl-ds.dicts.srrb:access-shift column)
+                                  (read-depths iterator))
+        :index (access-index iterator)))
 
 
 (defmethod make-iterator ((column sparse-material-column))

@@ -49,21 +49,22 @@
 
 (defun pad-stacks (iterator new-depth)
   (declare (type fixnum new-depth)
-           (optimize (speed 3)))
+           (optimize (speed 3) (safety 0)))
   (iterate
-    (declare (type fixnum index)
+    (declare (type fixnum index i length)
              (type (vector fixnum) depths)
              (type (vector t) stacks columns))
     (with index = (access-index iterator))
     (with depths = (read-depths iterator))
     (with columns = (read-columns iterator))
     (with stacks = (read-stacks iterator))
-    (for i from 0 below (length depths))
-    (for depth in-vector depths)
-    (for stack in-vector stacks)
-    (for column in-vector columns)
+    (with length = (length depths))
+    (for i from 0 below length)
+    (for depth = (aref depths i))
     (when (>= depth new-depth)
       (next-iteration))
+    (for stack = (aref stacks i))
+    (for column = (aref columns i))
     (pad-stack iterator depth index new-depth stack column)
     (maxf (aref depths i) new-depth)))
 
@@ -104,9 +105,11 @@
 
 
 (defun index-promoted (old-index new-index)
-  (not (eql (ceiling (1+ old-index)
+  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0))
+           (type fixnum old-index new-index))
+  (not (eql (ceiling (the fixnum (1+ old-index))
                      cl-ds.common.rrb:+maximum-children-count+)
-            (ceiling (1+ new-index)
+            (ceiling (the fixnum (1+ new-index))
                      cl-ds.common.rrb:+maximum-children-count+))))
 
 
@@ -623,18 +626,21 @@
 
 (defun move-stacks (iterator new-index new-depth)
   (declare (type fixnum new-depth new-index)
-           (optimize (speed 3)))
+           (optimize (speed 3) (safety 0)))
   (pad-stacks iterator new-depth)
   (iterate
-    (declare (type (vector fixnum) depths)
-             (type (vector boolean) initialization-status)
-             (type (vector t) stacks))
+    (declare (type (simple-array fixnum (*)) depths)
+             (type (simple-array boolean (*)) initialization-status)
+             (type simple-vector stacks)
+             (type fixnum length i))
     (with stacks = (read-stacks iterator))
     (with depths = (read-depths iterator))
     (with initialization-status = (read-initialization-status iterator))
-    (for stack in-vector stacks)
-    (for depth in-vector depths)
-    (for initialized in-vector initialization-status)
+    (with length = (length stacks))
+    (for i from 0 below length)
+    (for stack = (aref stacks i))
+    (for depth = (aref depths i))
+    (for initialized = (aref initialization-status i))
     (when initialized
       (move-stack depth new-index stack)))
   (setf (access-index iterator) new-index))
@@ -717,21 +723,16 @@
 
 
 (defun change-leafs (iterator)
-  (declare (optimize (speed 3)))
+  (declare (optimize (speed 3) (safety 0)))
   (let ((initialization-status (read-initialization-status iterator))
         (depths (read-depths iterator))
         (stacks (read-stacks iterator))
         (columns (read-columns iterator))
         (changes (read-changes iterator))
         (buffers (read-buffers iterator)))
-    (declare (type (vector t) stacks columns changes buffers)
-             (type (vector fixnum))
-             (type (vector boolean) initialization-status))
-    (assert (array-has-fill-pointer-p initialization-status))
-    (assert (array-has-fill-pointer-p depths))
-    (assert (array-has-fill-pointer-p columns))
-    (assert (array-has-fill-pointer-p changes))
-    (assert (array-has-fill-pointer-p buffers))
+    (declare (type simple-vector stacks columns changes buffers)
+             (type (simple-array fixnum (*)))
+             (type (simple-array boolean (*)) initialization-status))
     (map nil
          (lambda (i d s c ch b)
            (change-leaf iterator i d s c ch b))
@@ -799,17 +800,14 @@
 
 
 (defun fill-buffers (iterator)
-  (declare (optimize (speed 3)))
+  (declare (optimize (speed 3) (safety 0)))
   (let ((depths (read-depths iterator))
         (initialization-status (read-initialization-status iterator))
         (buffers (read-buffers iterator))
         (stacks (read-stacks iterator)))
-    (declare (type (vector fixnum) depths)
-             (type (vector t) buffers stacks)
-             (type (vector boolean) initialization-status))
-    (assert (array-has-fill-pointer-p initialization-status))
-    (assert (array-has-fill-pointer-p depths))
-    (assert (array-has-fill-pointer-p buffers))
+    (declare (type (simple-array fixnum (*)) depths)
+             (type simple-vector buffers stacks)
+             (type (simple-array boolean (*)) initialization-status))
     (map nil
          #'fill-buffer
          depths
@@ -819,17 +817,15 @@
 
 
 (defun reduce-stacks (iterator)
+  (declare (optimize (speed 3) (safety 0)))
   (let ((initialization-status (read-initialization-status iterator))
         (depths (read-depths iterator))
         (stacks (read-stacks iterator))
         (index (access-index iterator))
         (columns (read-columns iterator)))
-    (declare (type (vector t) stacks columns)
-             (type (vector fixnum))
-             (type (vector boolean) initialization-status))
-    (assert (array-has-fill-pointer-p initialization-status))
-    (assert (array-has-fill-pointer-p depths))
-    (assert (array-has-fill-pointer-p columns))
+    (declare (type simple-vector stacks columns)
+             (type (simple-array fixnum (*)) depths)
+             (type (simple-array boolean (*)) initialization-status))
     (map nil
          (lambda (i d s c)
            (reduce-stack iterator index i d s c))
@@ -837,21 +833,35 @@
 
 
 (defun clear-changes (iterator)
+  (declare (optimize (speed 3) (safety 0)))
   (iterate
-    (declare (type (vector t) changes))
+    (declare (type simple-vector changes)
+             (type fixnum i length)
+             (type (simple-array boolean (*)) initialization-status))
     (with changes = (read-changes iterator))
-    (for change in-vector changes)
-    (for initialized in-vector (read-initialization-status iterator))
+    (with initialization-status = (read-initialization-status iterator))
+    (with length = (length changes))
+    (for i from 0 below length)
+    (for change = (aref changes i))
+    (for initialized = (aref initialization-status i))
     (when initialized
-      (map-into change (constantly nil)))))
+      (map-into (the simple-vector change) (constantly nil)))))
 
 
 (defun clear-buffers (iterator)
+  (declare (optimize (speed 3) (safety 0)))
   (iterate
-    (for buffer in-vector (read-buffers iterator))
-    (for initialized in-vector (read-initialization-status iterator))
+    (declare (type fixnum length i)
+             (type (simple-array boolean (*)) initialization-status)
+             (type simple-vector buffers))
+    (with buffers = (read-buffers iterator))
+    (with initialization-status = (read-initialization-status iterator))
+    (with length = (length buffers))
+    (for i from 0 below length)
+    (for buffer = (aref buffers i))
+    (for initialized = (aref initialization-status i))
     (when initialized
-      (map-into buffer (constantly :null)))))
+      (map-into (the simple-vector buffer) (constantly :null)))))
 
 
 (defun sparse-material-column-at (column index)
