@@ -55,6 +55,7 @@
 (defmethod move-iterator
     ((iterator sparse-material-column-iterator)
      times)
+  (declare (optimize (speed 3)))
   (check-type times non-negative-fixnum)
   (when (zerop times)
     (return-from move-iterator nil))
@@ -66,6 +67,8 @@
                         (ceiling cl-ds.common.rrb:+bit-count+)
                         1-))
          (promoted (index-promoted index new-index)))
+    (declare (type fixnum index new-index new-depth)
+             (type boolean promoted))
     (unless promoted
       (setf %index new-index)
       (return-from move-iterator nil))
