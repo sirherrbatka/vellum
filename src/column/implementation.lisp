@@ -119,6 +119,7 @@
 
 (defmethod finish-iterator ((iterator sparse-material-column-iterator))
   (change-leafs iterator)
+  (reduce-stacks iterator)
   (iterate
     (for column in-vector (read-columns iterator))
     (for status in-vector (read-initialization-status iterator))

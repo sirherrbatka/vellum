@@ -183,7 +183,7 @@
 
 (defmethod convert ((value string)
                     (type (eql 'integer)))
-  (handler-case (parse-integer value)
+  (handler-case (round (parse-number value))
     (error (e)
       (declare (ignore e))
       (error 'conversion-failed
@@ -254,13 +254,13 @@
                                      (char-upcase b)))
                        a b))))
     (or (member value '("TRUE" "T" "1") :test #'same)
-        (null (iterate
-                (for elt in '("FALSE" "F" "NIL" "0"))
-                (finding elt such-that (same elt value))
-                (finally (error 'conversion-failed
-                                :target-type type
-                                :value value
-                                :format-arguments (list value type))))))))
+        (null (or (iterate
+                    (for elt in '("FALSE" "F" "NIL" "0"))
+                    (finding elt such-that (same elt value)))
+                  (error 'conversion-failed
+                         :target-type type
+                         :value value
+                         :format-arguments (list value type)))))))
 
 
 (defmethod row-at ((header standard-header)

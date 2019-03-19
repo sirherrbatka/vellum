@@ -720,16 +720,15 @@
         ((and (null child)
               (eql 1 (cl-ds.common.rrb:sparse-rrb-node-size parent)))
          nil)
-        ((cl-ds.common.abstract:acquire-ownership parent tag)
+        ((and (cl-ds.common.abstract:acquire-ownership parent tag)
+              #1=(< position (cl-ds.common.rrb:sparse-rrb-node-size parent)))
          (if (null child)
              (cl-ds.common.rrb:sparse-rrb-node-erase! parent position)
              (setf (cl-ds.common.rrb:sparse-nref parent position)
                    child))
          parent)
         (t (lret ((copy (cl-ds.common.rrb:deep-copy-sparse-rrb-node
-                         parent
-                         0
-                         tag)))
+                         parent (if #1# 0 1) tag)))
              (if (null child)
                  (cl-ds.common.rrb:sparse-rrb-node-erase! copy position)
                  (setf (cl-ds.common.rrb:sparse-nref copy position)
