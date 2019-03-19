@@ -94,7 +94,7 @@
   (setf (first-elt stack) (column-root column))
   (let ((shift (cl-ds.dicts.srrb:access-shift column)))
     (move-stack shift index stack)
-    (fill-buffer shift t buffer stack)))
+    (fill-buffer shift buffer stack)))
 
 
 (defun initialize-iterator-columns (iterator)
@@ -705,10 +705,8 @@
 
 
 (declaim (inline change-leaf))
-(defun change-leaf (iterator initialized depth stack column change buffer)
-  (cond ((not initialized)
-         (return-from change-leaf nil))
-        ((every #'null change)
+(defun change-leaf (iterator depth stack column change buffer)
+  (cond ((every #'null change)
          (return-from change-leaf nil))
         ((every (curry #'eql :null) buffer)
          (setf (aref stack depth) nil))
@@ -739,13 +737,13 @@
     (iterate
       (declare (type fixnum i))
       (for i from 0 below length)
-      (change-leaf iterator
-                   (aref initialization-status i)
-                   (aref depths i)
-                   (aref stacks i)
-                   (aref columns i)
-                   (aref changes i)
-                   (aref buffers i)))))
+      (when (aref initialization-status i)
+        (change-leaf iterator
+                     (aref depths i)
+                     (aref stacks i)
+                     (aref columns i)
+                     (aref changes i)
+                     (aref buffers i))))))
 
 
 (defun copy-on-write-node (iterator parent child position tag column)
@@ -781,9 +779,7 @@
                        child))))))
 
 
-(defun reduce-stack (iterator index initialized depth stack column)
-  (unless initialized
-    (return-from reduce-stack nil))
+(defun reduce-stack (iterator index depth stack column)
   (iterate
     (with tag = (cl-ds.common.abstract:read-ownership-tag column))
     (with prev-node = (aref stack depth))
@@ -803,9 +799,7 @@
 
 
 (declaim (inline fill-buffer))
-(defun fill-buffer (depth initialized buffer stack)
-  (unless initialized
-    (return-from fill-buffer nil))
+(defun fill-buffer (depth buffer stack)
   (let ((node (aref stack depth)))
     (when (null node)
       (return-from fill-buffer nil))
@@ -827,7 +821,9 @@
              (type simple-vector buffers stacks)
              (type (simple-array boolean (*)) initialization-status))
     (map nil
-         #'fill-buffer
+         (lambda (d i b s)
+           (when i
+             (fill-buffer d b s)))
          depths
          initialization-status
          buffers
@@ -846,7 +842,7 @@
              (type (simple-array boolean (*)) initialization-status))
     (map nil
          (lambda (i d s c)
-           (reduce-stack iterator index i d s c))
+           (when i (reduce-stack iterator index d s c)))
          initialization-status depths stacks columns)))
 
 
