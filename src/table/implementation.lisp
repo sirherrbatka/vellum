@@ -2,8 +2,7 @@
 
 
 (defun make-iterator (columns)
-  (reduce #'cl-df.column:augment-iterator
-          columns :initial-value nil))
+  (apply #'cl-df.column:make-iterator (coerce columns 'list)))
 
 
 (defmethod at ((frame standard-table) (column symbol) (row integer))

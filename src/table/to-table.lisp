@@ -21,13 +21,8 @@
      (setf (aref %columns i)
            (cl-df.column:make-sparse-material-column
             :element-type (cl-df.header:column-type %header i))))
-   (setf %iterator (~> %columns
-                       first-elt
-                       cl-df.column:make-iterator))
-   (iterate
-     (for i from 1 below %column-count)
-     (for column = (aref %columns i))
-     (setf %iterator (cl-df.column:augment-iterator %iterator column))))
+   (setf %iterator (apply #'cl-df.column:make-iterator
+                          (coerce %columns 'list))))
 
   ((row)
    (iterate
