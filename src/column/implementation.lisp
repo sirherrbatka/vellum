@@ -81,6 +81,7 @@
            (index %index)
            (length (length depths)))
       (declare (type simple-vector stacks columns changes buffers)
+               (type fixnum length)
                (type (simple-array fixnum (*)) depths)
                (type (simple-array boolean (*)) initialization-status))
       (iterate
