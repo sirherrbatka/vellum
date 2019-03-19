@@ -19,13 +19,14 @@
 
 (defmethod iterator-at ((iterator sparse-material-column-iterator)
                         column)
+  (declare (optimize (speed 3)))
   (check-type column integer)
   (ensure-column-initialization iterator column)
   (bind (((:slots %columns %index %buffers) iterator)
          (buffers %buffers)
          (offset (offset %index)))
-    (declare (type vector buffers))
-    (~> buffers (aref column) (aref offset))))
+    (declare (type simple-vector buffers))
+    (~> (the simple-vector (aref buffers column)) (aref offset))))
 
 
 (defmethod (setf iterator-at) (new-value
