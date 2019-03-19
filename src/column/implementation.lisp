@@ -105,6 +105,7 @@
                                 (read-initialization-status iterator))
         :columns (into-vector-copy column (read-columns iterator))
         :changes (into-vector-copy (make-array cl-ds.common.rrb:+maximum-children-count+
+                                               :element-type 'boolean
                                                :initial-element nil)
                                    (read-changes iterator))
         :stacks (into-vector-copy (make-array cl-ds.common.rrb:+maximal-shift+
