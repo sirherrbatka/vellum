@@ -102,11 +102,11 @@
           (map-into (the simple-vector (aref changes i))
                     (constantly nil))
           (map-into (the simple-vector (aref buffers i))
-                    (constantly :null)))
-        (reduce-stack iterator index
-                      (aref depths i)
-                      (aref stacks i)
-                      (aref columns i))
+                    (constantly :null))
+          (reduce-stack iterator index
+                        (aref depths i)
+                        (aref stacks i)
+                        (aref columns i)))
         (when (< (aref depths i) new-depth)
           (pad-stack iterator (aref depths i) index new-depth
                      (aref stacks i) (aref columns i))
