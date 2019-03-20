@@ -754,7 +754,8 @@
   (cond ((and (null parent) (null child))
          nil)
         ((null parent)
-         (make-node iterator column (ash 1 position)
+         (make-node iterator column
+                    (dpb 0 (byte 1 position) 1)
                     :content (lret ((vector (make-array 4)))
                                (setf (first-elt vector) child))))
         ((and (null child)
@@ -762,23 +763,18 @@
          nil)
         ((cl-ds.common.abstract:acquire-ownership parent tag)
          (if (null child)
-             (cl-ds.common.rrb:sparse-rrb-node-erase! parent position)
+             (when (cl-ds.common.rrb:sparse-rrb-node-contains parent position)
+               (cl-ds.common.rrb:sparse-rrb-node-erase! parent position))
              (setf (cl-ds.common.rrb:sparse-nref parent position)
                    child))
          parent)
         (t (lret ((copy (cl-ds.common.rrb:deep-copy-sparse-rrb-node
                          parent
-                         (if (> (~> parent
-                                    cl-ds.common.rrb:sparse-rrb-node-content
-                                    length)
-                                (~> parent
-                                    cl-ds.common.rrb:sparse-rrb-node-size
-                                    1+))
-                             0
-                             nil)
+                         0
                          tag)))
              (if (null child)
-                 (cl-ds.common.rrb:sparse-rrb-node-erase! copy position)
+                 (when (cl-ds.common.rrb:sparse-rrb-node-contains parent position)
+                   (cl-ds.common.rrb:sparse-rrb-node-erase! parent position))
                  (setf (cl-ds.common.rrb:sparse-nref copy position)
                        child))))))
 
