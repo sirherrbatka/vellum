@@ -112,11 +112,16 @@
           (pad-stack iterator (aref depths i) index new-depth
                      (aref stacks i) (aref columns i))
           (maxf (aref depths i) new-depth))
-        (move-stack (aref depths i) new-index (aref stacks i))
-        (fill-buffer (aref depths i) (aref buffers i) (aref stacks i))
         (setf (aref touched i) t)
-        (when not-changed
-          (setf (aref initialization-status i) nil)))
+        (if not-changed
+            (setf (aref initialization-status i) nil)
+            (progn
+              (move-stack (aref depths i)
+                          new-index
+                          (aref stacks i))
+              (fill-buffer (aref depths i)
+                           (aref buffers i)
+                           (aref stacks i)))))
       (setf %index new-index))
     nil))
 

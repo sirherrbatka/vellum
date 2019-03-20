@@ -754,8 +754,7 @@
   (cond ((and (null parent) (null child))
          nil)
         ((null parent)
-         (make-node iterator column
-                    (dpb 0 (byte 1 position) 1)
+         (make-node iterator column (ash 1 position)
                     :content (lret ((vector (make-array 4)))
                                (setf (first-elt vector) child))))
         ((and (null child)
