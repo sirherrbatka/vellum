@@ -77,6 +77,7 @@
            (depths (read-depths iterator))
            (stacks (read-stacks iterator))
            (columns (read-columns iterator))
+           (touched (read-touched iterator))
            (changes (read-changes iterator))
            (buffers (read-buffers iterator))
            (index %index)
@@ -84,12 +85,15 @@
       (declare (type simple-vector stacks columns changes buffers)
                (type fixnum length)
                (type (simple-array fixnum (*)) depths)
-               (type (simple-array boolean (*)) initialization-status))
+               (type (simple-array boolean (*))
+                     initialization-status
+                     touched))
       (iterate
         (declare (type fixnum i))
         (for i from 0 below length)
         (unless (aref initialization-status i)
           (next-iteration))
+        (for not-changed = (every #'null (aref changes i)))
         (change-leaf iterator
                      (aref depths i)
                      (aref stacks i)
@@ -108,7 +112,10 @@
                    (aref stacks i) (aref columns i))
         (maxf (aref depths i) new-depth)
         (move-stack (aref depths i) new-index (aref stacks i))
-        (fill-buffer (aref depths i) (aref buffers i) (aref stacks i)))
+        (fill-buffer (aref depths i) (aref buffers i) (aref stacks i))
+        (setf (aref touched i) t)
+        (when not-changed
+          (setf (aref initialization-status i) nil)))
       (setf %index new-index))
     nil))
 
@@ -134,6 +141,7 @@
   (let ((max-shift cl-ds.common.rrb:+maximal-shift+)
         (max-children-count cl-ds.common.rrb:+maximum-children-count+))
     (make 'sparse-material-column-iterator
+          :touched (into-vector-copy nil (read-touched iterator))
           :initialization-status (into-vector-copy
                                   nil
                                   (read-initialization-status iterator))
@@ -164,6 +172,8 @@
                             (curry #'make-array max-children-count
                                    :element-type 'boolean
                                    :initial-element nil)))
+         (touched (make-array length :element-type 'boolean
+                                     :initial-element nil))
          (stacks (map-into (make-array length)
                            (curry #'make-array max-shift
                                   :initial-element nil)))
@@ -178,6 +188,7 @@
           :columns columns
           :changes changes
           :buffers buffers
+          :touched touched
           :depths depths)))
 
 
@@ -194,12 +205,12 @@
   (reduce-stacks iterator)
   (iterate
     (for column in-vector (read-columns iterator))
-    (for status in-vector (read-initialization-status iterator))
+    (for touched in-vector (read-touched iterator))
     (for column-size = (column-size column))
     (for depth in-vector (read-depths iterator))
     (setf (cl-ds.dicts.srrb:access-shift column) depth)
     (for stack in-vector (read-stacks iterator))
-    (unless status
+    (unless touched
       (next-iteration))
     (setf (cl-ds.dicts.srrb:access-shift column) depth
           (cl-ds.dicts.srrb:access-tree-size column)
@@ -352,6 +363,7 @@
          :index (access-index iterator)
          :buffers (~> iterator read-buffers copy-array)
          :changes (~> iterator read-changes copy-array)
+         :touched (~> iterator read-touched copy-array)
          :initialization-status (~> iterator read-initialization-status
                                     copy-array)
          ))

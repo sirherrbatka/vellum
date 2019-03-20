@@ -86,22 +86,26 @@
        (access-index iterator)
        (~> iterator read-columns (aref column))
        (~> iterator read-stacks (aref column))
-       (~> iterator read-buffers (aref column))))))
+       (~> iterator read-buffers (aref column))
+       (~> iterator read-depths (aref column))
+       (~> iterator read-touched (aref column))))))
 
 
-(defun initialize-iterator-column (index column stack buffer)
-  (map-into stack (constantly nil))
-  (setf (first-elt stack) (column-root column))
-  (let ((shift (cl-ds.dicts.srrb:access-shift column)))
-    (move-stack shift index stack)
-    (fill-buffer shift buffer stack)))
+(defun initialize-iterator-column (index column stack buffer shift touched)
+  (unless touched
+    (map-into stack (constantly nil))
+    (setf (first-elt stack) (column-root column)))
+  (move-stack shift index stack)
+  (fill-buffer shift buffer stack))
 
 
 (defun initialize-iterator-columns (iterator)
   (map nil (curry #'initialize-iterator-column (access-index iterator))
        (read-columns iterator)
        (read-stacks iterator)
-       (read-buffers iterator)))
+       (read-buffers iterator)
+       (read-depths iterator)
+       (read-touched iterator)))
 
 
 (defun index-promoted (old-index new-index)

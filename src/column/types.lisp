@@ -76,6 +76,10 @@
                    :reader read-initial-index
                    :type fixnum
                    :initform 0)
+   (%touched :initarg :touched
+             :reader read-touched
+             :type vector
+             :initform (make-array 0 :element-type 'boolean))
    (%buffers :initarg :buffers
              :type vector
              :initform #()
@@ -95,5 +99,6 @@
     (:depths read-depths)
     (:index access-index)
     (:buffers read-buffers)
+    (:touched read-touched)
     (:initialization-status read-initialization-status)
     (:changes read-changes)))
