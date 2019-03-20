@@ -108,9 +108,10 @@
                   (constantly nil))
         (map-into (the simple-vector (aref buffers i))
                   (constantly :null))
-        (pad-stack iterator (aref depths i) index new-depth
-                   (aref stacks i) (aref columns i))
-        (maxf (aref depths i) new-depth)
+        (when (< (aref depth i) new-depth)
+          (pad-stack iterator (aref depths i) index new-depth
+                     (aref stacks i) (aref columns i))
+          (maxf (aref depths i) new-depth))
         (move-stack (aref depths i) new-index (aref stacks i))
         (fill-buffer (aref depths i) (aref buffers i) (aref stacks i))
         (setf (aref touched i) t)
