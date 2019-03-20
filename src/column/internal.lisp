@@ -710,9 +710,7 @@
 
 (declaim (inline change-leaf))
 (defun change-leaf (iterator depth stack column change buffer)
-  (cond ((every #'null change)
-         (return-from change-leaf nil))
-        ((every (curry #'eql :null) buffer)
+  (cond ((every (curry #'eql :null) buffer)
          (setf (aref stack depth) nil))
         (t
          (let* ((tag (cl-ds.common.abstract:read-ownership-tag column))
@@ -742,12 +740,13 @@
       (declare (type fixnum i))
       (for i from 0 below length)
       (when (aref initialization-status i)
-        (change-leaf iterator
-                     (aref depths i)
-                     (aref stacks i)
-                     (aref columns i)
-                     (aref changes i)
-                     (aref buffers i))))))
+        (unless (every #'null (aref changes i))
+          (change-leaf iterator
+                       (aref depths i)
+                       (aref stacks i)
+                       (aref columns i)
+                       (aref changes i)
+                       (aref buffers i)))))))
 
 
 (defun copy-on-write-node (iterator parent child position tag column)
