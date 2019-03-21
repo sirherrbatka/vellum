@@ -45,3 +45,11 @@
 (declaim (inline (setf rr)))
 (defun (setf rr) (new-value index &optional (row (row)))
   (setf (row-at (header) row index) new-value))
+
+
+(declaim (inline nullify))
+(defun nullify (&optional (row (row)))
+  (iterate
+    (with header = (header))
+    (for i from 0 below (column-count header))
+    (setf (row-at header row i) :null)))

@@ -11,10 +11,11 @@
 (in-package :cl-data-frames)
 
 (rexport :cl-data-frames
-  cl-df.header:brr
   cl-df.header:body
+  cl-df.header:brr
   cl-df.header:decorate
   cl-df.header:make-header
+  cl-df.header:nullify
   cl-df.header:rr
   cl-df.header:skip-row
   cl-df.header:standard-header

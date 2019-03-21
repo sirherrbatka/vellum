@@ -8,8 +8,9 @@
    #:alias-to-index
    #:body
    #:brr
-   #:concatenate-headers
    #:column-count
+   #:column-type
+   #:concatenate-headers
    #:decorate
    #:forward-proxy-frame-range
    #:frame-range-mixin
@@ -17,14 +18,14 @@
    #:header
    #:index-to-alias
    #:make-header
-   #:select-columns
-   #:set-row
    #:no-column
-   #:column-type
-   #:skip-row
+   #:nullify
    #:row
    #:row-at
    #:rr
+   #:select-columns
+   #:set-row
+   #:skip-row
    #:standard-header
    #:value
    #:with-header))
