@@ -74,13 +74,13 @@
            :header (mapcar #'header (cons frame more-frames))
            :control-string "Inconsistent number of columns in the frames."))
   (let* ((new-columns
-           (~>> (read-columns frame)
-                (map 'vector
-                     (lambda (column)
-                       (lret ((new (cl-ds:replica column t)))
-                         (~>> new
-                              cl-ds.common.abstract:read-ownership-tag
-                              (cl-ds.dicts.srrb:transactional-insert-tail! new)))))))
+           (map 'vector
+                (lambda (column &aux (new (cl-ds:replica column t)))
+                  (~>> new
+                       cl-ds.common.abstract:read-ownership-tag
+                       (cl-ds.dicts.srrb:transactional-insert-tail! new))
+                  new)
+                (read-columns frame)))
          (iterator (make-iterator new-columns))
          (new-frame (cl-ds.utils:quasi-clone frame :columns new-columns))
          (row-count (row-count new-frame)))
