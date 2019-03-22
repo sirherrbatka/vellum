@@ -68,7 +68,33 @@
 
 
 (defmethod vstack ((frame standard-table) &rest more-frames)
-  cl-ds.utils:todo)
+  ;; TODO, should check if each of more-frames is actually a frame with the same columns.
+  (let* ((new-columns
+           (~>> (read-columns frame)
+                (map 'vector
+                     (lambda (column)
+                       (lret ((new (cl-ds:replica column t)))
+                         (~>> new
+                              cl-ds.common.abstract:read-ownership-tag
+                              (cl-ds.dicts.srrb:transactional-insert-tail! new)))))))
+         (iterator (make-iterator new-columns))
+         (new-frame (cl-ds.utils:quasi-clone frame :columns new-columns))
+         (row-count (row-count new-frame)))
+    (with-table (new-frame)
+      (cl-df.column:move-iterator iterator row-count)
+      (iterate
+        (with header = (header frame))
+        (with column-count = (column-count header))
+        (for frame in more-frames)
+        (cl-ds:traverse frame
+                        (cl-df.header:body
+                          (iterate
+                            (for i from 0 below column-count)
+                            (setf (cl-df.column:iterator-at iterator i)
+                                  (cl-df.header:rr i)))
+                          (cl-df.column:move-iterator iterator 1)))))
+    (cl-df.column:finish-iterator iterator)
+    new-frame))
 
 
 (defmethod hstack ((frame standard-table) &rest more-frames)
