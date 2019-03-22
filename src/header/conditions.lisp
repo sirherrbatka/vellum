@@ -36,3 +36,8 @@
   ((%alias :initarg :alias
            :reader alias))
   (:default-initargs :format-control "Detected alias ~a duplication."))
+
+
+(define-condition headers-incompatible (cl-ds:operation-not-allowed)
+  ((%headers :initarg :headers))
+  (:default-initargs :format-control "Headers are incompatible."))

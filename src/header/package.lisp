@@ -11,6 +11,7 @@
    #:column-count
    #:column-type
    #:concatenate-headers
+   #:headers-incompatible
    #:decorate
    #:forward-proxy-frame-range
    #:frame-range-mixin

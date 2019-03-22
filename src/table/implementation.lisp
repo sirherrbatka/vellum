@@ -68,7 +68,11 @@
 
 
 (defmethod vstack ((frame standard-table) &rest more-frames)
-  ;; TODO, should check if each of more-frames is actually a frame with the same columns.
+  (unless (cl-ds.utils:homogenousp (cons frame more-frames)
+                                   :key #'column-count)
+    (error 'cl-df.header:headers-incompatible
+           :header (mapcar #'header (cons frame more-frames))
+           "Inconsistent number of columns in the frames."))
   (let* ((new-columns
            (~>> (read-columns frame)
                 (map 'vector
