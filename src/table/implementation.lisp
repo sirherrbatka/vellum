@@ -137,10 +137,9 @@
          (new-columns (map 'vector (compose (rcurry #'cl-ds:replica t)
                                             (curry #'aref columns))
                            column-indexes)))
-    (apply #'make (class-of frame)
-           :header new-header
-           :column new-columns
-           (cl-ds.utils:cloning-information frame))))
+    (cl-ds.utils:quasi-clone* frame
+      :header new-header
+      :column new-columns)))
 
 
 (defmethod hslice ((frame standard-table) selector)
