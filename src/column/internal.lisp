@@ -973,6 +973,18 @@
             more)))
 
 
+(defmethod cl-ds:drop-front ((range sparse-material-column-range)
+                             count)
+  (check-type count non-negative-fixnum)
+  (let* ((column (read-column range))
+         (count (clamp count 0 (- (cl-ds:size column)
+                                  (access-position range)))))
+    (when (zerop count)
+      (return-from cl-ds:drop-front (values range count)))
+    (move-iterator (access-iterator range) count)
+    (values range count)))
+
+
 (defmethod cl-ds:peek-front ((range sparse-material-column-range))
   (let* ((iterator (access-iterator range))
          (column (read-column range))

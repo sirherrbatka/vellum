@@ -308,6 +308,18 @@
         (values nil nil))))
 
 
+(defmethod cl-ds:drop-front ((range standard-table-range)
+                             count)
+  (check-type count non-negative-fixnum)
+  (let* ((iterator (read-iterator range))
+         (count (clamp count 0 (- (read-row-count range)
+                                  (cl-df.column:index iterator)))))
+    (when (zerop count)
+      (return-from cl-ds:drop-front (values range count)))
+    (cl-df.column:move-iterator iterator count)
+    (values range count)))
+
+
 (defmethod cl-ds:consume-front ((range standard-table-range))
   (bind ((row-count (read-row-count range))
          (iterator (read-iterator range))
