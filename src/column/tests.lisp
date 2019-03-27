@@ -3,7 +3,7 @@
 (prove:plan 2139)
 
 (let* ((column (make-sparse-material-column))
-       (iterator (make-iterator column)))
+       (iterator (make-iterator `(,column))))
   (iterate
     (for i from 0 below 256)
     (setf (iterator-at iterator 0) i)
@@ -12,7 +12,7 @@
   (iterate
     (for i from 0 below 256)
     (prove:is (column-at column i) i))
-  (setf iterator (make-iterator column))
+  (setf iterator (make-iterator `(,column)))
   (iterate
     (for j from 255 downto 0)
     (setf (iterator-at iterator 0) j)
@@ -22,7 +22,7 @@
     (for j from 255 downto 0)
     (for i from 0 below 256)
     (prove:is (column-at column i) j))
-  (setf iterator (make-iterator column))
+  (setf iterator (make-iterator `(,column)))
   (iterate
     (for j from 128 above 0)
     (setf (iterator-at iterator 0) j)
@@ -38,7 +38,7 @@
     (prove:is (column-at column i) j)))
 
 (let* ((column (make-sparse-material-column))
-       (iterator (make-iterator column)))
+       (iterator (make-iterator `(,column))))
   (iterate
     (for i from 0 below 256)
     (setf (iterator-at iterator 0) i)
@@ -54,7 +54,7 @@
     (prove:is (column-at column i) :null)))
 
 (let* ((column (make-sparse-material-column))
-       (iterator (make-iterator column))
+       (iterator (make-iterator `(,column)))
        (not-deleted (make-hash-table)))
   (iterate
     (for i from 0 below 256)
@@ -71,7 +71,7 @@
     (iterate
       (for i in-vector nulls)
       (prove:is (column-at column i) :null)))
-  (setf iterator (make-iterator column))
+  (setf iterator (make-iterator `(,column)))
   (remove-nulls iterator)
   (iterate
     (for i from 0 below (- 256 50))
@@ -87,8 +87,7 @@
 
 (let* ((column1 (make-sparse-material-column))
        (column2 (make-sparse-material-column))
-       (iterator (make-iterator column1)))
-  (setf iterator (augment-iterator iterator column2))
+       (iterator (make-iterator `(,column1 ,column2))))
   (iterate
     (for i from 0 below 256)
     (for j from 512)
@@ -108,8 +107,7 @@
   (cl-ds:erase! column2 1)
   (cl-ds:erase! column2 128)
   (cl-ds:erase! column2 5)
-  (setf iterator (make-iterator column1))
-  (setf iterator (augment-iterator iterator column2))
+  (setf iterator (make-iterator `(,column1 ,column2)))
   (remove-nulls iterator)
   (prove:isnt (column-at column1 1) :null)
   (prove:isnt (column-at column1 4) :null)
@@ -124,8 +122,7 @@
 
 (let* ((column1 (make-sparse-material-column))
        (column2 (make-sparse-material-column))
-       (iterator (make-iterator column1)))
-  (setf iterator (augment-iterator iterator column2))
+       (iterator (make-iterator `(,column1 ,column2))))
   (iterate
     (for i from 0 below 256)
     (for j from 512)
@@ -133,8 +130,7 @@
     (setf (iterator-at iterator 1) j)
     (move-iterator iterator 1))
   (finish-iterator iterator)
-  (setf iterator (make-iterator column1))
-  (setf iterator (augment-iterator iterator column2))
+  (setf iterator (make-iterator `(,column1 ,column2)))
   (iterate
     (for i from 0 below 128)
     (setf (iterator-at iterator 0) i)

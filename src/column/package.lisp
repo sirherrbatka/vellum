@@ -6,6 +6,7 @@
   (:nicknames #:cl-df.column)
   (:export
    #:augment-iterator
+   #:columns
    #:column-at
    #:column-size
    #:column-type

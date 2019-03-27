@@ -10,7 +10,7 @@
 ;; (defgeneric notify-change (observer index new-value))
 ;; (defgeneric clear-change-observers (column))
 ;; (defgeneric run-change-observers (column index new-value))
-(defgeneric make-iterator (column &rest more-columns))
+(defgeneric make-iterator (columns &key &allow-other-keys))
 
 (defgeneric iterator-at (iterator column))
 (defgeneric (setf iterator-at) (new-value iterator column))
@@ -20,3 +20,4 @@
 (defgeneric remove-nulls (iterator))
 (defgeneric truncate-to-length (column length))
 (defgeneric index (iterator))
+(defgeneric columns (iterator))

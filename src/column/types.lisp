@@ -52,10 +52,13 @@
                                                    :adjustable t
                                                    :fill-pointer 0)
                            :reader read-initialization-status)
+   (%transformation :initarg :transformation
+                    :reader read-transformation)
    (%columns :initarg :columns
              :type vector
              :initform #()
              :accessor access-columns
+             :reader columns
              :reader read-columns)
    (%stacks :initarg :stacks
             :type vector
@@ -98,6 +101,7 @@
     (:stacks read-stacks)
     (:depths read-depths)
     (:index access-index)
+    (:transformation read-transformation)
     (:buffers read-buffers)
     (:touched read-touched)
     (:initialization-status read-initialization-status)

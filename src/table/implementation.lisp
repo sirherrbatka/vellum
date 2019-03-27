@@ -1,8 +1,8 @@
 (in-package #:cl-df.table)
 
 
-(defun make-iterator (columns)
-  (apply #'cl-df.column:make-iterator (coerce columns 'list)))
+(defun make-iterator (columns &key (transformation #'identity))
+  (cl-df.column:make-iterator columns :transformation transformation))
 
 
 (defmethod at ((frame standard-table) (column symbol) (row integer))
@@ -170,21 +170,20 @@
                                    :columns new-columns)))))
 
 
-(defmethod hmask ((frame standard-table) mask
+(defmethod vmask ((frame standard-table) mask
                   &key (in-place *transform-in-place*))
   (bind ((columns (read-columns frame))
          (column-count (length columns))
          (old-size (row-count frame))
-         (new-size 0)
-         (new-columns (map 'vector
-                           (if in-place
-                               #'cl-ds:become-transactional
-                               (rcurry #'cl-ds:replica t))
-                           columns)))
+         (new-size 0))
     (if (zerop column-count)
         frame
         (cl-df.header:with-header ((header frame))
-          (let ((iterator (make-iterator new-columns)))
+          (let* ((iterator
+                   (make-iterator
+                    columns
+                    :transformation (rcurry #'cl-ds:replica (not in-place))))
+                 (new-columns (cl-df.column:columns iterator)))
             (cl-df.header:set-row (make 'table-row :iterator iterator))
             (block out
               (cl-ds:traverse
@@ -216,16 +215,15 @@
                       &key (in-place *transform-in-place*))
   (bind ((columns (read-columns frame))
          (column-count (length columns))
-         (old-size (row-count frame))
-         (new-columns (map 'vector
-                           (if in-place
-                               #'cl-ds:become-transactional
-                               (rcurry #'cl-ds:replica t))
-                           columns)))
+         (old-size (row-count frame)))
     (if (zerop column-count)
         frame
         (with-table (frame)
-          (let ((iterator (make-iterator new-columns)))
+          (let* ((iterator
+                   (make-iterator
+                    columns
+                    :transformation (rcurry #'cl-ds:replica (not in-place))))
+                 (new-columns (cl-df.column:columns iterator)))
             (cl-df.header:set-row (make 'setfable-table-row
                                         :iterator iterator))
             (iterate

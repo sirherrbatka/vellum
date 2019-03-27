@@ -70,10 +70,11 @@
 
 
 (defun ensure-column-initialization (iterator column)
-  (bind (((:slots %initialization-status) iterator)
+  (bind (((:slots %initialization-status %columns) iterator)
          (status %initialization-status)
          (length (length status)))
-    (declare (type vector status))
+    (declare (type simple-vector columns)
+             (type (simple-array boolean (*)) status))
     (unless (< -1 column length)
       (error 'no-such-column
              :bounds `(0 ,length)
@@ -940,7 +941,7 @@
 
 
 (defun range-iterator (range position)
-  (lret ((iterator (~> range read-column make-iterator)))
+  (lret ((iterator (~> range read-column list make-iterator)))
     (move-iterator iterator position)))
 
 
@@ -998,6 +999,6 @@
 
 (defun make-sparse-material-column-range (column)
   (make 'sparse-material-column-range
-        :iterator (make-iterator column)
+        :iterator (make-iterator `(,column))
         :column column
         :position 0))
