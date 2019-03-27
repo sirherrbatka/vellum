@@ -73,8 +73,7 @@
   (bind (((:slots %initialization-status %columns) iterator)
          (status %initialization-status)
          (length (length status)))
-    (declare (type simple-vector columns)
-             (type (simple-array boolean (*)) status))
+    (declare (type (simple-array boolean (*)) status))
     (unless (< -1 column length)
       (error 'no-such-column
              :bounds `(0 ,length)
