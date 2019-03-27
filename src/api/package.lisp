@@ -26,4 +26,5 @@
   cl-df.table:to-table
   cl-df.table:transform
   cl-df.table:vstack
+  cl-df.table:vmask
   cl-df.table:with-table)

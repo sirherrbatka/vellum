@@ -77,7 +77,8 @@
                   new)
                 (read-columns frame)))
          (iterator (make-iterator new-columns))
-         (new-frame (cl-ds.utils:quasi-clone frame :columns new-columns))
+         (new-frame (cl-ds.utils:quasi-clone*
+                        frame :columns new-columns))
          (column-count (column-count new-frame))
          (row-count (row-count new-frame)))
     (with-table (new-frame)
@@ -167,8 +168,8 @@
                      (cl-df.column:column-at column row)))
              (cl-df.column:move-iterator iterator 1)))
           (cl-df.column:finish-iterator iterator)
-          (cl-ds.utils:quasi-clone frame
-                                   :columns new-columns)))))
+          (cl-ds.utils:quasi-clone* frame
+            :columns new-columns)))))
 
 
 (defun ensure-replicas (columns new-columns)

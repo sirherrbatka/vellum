@@ -11,7 +11,7 @@
    #:column-name
    #:column-type
    #:header
-   #:hmask
+   #:vmask
    #:hslice
    #:hstack
    #:row-count
