@@ -18,7 +18,7 @@
                :path pathname)))))
 
 
-(defmethod cl-df:from-file ((format (eql ':csv))
+(defmethod cl-df:copy-from ((format (eql ':csv))
                             (input pathname)
                             &rest options
                             &key
@@ -49,7 +49,7 @@
             :header frame-header))))
 
 
-(defmethod cl-df:from-file ((format (eql ':csv))
+(defmethod cl-df:copy-from ((format (eql ':csv))
                             (input cl-ds:fundamental-forward-range)
                             &rest options
                             &key
