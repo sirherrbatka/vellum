@@ -67,7 +67,7 @@
   (~> frame header (cl-df.header:column-type column)))
 
 
-(defmethod vstack-traversable ((frame standard-table) more-frames)
+(defmethod vstack ((frame standard-table) more-frames)
   (let* ((new-columns
            (map 'vector
                 (lambda (column &aux (new (cl-ds:replica column t)))
@@ -101,35 +101,28 @@
     new-frame))
 
 
-(defmethod vstack ((frame standard-table) &rest more-frames)
-  (vstack-traversable frame more-frames))
-
-
-(defmethod hstack-traversable ((frame standard-table) more-frames)
-  (apply #'hstack frame
-         (cl-ds.alg:accumulate more-frames (flip #'cons)
-                               :initial-value nil)))
-
-
-(defmethod hstack ((frame standard-table) &rest more-frames)
-  (push frame more-frames)
-  (map nil (lambda (x) (check-type x standard-table))
-       more-frames)
-  (let* ((header (apply #'cl-df.header:concatenate-headers
-                       (mapcar #'header more-frames)))
-         (column-count (cl-df.header:column-count header))
-         (new-columns (make-array column-count))
-         (index 0))
-    (iterate
-      (for frame in more-frames)
-      (for columns = (read-columns frame))
+(defmethod hstack ((frame standard-table) more-frames)
+  (let ((more-frames (~>> (cl-ds.alg:accumulate more-frames
+                                                (flip #'cons)
+                                                :initial-value nil)
+                          (cons frame))))
+    (map nil (lambda (x) (check-type x standard-table))
+         more-frames)
+    (let* ((header (apply #'cl-df.header:concatenate-headers
+                          (mapcar #'header more-frames)))
+           (column-count (cl-df.header:column-count header))
+           (new-columns (make-array column-count))
+           (index 0))
       (iterate
-        (for column in-vector columns)
-        (setf (aref new-columns index) (cl-ds:replica column t))
-        (incf index)))
-    (make 'standard-table
-          :header header
-          :columns new-columns)))
+        (for frame in more-frames)
+        (for columns = (read-columns frame))
+        (iterate
+          (for column in-vector columns)
+          (setf (aref new-columns index) (cl-ds:replica column t))
+          (incf index)))
+      (make 'standard-table
+            :header header
+            :columns new-columns))))
 
 
 (defmethod vslice ((frame standard-table) selector)

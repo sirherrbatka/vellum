@@ -14,11 +14,9 @@
    #:hmask
    #:hslice
    #:hstack
-   #:hstack-traversable
    #:row-count
    #:to-table
    #:transform
    #:vslice
    #:vstack
-   #:vstack-traversable
    #:with-table))
