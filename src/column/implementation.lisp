@@ -34,15 +34,19 @@
                                column)
   (check-type column integer)
   (ensure-column-initialization iterator column)
-  (bind (((:slots %changes %bitmasks %columns %index %buffers) iterator)
+  (bind (((:slots %changes %touched %bitmasks
+                  %columns %index %buffers) iterator)
          (buffers %buffers)
+         (touched %touched)
          (offset (offset %index))
          (buffer (aref buffers column))
          (old-value (aref buffer offset)))
-    (declare (type vector buffers))
+    (declare (type simple-vector buffers)
+             (type (simple-array boolean (*))))
     (setf (aref buffer offset) new-value)
     (unless (eql new-value old-value)
-      (setf (~> (aref %changes column) (aref offset)) t))
+      (setf (~> (aref %changes column) (aref offset)) t
+            (aref touched column) t))
     new-value))
 
 
@@ -111,7 +115,6 @@
           (pad-stack iterator (aref depths i) index new-depth
                      (aref stacks i) (aref columns i))
           (maxf (aref depths i) new-depth))
-        (setf (aref touched i) t)
         (if not-changed
             (setf (aref initialization-status i) nil)
             (progn

@@ -16,7 +16,7 @@
    (%alias :initarg :alias
            :reader read-alias))
   (:default-initargs :type t
-                     :alias ni
+                     :alias nil
                      :predicate constantly-t))
 
 

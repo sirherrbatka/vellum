@@ -28,8 +28,8 @@
    (iterate
      (for i from 0 below %column-count)
      (setf (cl-df.column:iterator-at %iterator i)
-           (cl-df.header:row-at %header row i))
-     (finally (cl-df.column:move-iterator %iterator 1))))
+           (cl-df.header:row-at %header row i)))
+   (cl-df.column:move-iterator %iterator 1))
 
   ((cl-df.column:finish-iterator %iterator)
    (make 'standard-table
