@@ -42,7 +42,8 @@
                              (:file "generics")
                              (:file "types")
                              (:file "to-table")
-                             (:file "implementation")))
+                             (:file "implementation")
+                             (:test-file "tests")))
                (:module "api"
                 :components ((:file "package")
                              (:file "conditions")
