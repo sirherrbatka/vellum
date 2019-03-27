@@ -154,7 +154,8 @@
                               :element-type (cl-df.column:column-type x)))
                            columns)))
     (if (emptyp new-columns)
-        (cl-ds.utils:quasi-clone frame :columns new-columns)
+        (cl-ds.utils:quasi-clone* frame
+          :columns new-columns)
         (let ((iterator (make-iterator columns)))
           (cl-ds:traverse
            selector
@@ -168,6 +169,17 @@
           (cl-df.column:finish-iterator iterator)
           (cl-ds.utils:quasi-clone frame
                                    :columns new-columns)))))
+
+
+(defun ensure-replicas (columns new-columns)
+  (iterate
+    (for i from 0 below (length new-columns))
+    (for new-column = (aref new-columns i))
+    (for column = (aref columns i))
+    (when (eq column new-column)
+      (setf (aref new-columns i)
+            (cl-ds:replica new-column t))))
+  new-columns)
 
 
 (defmethod vmask ((frame standard-table) mask
@@ -207,8 +219,8 @@
                 (progn
                   (write-columns new-columns frame)
                   frame)
-                (cl-ds.utils:quasi-clone frame
-                                         :columns new-columns)))))))
+                (cl-ds.utils:quasi-clone* frame
+                  :columns (ensure-replicas columns new-columns))))))))
 
 
 (defmethod transform ((frame standard-table) function
@@ -235,8 +247,8 @@
                 (progn
                   (write-columns new-columns frame)
                   frame)
-                (cl-ds.utils:quasi-clone frame
-                                         :columns new-columns)))))))
+                (cl-ds.utils:quasi-clone* frame
+                  :columns (ensure-replicas columns new-columns))))))))
 
 
 (defmethod cl-df.header:row-at ((header cl-df.header:standard-header)
