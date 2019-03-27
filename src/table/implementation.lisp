@@ -67,12 +67,7 @@
   (~> frame header (cl-df.header:column-type column)))
 
 
-(defmethod vstack ((frame standard-table) &rest more-frames)
-  (unless (cl-ds.utils:homogenousp (cons frame more-frames)
-                                   :key #'column-count)
-    (error 'cl-df.header:headers-incompatible
-           :header (mapcar #'header (cons frame more-frames))
-           :control-string "Inconsistent number of columns in the frames."))
+(defmethod vstack-traversable ((frame standard-table) more-frames)
   (let* ((new-columns
            (map 'vector
                 (lambda (column &aux (new (cl-ds:replica column t)))
@@ -83,22 +78,37 @@
                 (read-columns frame)))
          (iterator (make-iterator new-columns))
          (new-frame (cl-ds.utils:quasi-clone frame :columns new-columns))
+         (column-count (column-count new-frame))
          (row-count (row-count new-frame)))
     (with-table (new-frame)
       (cl-df.column:move-iterator iterator row-count)
-      (iterate
-        (with header = (header frame))
-        (with column-count = (column-count header))
-        (for frame in more-frames)
-        (cl-ds:traverse frame
-                        (cl-df.header:body
-                          (iterate
-                            (for i from 0 below column-count)
-                            (setf (cl-df.column:iterator-at iterator i)
-                                  (cl-df.header:rr i)))
-                          (cl-df.column:move-iterator iterator 1)))))
+      (cl-ds:across
+       more-frames
+       (lambda (frame)
+         (unless (eql column-count (column-count frame))
+           (error 'cl-df.header:headers-incompatible
+                  :header (mapcar #'header (cons frame more-frames))
+                  :control-string "Inconsistent number of columns in the frames."))
+         (cl-ds:traverse
+          frame
+          (cl-df.header:body
+            (iterate
+              (for i from 0 below column-count)
+              (setf (cl-df.column:iterator-at iterator i)
+                    (cl-df.header:rr i)))
+            (cl-df.column:move-iterator iterator 1))))))
     (cl-df.column:finish-iterator iterator)
     new-frame))
+
+
+(defmethod vstack ((frame standard-table) &rest more-frames)
+  (vstack-traversable frame more-frames))
+
+
+(defmethod hstack-traversable ((frame standard-table) more-frames)
+  (apply #'hstack frame
+         (cl-ds.alg:accumulate more-frames (flip #'cons)
+                               :initial-value nil)))
 
 
 (defmethod hstack ((frame standard-table) &rest more-frames)

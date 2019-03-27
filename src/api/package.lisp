@@ -22,8 +22,10 @@
   cl-df.header:with-header
   cl-df.table:at
   cl-df.table:hstack
+  cl-df.table:hstack-traversable
   cl-df.table:row-count
   cl-df.table:to-table
   cl-df.table:transform
   cl-df.table:vstack
+  cl-df.table:vstack-traversable
   cl-df.table:with-table)

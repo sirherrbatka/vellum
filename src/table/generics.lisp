@@ -5,7 +5,11 @@
 
 (defgeneric hstack (frame &rest more-frames))
 
+(defgeneric hstack-traversable (frame more-frames))
+
 (defgeneric vstack (frame &rest more-frames))
+
+(defgeneric vstack-traversable (frame more-frames))
 
 (defgeneric hslice (frame selector))
 
