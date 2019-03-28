@@ -115,13 +115,14 @@
            (column-count (cl-df.header:column-count header))
            (new-columns (make-array column-count))
            (index 0))
+      (declare (type fixnum index))
       (iterate
         (for frame in more-frames)
         (for columns = (read-columns frame))
         (iterate
           (for column in-vector columns)
           (setf (aref new-columns index) (cl-ds:replica column t))
-          (incf index)))
+          (the fixnum (incf index))))
       (make 'standard-table
             :header header
             :columns new-columns))))
