@@ -296,6 +296,7 @@
                  then (make-node iterator column 1
                                  :content (vector node)))
             (finally (setf (cl-ds.dicts.srrb:access-tree column) node)))))
+    (cl-ds.utils:transform (read-transformation iterator) %columns)
     (map nil #'unify-shift %columns)
     (remove-nulls-in-trees iterator)
     (concatenate-trees iterator)
