@@ -163,8 +163,7 @@
                                              :initial-element :null)
                                  (read-buffers iterator))
       :depths (into-vector-copy (cl-ds.dicts.srrb:access-shift column)
-                                (read-depths iterator))
-      :index (access-index iterator))))
+                                (read-depths iterator)))))
 
 
 (defmethod make-iterator (columns &key (transformation #'identity))
