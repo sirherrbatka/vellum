@@ -234,6 +234,7 @@
          (column-count (length columns))
          (old-size (row-count frame))
          (new-size 0))
+    (declare (type fixnum new-size old-size column-count))
     (when (zerop column-count)
       (return-from vmask frame))
     (cl-df.header:with-header ((header frame))
