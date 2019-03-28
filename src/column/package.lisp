@@ -13,6 +13,7 @@
    #:complex-iterator
    #:finish-iterator
    #:truncate-to-length
+   #:remove-nulls
    #:index
    #:fundamental-column
    #:fundamental-iterator
