@@ -201,7 +201,7 @@
          (iterate
            (declare (type fixnum column-index))
            (for column-index from 0 below column-count)
-           (for column = (aref new-columns column-index))
+           (for column = (aref columns column-index))
            (setf (cl-df.column:iterator-at iterator column-index)
                  (cl-df.column:column-at column row)))
          (cl-df.column:move-iterator iterator 1)))
