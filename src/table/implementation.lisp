@@ -106,6 +106,7 @@
   (let ((more-frames (~>> (cl-ds.alg:accumulate more-frames
                                                 (flip #'cons)
                                                 :initial-value nil)
+                          nreverse
                           (cons frame))))
     (map nil (lambda (x) (check-type x standard-table))
          more-frames)
