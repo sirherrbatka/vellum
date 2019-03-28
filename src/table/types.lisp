@@ -28,6 +28,18 @@
   ())
 
 
+(defclass selection (cl-ds:traversable)
+  ((%start :initarg :start
+           :reader read-start)
+   (%end :initarg :end
+         :reader read-end)))
+
+
+(defun selection (start end)
+  (declare (type non-negative-fixnum start end))
+  (make 'selection :start start :end end))
+
+
 (defclass standard-table-range (cl-ds:fundamental-forward-range)
   ((%table-row :initarg :table-row
                :reader read-table-row)
@@ -43,3 +55,9 @@
   '((:table-row read-table-row)
     (:header read-header)
     (:row-count read-row-count)))
+
+
+(defmethod cl-ds.utils:cloning-information append
+    ((range selection))
+  `((:start read-start)
+    (:end read-end)))

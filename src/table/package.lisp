@@ -15,6 +15,7 @@
    #:hstack
    #:remove-nulls
    #:row-count
+   #:selection
    #:to-table
    #:transform
    #:vmask

@@ -24,6 +24,7 @@
   cl-df.table:hstack
   cl-df.table:remove-nulls
   cl-df.table:row-count
+  cl-df.table:selection
   cl-df.table:to-table
   cl-df.table:transform
   cl-df.table:vmask

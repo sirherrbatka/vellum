@@ -146,6 +146,36 @@
       :column new-columns)))
 
 
+(defmethod hslice ((frame standard-table) (selector selection))
+  (bind ((columns (read-columns frame))
+         (column-count (length columns))
+         (new-columns (map 'vector
+                           (lambda (x)
+                             (cl-df.column:make-sparse-material-column
+                              :element-type (cl-df.column:column-type x)))
+                           columns)))
+    (when (emptyp new-columns)
+      (return-from hslice (cl-ds.utils:quasi-clone* frame
+                            :columns new-columns)))
+    (let ((iterator (make-iterator new-columns))
+          (source-iterator (make-iterator columns)))
+      (cl-df.column:move-iterator source-iterator (read-start selector))
+      (iterate
+        (for i
+             from (read-start selector)
+             below (min (read-end selector) (row-count frame)))
+        (iterate
+          (for column in-vector new-columns)
+          (for column-index from 0 below column-count)
+          (setf (cl-df.column:iterator-at iterator column-index)
+                (cl-df.column:iterator-at source-iterator column-index)))
+        (cl-df.column:move-iterator iterator 1)
+        (cl-df.column:move-iterator source-iterator 1))
+      (cl-df.column:finish-iterator iterator)
+      (cl-ds.utils:quasi-clone* frame
+        :columns new-columns))))
+
+
 (defmethod hslice ((frame standard-table) selector)
   (bind ((columns (read-columns frame))
          (column-count (length columns))
@@ -154,22 +184,22 @@
                              (cl-df.column:make-sparse-material-column
                               :element-type (cl-df.column:column-type x)))
                            columns)))
-    (if (emptyp new-columns)
-        (cl-ds.utils:quasi-clone* frame
-          :columns new-columns)
-        (let ((iterator (make-iterator columns)))
-          (cl-ds:traverse
-           selector
-           (lambda (row)
-             (iterate
-               (for column in-vector new-columns)
-               (for column-index from 0 below column-count)
-               (setf (cl-df.column:iterator-at iterator column-index)
-                     (cl-df.column:column-at column row)))
-             (cl-df.column:move-iterator iterator 1)))
-          (cl-df.column:finish-iterator iterator)
-          (cl-ds.utils:quasi-clone* frame
-            :columns new-columns)))))
+    (when (emptyp new-columns)
+      (return-from hslice (cl-ds.utils:quasi-clone* frame
+                            :columns new-columns)))
+    (let ((iterator (make-iterator new-columns)))
+      (cl-ds:traverse
+       selector
+       (lambda (row)
+         (iterate
+           (for column in-vector new-columns)
+           (for column-index from 0 below column-count)
+           (setf (cl-df.column:iterator-at iterator column-index)
+                 (cl-df.column:column-at column row)))
+         (cl-df.column:move-iterator iterator 1)))
+      (cl-df.column:finish-iterator iterator)
+      (cl-ds.utils:quasi-clone* frame
+        :columns new-columns))))
 
 
 (defun ensure-replicas (columns new-columns)
@@ -413,3 +443,17 @@
     (apply #'cl-ds.alg.meta:apply-range-function
            (cl-ds:whole-range range)
            function all)))
+
+
+(defmethod cl-ds:traverse ((selection selection)
+                           function)
+  (ensure-functionf function)
+  (iterate
+    (for i from (read-start selection) below (read-end selection))
+    (funcall function i))
+  selection)
+
+
+(defmethod cl-ds:across ((selection selection)
+                         function)
+  (cl-ds:traverse selection function))
