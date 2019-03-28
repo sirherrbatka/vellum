@@ -200,8 +200,7 @@
       (return-from vmask frame))
     (cl-df.header:with-header ((header frame))
       (let* ((transform (rcurry #'cl-ds:replica (not in-place)))
-             (iterator (make-iterator columns
-                                      :transformation transform))
+             (iterator (make-iterator columns :transformation transform))
              (new-columns (cl-df.column:columns iterator)))
         (assert (not (eq new-columns columns)))
         (cl-df.header:set-row (make 'table-row :iterator iterator))
@@ -240,9 +239,7 @@
       (return-from transform frame))
     (with-table (frame)
       (let* ((transform (rcurry #'cl-ds:replica (not in-place)))
-             (iterator (make-iterator
-                        columns
-                        :transformation transform))
+             (iterator (make-iterator columns :transformation transform))
              (new-columns (cl-df.column:columns iterator)))
         (assert (not (eq new-columns columns)))
         (cl-df.header:set-row (make 'setfable-table-row
@@ -268,9 +265,7 @@
       (return-from remove-nulls frame))
     (with-table (frame)
       (let* ((transform (rcurry #'cl-ds:replica (not in-place)))
-             (iterator (make-iterator
-                        columns
-                        :transformation transform))
+             (iterator (make-iterator columns :transformation transform))
              (new-columns (cl-df.column:columns iterator)))
         (assert (not (eq new-columns columns)))
         (cl-df.column:remove-nulls iterator)
