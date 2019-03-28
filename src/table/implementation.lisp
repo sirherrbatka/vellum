@@ -196,40 +196,39 @@
          (column-count (length columns))
          (old-size (row-count frame))
          (new-size 0))
-    (if (zerop column-count)
-        frame
-        (cl-df.header:with-header ((header frame))
-          (let* ((iterator
-                   (make-iterator
-                    columns
-                    :transformation (rcurry #'cl-ds:replica (not in-place))))
-                 (new-columns (cl-df.column:columns iterator)))
-            (assert (not (eq new-columns columns)))
-            (cl-df.header:set-row (make 'table-row :iterator iterator))
-            (block out
-              (cl-ds:traverse
-               mask
-               (lambda (accepted)
-                 (unless (< new-size old-size)
-                   (return-from out))
-                 (when (not accepted)
-                   (iterate
-                     (for column in-vector new-columns)
-                     (for column-index from 0 below column-count)
-                     (setf (cl-df.column:iterator-at iterator column-index)
-                           :null)))
-                 (cl-df.column:move-iterator iterator 1)
-                 (incf new-size))))
-            (cl-df.column:finish-iterator iterator)
-            (iterate
-              (for column in-vector new-columns)
-              (cl-df.column:truncate-to-length column new-size))
-            (if in-place
-                (progn
-                  (write-columns new-columns frame)
-                  frame)
-                (cl-ds.utils:quasi-clone* frame
-                  :columns (ensure-replicas columns new-columns))))))))
+    (when (zerop column-count)
+      (return-from vmask frame))
+    (cl-df.header:with-header ((header frame))
+      (let* ((transform (rcurry #'cl-ds:replica (not in-place)))
+             (iterator (make-iterator columns
+                                      :transformation transform))
+             (new-columns (cl-df.column:columns iterator)))
+        (assert (not (eq new-columns columns)))
+        (cl-df.header:set-row (make 'table-row :iterator iterator))
+        (block out
+          (cl-ds:traverse
+           mask
+           (lambda (accepted)
+             (unless (< new-size old-size)
+               (return-from out))
+             (when (not accepted)
+               (iterate
+                 (for column in-vector new-columns)
+                 (for column-index from 0 below column-count)
+                 (setf (cl-df.column:iterator-at iterator column-index)
+                       :null)))
+             (cl-df.column:move-iterator iterator 1)
+             (incf new-size))))
+        (cl-df.column:finish-iterator iterator)
+        (iterate
+          (for column in-vector new-columns)
+          (cl-df.column:truncate-to-length column new-size))
+        (if in-place
+            (progn
+              (write-columns new-columns frame)
+              frame)
+            (cl-ds.utils:quasi-clone* frame
+              :columns (ensure-replicas columns new-columns)))))))
 
 
 (defmethod transform ((frame standard-table) function
@@ -237,50 +236,50 @@
   (bind ((columns (read-columns frame))
          (column-count (length columns))
          (old-size (row-count frame)))
-    (if (zerop column-count)
-        frame
-        (with-table (frame)
-          (let* ((iterator
-                   (make-iterator
-                    columns
-                    :transformation (rcurry #'cl-ds:replica (not in-place))))
-                 (new-columns (cl-df.column:columns iterator)))
-            (assert (not (eq new-columns columns)))
-            (cl-df.header:set-row (make 'setfable-table-row
-                                        :iterator iterator))
-            (iterate
-              (for i from 0 below old-size)
-              (funcall function)
-              (cl-df.column:move-iterator iterator 1))
-            (cl-df.column:finish-iterator iterator)
-            (if in-place
-                (progn
-                  (write-columns new-columns frame)
-                  frame)
-                (cl-ds.utils:quasi-clone* frame
-                  :columns (ensure-replicas columns new-columns))))))))
+    (when (zerop column-count)
+      (return-from transform frame))
+    (with-table (frame)
+      (let* ((transform (rcurry #'cl-ds:replica (not in-place)))
+             (iterator (make-iterator
+                        columns
+                        :transformation transform))
+             (new-columns (cl-df.column:columns iterator)))
+        (assert (not (eq new-columns columns)))
+        (cl-df.header:set-row (make 'setfable-table-row
+                                    :iterator iterator))
+        (iterate
+          (for i from 0 below old-size)
+          (funcall function)
+          (cl-df.column:move-iterator iterator 1))
+        (cl-df.column:finish-iterator iterator)
+        (if in-place
+            (progn
+              (write-columns new-columns frame)
+              frame)
+            (cl-ds.utils:quasi-clone* frame
+              :columns (ensure-replicas columns new-columns)))))))
 
 
 (defmethod remove-nulls ((frame standard-table)
                          &key (in-place *transform-in-place*))
   (bind ((columns (read-columns frame))
          (column-count (length columns)))
-    (if (zerop column-count)
-        frame
-        (with-table (frame)
-          (let* ((iterator
-                   (make-iterator
-                    columns
-                    :transformation (rcurry #'cl-ds:replica (not in-place))))
-                 (new-columns (cl-df.column:columns iterator)))
-            (assert (not (eq new-columns columns)))
-            (cl-df.column:remove-nulls iterator)
-            (if in-place
-                (progn
-                  (write-columns new-columns frame)
-                  frame)
-                (cl-ds.utils:quasi-clone* frame
-                  :columns (ensure-replicas columns new-columns))))))))
+    (when (zerop column-count)
+      (return-from remove-nulls frame))
+    (with-table (frame)
+      (let* ((transform (rcurry #'cl-ds:replica (not in-place)))
+             (iterator (make-iterator
+                        columns
+                        :transformation transform))
+             (new-columns (cl-df.column:columns iterator)))
+        (assert (not (eq new-columns columns)))
+        (cl-df.column:remove-nulls iterator)
+        (if in-place
+            (progn
+              (write-columns new-columns frame)
+              frame)
+            (cl-ds.utils:quasi-clone* frame
+              :columns (ensure-replicas columns new-columns)))))))
 
 
 (defmethod cl-df.header:row-at ((header cl-df.header:standard-header)
