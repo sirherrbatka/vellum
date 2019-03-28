@@ -261,6 +261,28 @@
                   :columns (ensure-replicas columns new-columns))))))))
 
 
+(defmethod remove-nulls ((frame standard-table)
+                         &key (in-place *transform-in-place*))
+  (bind ((columns (read-columns frame))
+         (column-count (length columns)))
+    (if (zerop column-count)
+        frame
+        (with-table (frame)
+          (let* ((iterator
+                   (make-iterator
+                    columns
+                    :transformation (rcurry #'cl-ds:replica (not in-place))))
+                 (new-columns (cl-df.column:columns iterator)))
+            (assert (not (eq new-columns columns)))
+            (cl-df.column:remove-nulls iterator)
+            (if in-place
+                (progn
+                  (write-columns new-columns frame)
+                  frame)
+                (cl-ds.utils:quasi-clone* frame
+                  :columns (ensure-replicas columns new-columns))))))))
+
+
 (defmethod cl-df.header:row-at ((header cl-df.header:standard-header)
                                 (row table-row)
                                 (position symbol))
@@ -397,25 +419,3 @@
     (apply #'cl-ds.alg.meta:apply-range-function
            (cl-ds:whole-range range)
            function all)))
-
-
-(defmethod remove-nulls ((frame standard-table)
-                         &key (in-place *transform-in-place*))
-  (bind ((columns (read-columns frame))
-         (column-count (length columns)))
-    (if (zerop column-count)
-        frame
-        (with-table (frame)
-          (let* ((iterator
-                   (make-iterator
-                    columns
-                    :transformation (rcurry #'cl-ds:replica (not in-place))))
-                 (new-columns (cl-df.column:columns iterator)))
-            (assert (not (eq new-columns columns)))
-            (cl-df.column:remove-nulls iterator)
-            (if in-place
-                (progn
-                  (write-columns new-columns frame)
-                  frame)
-                (cl-ds.utils:quasi-clone* frame
-                  :columns (ensure-replicas columns new-columns))))))))
