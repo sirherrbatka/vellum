@@ -271,6 +271,7 @@
 
 (defmethod transform ((frame standard-table) function
                       &key (in-place *transform-in-place*))
+  (ensure-functionf function)
   (bind ((columns (read-columns frame))
          (column-count (length columns))
          (old-size (row-count frame)))
