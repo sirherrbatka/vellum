@@ -146,25 +146,25 @@
    column (cl-ds.common.abstract:read-ownership-tag column))
   (let ((max-shift cl-ds.common.rrb:+maximal-shift+)
         (max-children-count cl-ds.common.rrb:+maximum-children-count+))
-    (make 'sparse-material-column-iterator
-          :touched (into-vector-copy nil (read-touched iterator))
-          :initialization-status (into-vector-copy
-                                  nil
-                                  (read-initialization-status iterator))
-          :columns (into-vector-copy column (read-columns iterator))
-          :changes (into-vector-copy (make-array max-children-count
-                                                 :element-type 'boolean
-                                                 :initial-element nil)
-                                     (read-changes iterator))
-          :stacks (into-vector-copy (make-array max-shift
-                                                :initial-element nil)
-                                    (read-stacks iterator))
-          :buffers (into-vector-copy (make-array max-children-count
-                                                 :initial-element :null)
-                                     (read-buffers iterator))
-          :depths (into-vector-copy (cl-ds.dicts.srrb:access-shift column)
-                                    (read-depths iterator))
-          :index (access-index iterator))))
+    (cl-ds.utils:quasi-clone* iterator
+      :touched (into-vector-copy nil (read-touched iterator))
+      :initialization-status (into-vector-copy
+                              nil
+                              (read-initialization-status iterator))
+      :columns (into-vector-copy column (read-columns iterator))
+      :changes (into-vector-copy (make-array max-children-count
+                                             :element-type 'boolean
+                                             :initial-element nil)
+                                 (read-changes iterator))
+      :stacks (into-vector-copy (make-array max-shift
+                                            :initial-element nil)
+                                (read-stacks iterator))
+      :buffers (into-vector-copy (make-array max-children-count
+                                             :initial-element :null)
+                                 (read-buffers iterator))
+      :depths (into-vector-copy (cl-ds.dicts.srrb:access-shift column)
+                                (read-depths iterator))
+      :index (access-index iterator))))
 
 
 (defmethod make-iterator (columns &key (transformation #'identity))
