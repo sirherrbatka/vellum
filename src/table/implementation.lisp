@@ -88,7 +88,7 @@
        (lambda (frame)
          (unless (eql column-count (column-count frame))
            (error 'cl-df.header:headers-incompatible
-                  :header (mapcar #'header (cons frame more-frames))
+                  :header (header frame)
                   :control-string "Inconsistent number of columns in the frames."))
          (cl-ds:traverse
           frame
