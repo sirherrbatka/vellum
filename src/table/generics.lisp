@@ -30,3 +30,5 @@
 (defgeneric column-type (frame column))
 
 (defgeneric header (frame))
+
+(defgeneric remove-nulls (frame &key in-place))

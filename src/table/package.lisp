@@ -11,12 +11,13 @@
    #:column-name
    #:column-type
    #:header
-   #:vmask
    #:hslice
    #:hstack
+   #:remove-nulls
    #:row-count
    #:to-table
    #:transform
+   #:vmask
    #:vslice
    #:vstack
    #:with-table))

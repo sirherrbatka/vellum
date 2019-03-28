@@ -22,9 +22,10 @@
   cl-df.header:with-header
   cl-df.table:at
   cl-df.table:hstack
+  cl-df.table:remove-nulls
   cl-df.table:row-count
   cl-df.table:to-table
   cl-df.table:transform
-  cl-df.table:vstack
   cl-df.table:vmask
+  cl-df.table:vstack
   cl-df.table:with-table)
