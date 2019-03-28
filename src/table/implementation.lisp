@@ -177,9 +177,16 @@
     (for i from 0 below (length new-columns))
     (for new-column = (aref new-columns i))
     (for column = (aref columns i))
-    (when (eq column new-column)
-      (setf (aref new-columns i)
-            (cl-ds:replica new-column t))))
+    (if (eq column new-column)
+        (setf (aref new-columns i)
+              (cl-ds:replica new-column t))
+        (progn
+          (assert
+           (not (eq (cl-ds.common.abstract:read-ownership-tag column)
+                    (cl-ds.common.abstract:read-ownership-tag new-column))))
+          (assert
+           (not (eq (cl-ds.dicts.srrb:access-tree column)
+                    (cl-ds.dicts.srrb:access-tree new-column)))))))
   new-columns)
 
 
@@ -197,6 +204,7 @@
                     columns
                     :transformation (rcurry #'cl-ds:replica (not in-place))))
                  (new-columns (cl-df.column:columns iterator)))
+            (assert (not (eq new-columns columns)))
             (cl-df.header:set-row (make 'table-row :iterator iterator))
             (block out
               (cl-ds:traverse
@@ -237,6 +245,7 @@
                     columns
                     :transformation (rcurry #'cl-ds:replica (not in-place))))
                  (new-columns (cl-df.column:columns iterator)))
+            (assert (not (eq new-columns columns)))
             (cl-df.header:set-row (make 'setfable-table-row
                                         :iterator iterator))
             (iterate

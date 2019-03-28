@@ -16,7 +16,7 @@
 
 (defmethod cl-ds.utils:cloning-information append ((table standard-table))
   '((:header header)
-    (:column read-columns)))
+    (:columns read-columns)))
 
 
 (defclass table-row ()

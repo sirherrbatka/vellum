@@ -45,11 +45,13 @@
     (setf (aref buffer offset) new-value)
     (unless (eql new-value old-value)
       (let ((columns %columns)
+            (changes %changes)
             (touched %touched))
-        (declare (type simple-vector columns)
+        (declare (type simple-vector columns changes)
                  (type (simple-array boolean (*)) touched))
-        (setf (~> (aref %changes column) (aref offset)) t
-              #1=(aref columns column) (funcall %transformation #1#)
+        (unless (aref touched column)
+          (setf #1=(aref columns column) (funcall %transformation #1#)))
+        (setf (~> (aref changes column) (aref offset)) t
               (aref touched column) t)))
     new-value))
 
