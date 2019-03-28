@@ -154,6 +154,8 @@
                              (cl-df.column:make-sparse-material-column
                               :element-type (cl-df.column:column-type x)))
                            columns)))
+    (declare (type simple-vector new-columns)
+             (type fixnum column-count))
     (when (emptyp new-columns)
       (return-from hslice (cl-ds.utils:quasi-clone* frame
                             :columns new-columns)))
@@ -165,8 +167,9 @@
              from (read-start selector)
              below (min (read-end selector) (row-count frame)))
         (iterate
-          (for column in-vector new-columns)
+          (declare (type fixnum column-index))
           (for column-index from 0 below column-count)
+          (for column = (aref new-columns column-index))
           (setf (cl-df.column:iterator-at iterator column-index)
                 (cl-df.column:iterator-at source-iterator column-index)))
         (cl-df.column:move-iterator iterator 1)
@@ -184,6 +187,8 @@
                              (cl-df.column:make-sparse-material-column
                               :element-type (cl-df.column:column-type x)))
                            columns)))
+    (declare (type simple-vector new-columns)
+             (type fixnum column-count))
     (when (emptyp new-columns)
       (return-from hslice (cl-ds.utils:quasi-clone* frame
                             :columns new-columns)))
@@ -192,8 +197,9 @@
        selector
        (lambda (row)
          (iterate
-           (for column in-vector new-columns)
+           (declare (type fixnum column-index))
            (for column-index from 0 below column-count)
+           (for column = (aref new-columns column-index))
            (setf (cl-df.column:iterator-at iterator column-index)
                  (cl-df.column:column-at column row)))
          (cl-df.column:move-iterator iterator 1)))
