@@ -103,8 +103,8 @@
 
 
 (defmethod hstack ((frame standard-table) more-frames)
-  (map nil (lambda (x) (check-type x standard-table))
-       more-frames)
+  (cl-ds:across more-frames
+                (lambda (x) (check-type x standard-table)))
   (let* ((more-frames (~>> (cl-ds.alg:accumulate more-frames
                                                  (flip #'cons)
                                                  :initial-value nil)
