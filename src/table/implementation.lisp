@@ -133,14 +133,10 @@
 (defmethod vslice ((frame standard-table) selector)
   (let* ((header (header frame))
          (columns (read-columns frame))
-         (column-indexes
-           (cl-ds.alg:to-vector (cl-ds.alg:on-each
-                                 selector
-                                 (cl-ds.utils:if-else
-                                  #'integerp
-                                  #'identity
-                                  (curry #'cl-df.header:alias-to-index
-                                         header)))))
+         (column-indexes (~>> (curry #'cl-df.header:alias-to-index header)
+                              (cl-ds.utils:if-else #'integerp #'identity)
+                              (cl-ds.alg:on-each selector)
+                              cl-ds.alg:to-vector))
          (new-header (cl-df.header:select-columns header column-indexes))
          (new-columns (map 'vector (compose (rcurry #'cl-ds:replica t)
                                             (curry #'aref columns))
