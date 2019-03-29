@@ -27,13 +27,19 @@
 
 
 (defun pad-stack (iterator depth index new-depth stack column)
+  (declare (type simple-vector stack)
+           (type fixnum new-depth index depth)
+           (optimize (speed 3)))
   (iterate
+    (declare (type fixnum j byte offset depth-difference))
+    (with depth-difference = (- new-depth depth))
     (with prev-node = (aref stack 0))
     (with tag = (cl-ds.common.abstract:read-ownership-tag column))
-    (repeat (- new-depth depth))
+    (repeat depth-difference)
     (for j from 0)
     (for byte
-         from (* new-depth cl-ds.common.rrb:+bit-count+)
+         from (logand most-positive-fixnum
+               (* new-depth cl-ds.common.rrb:+bit-count+))
          downto 0
          by cl-ds.common.rrb:+bit-count+)
     (for offset = (ldb (byte cl-ds.common.rrb:+bit-count+ byte)
