@@ -35,8 +35,7 @@
     (with depth-difference = (- new-depth depth))
     (with prev-node = (aref stack 0))
     (with tag = (cl-ds.common.abstract:read-ownership-tag column))
-    (repeat depth-difference)
-    (for j from 0)
+    (for j from 0 below depth-difference)
     (for byte
          from (logand most-positive-fixnum
                (* new-depth cl-ds.common.rrb:+bit-count+))
