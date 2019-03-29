@@ -541,11 +541,13 @@
 
 
 (defun remove-nulls-in-trees (iterator)
-  (declare (optimize (debug 3)))
-  (bind ((columns (~>> iterator read-columns
-                       (remove-if #'null _ :key #'column-root)))
-         (depth (extremum columns #'>
-                          :key #'cl-ds.dicts.srrb:access-shift))
+  (declare (optimize (speed 3)))
+  (bind ((columns (the vector
+                       (~>> iterator read-columns
+                            (remove-if #'null _ :key #'column-root))))
+         (depth (the fixnum
+                     (extremum columns #'>
+                               :key #'cl-ds.dicts.srrb:access-shift)))
          ((:flet truncate-mask (mask))
           (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
          ((:flet missing-bitmask (node))
@@ -554,7 +556,11 @@
               lognot
               truncate-mask))
          ((:labels impl (d nodes))
+          (declare (type fixnum d)
+                   (type vector nodes))
           (iterate
+            (declare (type fixnum missing-mask i
+                           old-bitmask new-bitmask))
             (with missing-mask = (reduce #'logand nodes
                                          :key #'missing-bitmask))
             (with missing-count = (logcount missing-mask))
@@ -580,9 +586,10 @@
                 (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask node)
                       new-bitmask))))
           (when-let* ((subtree (not (eql d depth)))
-                      (present-mask (reduce
-                                     #'logand nodes
-                                     :key #'cl-ds.common.rrb:sparse-rrb-node-bitmask))
+                      (present-mask (the fixnum
+                                         (reduce
+                                          #'logand nodes
+                                          :key #'cl-ds.common.rrb:sparse-rrb-node-bitmask)))
                       (more-to-do (not (zerop present-mask))))
             (iterate
               (with next-nodes = (copy-array nodes))
