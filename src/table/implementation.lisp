@@ -54,8 +54,7 @@
 
 (defmethod row-count ((frame standard-table))
   (~> frame read-columns
-      (reduce #'max _ :key #'cl-df.column:column-size
-              :initial-value 0)))
+      (extremum #'> :key #'cl-df.column:column-size)))
 
 
 (defmethod column-name ((frame standard-table) (column integer))
@@ -103,29 +102,31 @@
 
 
 (defmethod hstack ((frame standard-table) more-frames)
-  (let ((more-frames (~>> (cl-ds.alg:accumulate more-frames
-                                                (flip #'cons)
-                                                :initial-value nil)
-                          nreverse
-                          (cons frame))))
-    (map nil (lambda (x) (check-type x standard-table))
-         more-frames)
-    (let* ((header (apply #'cl-df.header:concatenate-headers
-                          (mapcar #'header more-frames)))
-           (column-count (cl-df.header:column-count header))
-           (new-columns (make-array column-count))
-           (index 0))
-      (declare (type fixnum index))
+  (map nil (lambda (x) (check-type x standard-table))
+       more-frames)
+  (let* ((more-frames (~>> (cl-ds.alg:accumulate more-frames
+                                                 (flip #'cons)
+                                                 :initial-value nil)
+                           nreverse
+                           (cons frame)))
+         (header (apply #'cl-df.header:concatenate-headers
+                        (mapcar #'header more-frames)))
+         (column-count (cl-df.header:column-count header))
+         (new-columns (make-array column-count))
+         (index 0))
+    (declare (type fixnum index column-count)
+             (type simple-vector new-columns)
+             (type list more-frames))
+    (iterate
+      (for frame in more-frames)
+      (for columns = (read-columns frame))
       (iterate
-        (for frame in more-frames)
-        (for columns = (read-columns frame))
-        (iterate
-          (for column in-vector columns)
-          (setf (aref new-columns index) (cl-ds:replica column t))
-          (the fixnum (incf index))))
-      (make 'standard-table
-            :header header
-            :columns new-columns))))
+        (for column in-vector columns)
+        (setf (aref new-columns index) (cl-ds:replica column t))
+        (the fixnum (incf index))))
+    (make 'standard-table
+          :header header
+          :columns new-columns)))
 
 
 (defmethod vslice ((frame standard-table) selector)
@@ -143,6 +144,7 @@
          (new-columns (map 'vector (compose (rcurry #'cl-ds:replica t)
                                             (curry #'aref columns))
                            column-indexes)))
+    (declare (type simple-vector columns new-columns))
     (cl-ds.utils:quasi-clone* frame
       :header new-header
       :column new-columns)))
@@ -156,7 +158,7 @@
                              (cl-df.column:make-sparse-material-column
                               :element-type (cl-df.column:column-type x)))
                            columns)))
-    (declare (type simple-vector new-columns)
+    (declare (type simple-vector new-columns columns)
              (type fixnum column-count))
     (when (emptyp new-columns)
       (return-from hslice (cl-ds.utils:quasi-clone* frame
