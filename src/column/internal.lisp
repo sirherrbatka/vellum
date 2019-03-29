@@ -607,17 +607,25 @@
 
 
 (defun move-stack (depth new-index stack)
+  (declare (type fixnum depth new-index)
+           (type simple-vector stack)
+           (optimize (speed 3)))
   (iterate outer
+    (declare (type fixnum i offset size byte)
+             (type boolean present))
     (with node = (aref stack 0))
+    (with size = (logand most-positive-fixnum
+                         (* depth cl-ds.common.rrb:+bit-count+)))
     (for i from 1 to depth)
     (for byte
-         from (* depth cl-ds.common.rrb:+bit-count+)
+         from size
          downto 0
          by cl-ds.common.rrb:+bit-count+)
     (for offset = (ldb (byte cl-ds.common.rrb:+bit-count+ byte) new-index))
     (for present = (cl-ds.common.rrb:sparse-rrb-node-contains node offset))
     (unless present
       (iterate
+        (declare (type fixnum j))
         (for j from i to depth)
         (setf (aref stack j) nil))
       (leave))
@@ -661,7 +669,7 @@
                           (make-array new-size
                                       :element-type (column-type column)))))
     (declare (type simple-vector old-content)
-             (type fixnum old-size new-size))
+             (type fixnum old-size new-size bitmask))
     (iterate
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
       (for changed in-vector change)
