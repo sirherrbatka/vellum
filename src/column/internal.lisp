@@ -800,7 +800,7 @@
 (defun reduce-stack (iterator index depth stack column)
   (declare (optimize (speed 3))
            (type simple-vector stack)
-           (type fixnum depth index column))
+           (type fixnum depth index))
   (iterate
     (declare (type fixnum i bits))
     (with tag = (cl-ds.common.abstract:read-ownership-tag column))
