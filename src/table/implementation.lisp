@@ -150,6 +150,8 @@
 (defmethod hslice ((frame standard-table) (selector selection))
   (bind ((columns (read-columns frame))
          (column-count (length columns))
+         (starts (read-starts selector))
+         (ends (read-ends selector))
          (new-columns (map 'vector
                            (lambda (x)
                              (cl-df.column:make-sparse-material-column
@@ -162,19 +164,22 @@
                             :columns new-columns)))
     (let ((iterator (make-iterator new-columns))
           (source-iterator (make-iterator columns)))
-      (cl-df.column:move-iterator source-iterator (read-start selector))
       (iterate
-        (for i
-             from (read-start selector)
-             below (min (read-end selector) (row-count frame)))
+        (for start in-vector starts)
+        (for end in-vector ends)
+        (cl-df.column:move-iterator source-iterator start)
         (iterate
-          (declare (type fixnum column-index))
-          (for column-index from 0 below column-count)
-          (for column = (aref new-columns column-index))
-          (setf (cl-df.column:iterator-at iterator column-index)
-                (cl-df.column:iterator-at source-iterator column-index)))
-        (cl-df.column:move-iterator iterator 1)
-        (cl-df.column:move-iterator source-iterator 1))
+          (for i
+               from start
+               below end)
+          (iterate
+            (declare (type fixnum column-index))
+            (for column-index from 0 below column-count)
+            (for column = (aref new-columns column-index))
+            (setf (cl-df.column:iterator-at iterator column-index)
+                  (cl-df.column:iterator-at source-iterator column-index)))
+          (cl-df.column:move-iterator iterator 1)
+          (cl-df.column:move-iterator source-iterator 1)))
       (cl-df.column:finish-iterator iterator)
       (cl-ds.utils:quasi-clone* frame
         :columns new-columns))))

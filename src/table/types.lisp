@@ -29,15 +29,20 @@
 
 
 (defclass selection (cl-ds:traversable)
-  ((%start :initarg :start
-           :reader read-start)
-   (%end :initarg :end
-         :reader read-end)))
+  ((%starts :initarg :starts
+           :reader read-starts)
+   (%ends :initarg :ends
+          :reader read-ends)))
 
 
 (defun selection (start end)
   (declare (type non-negative-fixnum start end))
-  (make 'selection :start start :end end))
+  (let* ((arguments (~> `(,start ,end) (batches 2)))
+         (starts (map '(vector fixnum) #'first arguments))
+         (ends (map '(vector fixnum) #'second arguments)))
+    (assert (every (compose (curry #'eql 2) #'length)
+                   arguments))
+    (make 'selection :starts starts :ends ends)))
 
 
 (defclass standard-table-range (cl-ds:fundamental-forward-range)
@@ -59,5 +64,5 @@
 
 (defmethod cl-ds.utils:cloning-information append
     ((range selection))
-  `((:start read-start)
-    (:end read-end)))
+  `((:starts read-starts)
+    (:ends read-ends)))
