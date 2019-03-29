@@ -365,10 +365,9 @@
 
 
 (defmethod cl-ds:clone ((range standard-table-range))
-  (cl-ds.utils:quasi-clone
-   range
-   :table-row (make 'table-row
-                    :iterator (cl-ds:clone (read-iterator range)))))
+  (cl-ds.utils:quasi-clone* range
+    :table-row (make 'table-row
+                     :iterator (cl-ds:clone (read-iterator range)))))
 
 
 (defmethod read-iterator ((range standard-table-range))
