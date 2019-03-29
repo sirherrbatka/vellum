@@ -798,7 +798,11 @@
 
 
 (defun reduce-stack (iterator index depth stack column)
+  (declare (optimize (speed 3))
+           (type simple-vector stack)
+           (type fixnum depth index column))
   (iterate
+    (declare (type fixnum i bits))
     (with tag = (cl-ds.common.abstract:read-ownership-tag column))
     (with prev-node = (aref stack depth))
     (for i from (1- depth) downto 0)
@@ -810,7 +814,7 @@
                          index))
     (for new-node = (copy-on-write-node iterator node prev-node
                                         position tag column))
-    (until (eql node new-node))
+    (until (eq node new-node))
     (setf prev-node new-node
           (aref stack i) new-node))
   (first-elt stack))
@@ -818,10 +822,14 @@
 
 (declaim (inline fill-buffer))
 (defun fill-buffer (depth buffer stack)
+  (declare (type fixnum depth)
+           (optimize (speed 3))
+           (type simple-vector buffer stack))
   (let ((node (aref stack depth)))
     (when (null node)
       (return-from fill-buffer nil))
     (iterate
+      (declare (type fixnum i))
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
       (for present = (cl-ds.common.rrb:sparse-rrb-node-contains node i))
       (when present
