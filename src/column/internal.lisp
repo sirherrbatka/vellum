@@ -513,8 +513,9 @@
   (declare (optimize (debug 3)))
   (bind ((columns (~>> iterator read-columns
                        (remove-if #'null _ :key #'column-root)))
-         (depth (extremum columns #'>
-                          :key #'cl-ds.dicts.srrb:access-shift))
+         (depth (~> (extremum columns #'>
+                              :key #'cl-ds.dicts.srrb:access-shift)
+                    cl-ds.dicts.srrb:access-shift))
          ((:labels impl (d nodes parent-state))
           (let ((current-state (concatenation-state iterator
                                                     columns
@@ -551,8 +552,9 @@
                        (~>> iterator read-columns
                             (remove-if #'null _ :key #'column-root))))
          (depth (the fixnum
-                     (extremum columns #'>
-                               :key #'cl-ds.dicts.srrb:access-shift)))
+                     (~> (extremum columns #'>
+                                   :key #'cl-ds.dicts.srrb:access-shift)
+                         cl-ds.dicts.srrb:access-shift)))
          ((:flet truncate-mask (mask))
           (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
          ((:flet missing-bitmask (node))

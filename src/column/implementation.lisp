@@ -285,8 +285,9 @@
 
 (defmethod remove-nulls ((iterator sparse-material-column-iterator))
   (bind (((:slots %index %columns %stacks %buffers %depth) iterator)
-         (depth (reduce #'max %columns
-                        :key #'cl-ds.dicts.srrb:access-shift))
+         (depth (~> (extremum %columns #'>
+                              :key #'cl-ds.dicts.srrb:access-shift)
+                    cl-ds.dicts.srrb:access-shift))
          ((:flet unify-shift (column))
           (iterate
             (for i from (cl-ds.dicts.srrb:access-shift column) below depth)
