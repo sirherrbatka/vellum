@@ -288,10 +288,14 @@
         (assert (not (eq new-columns columns)))
         (cl-df.header:set-row (make 'setfable-table-row
                                     :iterator iterator))
-        (iterate
-          (for i from 0 below old-size)
-          (funcall function)
-          (cl-df.column:move-iterator iterator 1))
+        (block main-loop
+          (let ((*transform-control* (lambda (operation)
+                                       (eswitch (operation :test 'eq)
+                                         (:finish (return-from main-loop))))))
+            (iterate
+              (for i from 0 below old-size)
+              (funcall function)
+              (cl-df.column:move-iterator iterator 1))))
         (cl-df.column:finish-iterator iterator)
         (if in-place
             (progn

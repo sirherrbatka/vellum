@@ -1,8 +1,6 @@
 (in-package #:cl-df.table)
 
 
-(defvar *transform-in-place* nil)
-
 (defgeneric hstack (frame more-frames))
 
 (defgeneric vstack (frame more-frames))

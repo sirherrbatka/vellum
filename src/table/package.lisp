@@ -10,9 +10,11 @@
    #:column-count
    #:column-name
    #:column-type
+   #:finish-transformation
    #:header
    #:hslice
    #:hstack
+   #:no-transformation
    #:remove-nulls
    #:row-count
    #:selection
