@@ -291,13 +291,14 @@
         (assert (not (eq new-columns columns)))
         (cl-df.header:set-row row)
         (block main-loop
-          (let ((*transform-control* (lambda (operation)
-                                       (eswitch (operation :test 'eq)
-                                         (:finish (return-from main-loop))
-                                         (:nullify
-                                          (iterate
-                                            (for i from 0 below column-count)
-                                            (setf (cl-df.header:row-at header row i) :null)))))))
+          (let ((*transform-control*
+                  (lambda (operation)
+                    (eswitch (operation :test 'eq)
+                      (:finish (return-from main-loop))
+                      (:nullify
+                       (iterate
+                         (for i from 0 below column-count)
+                         (setf (cl-df.header:row-at header row i) :null)))))))
             (iterate
               (for i from 0 below old-size)
               (funcall function)
