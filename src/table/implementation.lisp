@@ -390,6 +390,16 @@
         (values nil nil))))
 
 
+(defmethod cl-ds:become-transactional ((container standard-table))
+  (cl-ds:replica container))
+
+
+(defmethod cl-ds:replica ((container standard-table) &optional isolate)
+  (cl-ds.utils:quasi-clone* container
+    :columns (~>> container read-columns
+                  (map 'vector (rcurry #'cl-ds:replica isolate)))))
+
+
 (defmethod cl-ds:drop-front ((range standard-table-range)
                              count)
   (check-type count non-negative-fixnum)
