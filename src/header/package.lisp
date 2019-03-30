@@ -20,7 +20,6 @@
    #:index-to-alias
    #:make-header
    #:no-column
-   #:nullify
    #:row
    #:row-at
    #:rr

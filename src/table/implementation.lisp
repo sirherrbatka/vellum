@@ -283,15 +283,21 @@
       (return-from transform frame))
     (with-table (frame)
       (let* ((transform (rcurry #'cl-ds:replica (not in-place)))
+             (header (header frame))
+             (column-count (column-count frame))
              (iterator (make-iterator columns :transformation transform))
+             (row (make 'setfable-table-row :iterator iterator))
              (new-columns (cl-df.column:columns iterator)))
         (assert (not (eq new-columns columns)))
-        (cl-df.header:set-row (make 'setfable-table-row
-                                    :iterator iterator))
+        (cl-df.header:set-row row)
         (block main-loop
           (let ((*transform-control* (lambda (operation)
                                        (eswitch (operation :test 'eq)
-                                         (:finish (return-from main-loop))))))
+                                         (:finish (return-from main-loop))
+                                         (:nullify
+                                          (iterate
+                                            (for i from 0 below column-count)
+                                            (setf (cl-df.header:row-at header row i) :null)))))))
             (iterate
               (for i from 0 below old-size)
               (funcall function)

@@ -15,13 +15,13 @@
   cl-df.header:brr
   cl-df.header:decorate
   cl-df.header:make-header
-  cl-df.header:nullify
   cl-df.header:rr
   cl-df.header:skip-row
   cl-df.header:standard-header
   cl-df.header:with-header
   cl-df.table:at
   cl-df.table:hstack
+  cl-df.table:nullify
   cl-df.table:remove-nulls
   cl-df.table:row-count
   cl-df.table:selection

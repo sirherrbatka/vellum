@@ -23,3 +23,7 @@
 
 (defun finish-transformation ()
   (funcall (transform-control) :finish))
+
+
+(defun nullify ()
+  (funcall (transform-control) :nullify))

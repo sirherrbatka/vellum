@@ -15,6 +15,7 @@
    #:hslice
    #:hstack
    #:no-transformation
+   #:nullify
    #:remove-nulls
    #:row-count
    #:selection
