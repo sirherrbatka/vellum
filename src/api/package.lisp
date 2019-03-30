@@ -29,4 +29,5 @@
   cl-df.table:transform
   cl-df.table:vmask
   cl-df.table:vstack
-  cl-df.table:with-table)
+  cl-df.table:with-table
+  cl-ds:replica)
