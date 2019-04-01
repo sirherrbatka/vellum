@@ -130,7 +130,7 @@
           :columns new-columns)))
 
 
-(defmethod vslice ((frame standard-table) selector)
+(defmethod vselect ((frame standard-table) selector)
   (let* ((header (header frame))
          (columns (read-columns frame))
          (column-indexes (~>> (curry #'cl-df.header:alias-to-index header)
@@ -147,7 +147,7 @@
       :column new-columns)))
 
 
-(defmethod hslice ((frame standard-table) (selector selection))
+(defmethod hselect ((frame standard-table) (selector selection))
   (bind ((columns (read-columns frame))
          (column-count (length columns))
          (starts (read-starts selector))
@@ -160,7 +160,7 @@
     (declare (type simple-vector new-columns columns)
              (type fixnum column-count))
     (when (emptyp new-columns)
-      (return-from hslice (cl-ds.utils:quasi-clone* frame
+      (return-from hselect (cl-ds.utils:quasi-clone* frame
                             :columns new-columns)))
     (iterate
       (with iterator = (make-iterator new-columns))
@@ -185,7 +185,7 @@
       :columns new-columns)))
 
 
-(defmethod hslice ((frame standard-table) selector)
+(defmethod hselect ((frame standard-table) selector)
   (bind ((columns (read-columns frame))
          (column-count (length columns))
          (new-columns (map 'vector
@@ -196,7 +196,7 @@
     (declare (type simple-vector new-columns)
              (type fixnum column-count))
     (when (emptyp new-columns)
-      (return-from hslice (cl-ds.utils:quasi-clone* frame
+      (return-from hselect (cl-ds.utils:quasi-clone* frame
                             :columns new-columns)))
     (let ((iterator (make-iterator new-columns)))
       (cl-ds:traverse

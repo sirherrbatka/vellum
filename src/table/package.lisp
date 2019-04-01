@@ -12,7 +12,7 @@
    #:column-type
    #:finish-transformation
    #:header
-   #:hslice
+   #:hselect
    #:hstack
    #:no-transformation
    #:nullify
@@ -22,6 +22,6 @@
    #:to-table
    #:transform
    #:vmask
-   #:vslice
+   #:vselect
    #:vstack
    #:with-table))

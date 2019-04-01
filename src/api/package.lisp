@@ -28,6 +28,8 @@
   cl-df.table:to-table
   cl-df.table:transform
   cl-df.table:vmask
+  cl-df.table:vselect
+  cl-df.table:hselect
   cl-df.table:vstack
   cl-df.table:with-table
   cl-ds:replica)

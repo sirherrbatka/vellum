@@ -5,9 +5,9 @@
 
 (defgeneric vstack (frame more-frames))
 
-(defgeneric hslice (frame selector))
+(defgeneric hselect (frame selector))
 
-(defgeneric vslice (frame selector))
+(defgeneric vselect (frame selector))
 
 (defgeneric vmask (frame mask &key in-place))
 
