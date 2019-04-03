@@ -9,6 +9,7 @@
    #:body
    #:brr
    #:column-count
+   #:conversion-failed
    #:column-type
    #:concatenate-headers
    #:headers-incompatible
