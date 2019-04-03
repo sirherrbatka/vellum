@@ -208,6 +208,11 @@
   :null)
 
 
+(defmethod convert ((value (eql nil))
+                    (type (eql 'boolean)))
+  nil)
+
+
 (defmethod convert ((value string)
                     (type (eql 'number)))
   (handler-case (parse-number value)
