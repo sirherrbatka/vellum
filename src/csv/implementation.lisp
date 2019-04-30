@@ -4,18 +4,13 @@
 (defun parsing-function (pathname separator trim-outer-whitespace unquoted-empty-string-is-nil
                          quoted-empty-string-is-nil quote)
   (lambda (x)
-    (handler-case
-        (cl-csv:read-csv-row
-         x
-         :separator separator
-         :trim-outer-whitespace trim-outer-whitespace
-         :unquoted-empty-string-is-nil unquoted-empty-string-is-nil
-         :quoted-empty-string-is-nil quoted-empty-string-is-nil
-         :quote quote)
-      (cl-csv:csv-parse-error (e)
-        (error 'cl-data-frames:file-input-row-cant-be-created
-               :cause e
-               :path pathname)))))
+    (let ((fare-csv:*separator* separator)
+          (fare-csv:*skip-whitespace* trim-outer-whitespace))
+      (handler-case (fare-csv:read-csv-line x)
+        (error (e)
+          (error 'cl-data-frames:file-input-row-cant-be-created
+                 :cause e
+                 :path pathname))))))
 
 
 (defmethod cl-df:copy-from ((format (eql ':csv))

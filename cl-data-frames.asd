@@ -9,7 +9,7 @@
   :depends-on ( :iterate      :serapeum
                 :prove        :cl-data-structures
                 :lparallel    :metabang-bind
-                :cl-csv       :alexandria
+                :fare-csv     :alexandria
                 :documentation-utils-extensions
                 :gzip-stream)
   :defsystem-depends-on (:prove-asdf)
