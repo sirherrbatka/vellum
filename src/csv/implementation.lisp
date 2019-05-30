@@ -118,19 +118,15 @@
                             (input pathname)
                             &rest options
                             &key
-                              (gzip nil)
                               (separator #\,)
-                              (quote #\")
                               (header t)
-                              (quoted-empty-string-is-nil nil)
-                              (unquoted-empty-string-is-nil t)
-                              (trim-outer-whitespace t))
+                              (skip-whitespace t))
   (declare (ignore options))
   (let ((frame-header (cl-df.header:header)))
     (cl-ds.fs:with-file-ranges ((result (make 'csv-range
                                               :path input
                                               :separator separator
-                                              :skip-whitespace trim-outer-whitespace)))
+                                              :skip-whitespace skip-whitespace)))
       (when header
         (cl-ds:consume-front result))
       (cl-ds.fs:close-inner-stream result)
@@ -144,11 +140,8 @@
                             &rest options
                             &key
                               (separator #\,)
-                              (quote #\")
                               (header t)
-                              (quoted-empty-string-is-nil nil)
-                              (unquoted-empty-string-is-nil t)
-                              (trim-outer-whitespace t))
+                              (skip-whitespace t))
   (declare (ignore options))
   (bind ((frame-header (cl-df.header:header))
          (result (~> input
@@ -158,7 +151,7 @@
                             ((inner (make 'csv-range
                                           :path x
                                           :separator separator
-                                          :skip-whitespace trim-outer-whitespace)))
+                                          :skip-whitespace skip-whitespace)))
                           (when header
                             (cl-ds:consume-front inner))
                           inner)))
