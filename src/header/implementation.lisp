@@ -164,7 +164,7 @@
                    (make-value header (cdr data) 1)))
     (nil (iterate
            (with result = (~> header column-count
-                              (make-array :initial-element :null)))
+                              (make-array :initial-element nil)))
            (for i from 0)
            (for elt in data)
            (setf (aref result i) (make-value header elt i))
