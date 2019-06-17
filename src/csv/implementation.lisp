@@ -55,15 +55,14 @@
          (file-position (file-position stream))
          (fare-csv:*separator* (read-separator range))
          (fare-csv:*skip-whitespace* (read-skip-whitespace range))
-         (end (accept-eof stream)))
+         (line (read-csv-line range stream)))
     (when end
       (return-from cl-ds:peek-front (values nil nil)))
-    (let ((line (read-csv-line range stream)))
-      (unless (file-position stream file-position)
-        (error 'cl-ds:file-releated-error
-               :format-control "Can't set position in the stream."
-               :path (cl-ds.fs:read-path range)))
-      (consider-eof line))))
+    (unless (file-position stream file-position)
+      (error 'cl-ds:file-releated-error
+             :format-control "Can't set position in the stream."
+             :path (cl-ds.fs:read-path range)))
+    (consider-eof line)))
 
 
 (defmethod cl-ds:consume-front ((range csv-range))
@@ -72,12 +71,9 @@
   (let* ((stream (cl-ds.fs:ensure-stream range))
          (fare-csv:*separator* (read-separator range))
          (fare-csv:*skip-whitespace* (read-skip-whitespace range))
-         (end (accept-eof stream)))
-    (when end
-      (setf (cl-ds.fs:access-reached-end range) t)
-      (cl-ds.fs:close-stream range)
-      (return-from cl-ds:consume-front (values nil nil)))
-    (consider-eof (read-csv-line range stream))))
+         (line (read-csv-line range stream)))
+    (call-next-method range)
+    (consider-eof line)))
 
 
 (defmethod cl-ds:traverse ((range csv-range) function)
@@ -89,7 +85,9 @@
            (iterate
              (for line = (read-csv-line range stream))
              (until (eq :eof line))
-             (funcall function line))
+             (funcall function line)
+             (setf (cl-ds.fs:access-current-position range)
+                   (file-position stream)))
         (setf (cl-ds.fs:access-current-position range) (file-position stream))
         (cl-ds.fs:close-stream range))))
   range)
@@ -131,7 +129,7 @@
         (cl-ds:consume-front result))
       (cl-ds.fs:close-inner-stream result)
       (make 'cl-df.header:forward-proxy-frame-range
-            :original-range result
+            :original-range (cl-ds:clone result)
             :header frame-header))))
 
 
@@ -158,5 +156,5 @@
                      (cl-ds.alg:without #'null)
                      cl-ds.alg:chain-traversable)))
     (make 'cl-df.header:forward-proxy-frame-range
-          :original-range result
+          :original-range (cl-ds:clone result)
           :header frame-header)))
