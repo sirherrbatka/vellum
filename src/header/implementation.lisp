@@ -148,7 +148,8 @@
                      (range frame-range-mixin)
                      (data vector))
   (iterate
-    (with result = (make-array (length data)))
+    (with result = (~> header column-count
+                       (make-array :initial-element :null)))
     (for i from 0)
     (for elt in-vector data)
     (setf (aref result i) (make-value header elt i))
@@ -162,7 +163,8 @@
     (:pair (vector (make-value header (car data) 0)
                    (make-value header (cdr data) 1)))
     (nil (iterate
-           (with result = (make-array (length data)))
+           (with result = (~> header column-count
+                              (make-array :initial-element :null)))
            (for i from 0)
            (for elt in data)
            (setf (aref result i) (make-value header elt i))
