@@ -341,7 +341,7 @@
 
 (defmethod (setf cl-df.header:row-at) (new-value
                                        (header cl-df.header:standard-header)
-                                       (row table-row)
+                                       (row setfable-table-row)
                                        (position symbol))
   (setf (cl-df.header:row-at header row
                              (cl-df.header:alias-to-index header
