@@ -98,7 +98,7 @@
 
 (defun initialize-iterator-column (index column stack buffer shift touched)
   (unless touched
-    (map-into stack (constantly nil))
+    (fill stack loop-end-nil)
     (setf (first-elt stack) (column-root column)))
   (move-stack shift index stack)
   (fill-buffer shift buffer stack))
@@ -887,7 +887,7 @@
     (for change = (aref changes i))
     (for initialized = (aref initialization-status i))
     (when initialized
-      (map-into (the simple-vector change) (constantly nil)))))
+      (fill (the simple-vector change) nil))))
 
 
 (defun clear-buffers (iterator)
@@ -903,7 +903,7 @@
     (for buffer = (aref buffers i))
     (for initialized = (aref initialization-status i))
     (when initialized
-      (map-into (the simple-vector buffer) (constantly :null)))))
+      (fill (the simple-vector buffer) :null))))
 
 
 (defun sparse-material-column-at (column index)
