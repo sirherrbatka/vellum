@@ -98,7 +98,7 @@
 
 (defun initialize-iterator-column (index column stack buffer shift touched)
   (unless touched
-    (fill stack loop-end-nil)
+    (fill stack nil)
     (setf (first-elt stack) (column-root column)))
   (move-stack shift index stack)
   (fill-buffer shift buffer stack))
