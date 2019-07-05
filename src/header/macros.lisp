@@ -34,7 +34,7 @@
            ,@body
            ,@(mapcar (lambda (column name gensym)
                        `(unless (eql ,name ,gensym)
-                          (setf (rr ,column) ,gensym)))
+                          (setf (rr ,column) ,name)))
                      columns
                      names
                      gensyms))))))
