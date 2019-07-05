@@ -33,7 +33,8 @@
 
   (defparameter *replica*
     (cl-df:transform *table*
-                     (cl-df:body (setf (cl-df:rr 0) (+ 1 (cl-df:rr 0))))
+                     (cl-df:body ()
+                       (setf (cl-df:rr 0) (+ 1 (cl-df:rr 0))))
                      :in-place nil))
 
   (prove:is (cl-df:at *table* 0 0) 1)
@@ -45,7 +46,8 @@
   (prove:is (cl-df:at *replica* 0 2) 4)
 
   (cl-df:transform *table*
-                   (cl-df:body (setf (cl-df:rr 0) (* 2 (cl-df:rr 0))))
+                   (cl-df:body ()
+                     (setf (cl-df:rr 0) (* 2 (cl-df:rr 0))))
                    :in-place t)
 
   (prove:is (cl-df:at *table* 0 0) 2)

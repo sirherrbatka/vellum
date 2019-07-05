@@ -92,7 +92,7 @@
                   :control-string "Inconsistent number of columns in the frames."))
          (cl-ds:traverse
           frame
-          (cl-df.header:body
+          (cl-df.header:body ()
             (iterate
               (for i from 0 below column-count)
               (setf (cl-df.column:iterator-at iterator i)

@@ -7,12 +7,17 @@
      ,@body))
 
 
-(defmacro body (&body body)
+(defmacro body (selected-columns &body body)
   (with-gensyms (!arg)
     `(lambda (&rest ,!arg)
        (declare (ignore ,!arg))
-       ,@body)))
+       (symbol-macrolet
+           ,(mapcar (lambda (binding)
+                      (assert (symbolp binding))
+                      `(,binding (rr ,binding)))
+             selected-columns)
+         ,@body))))
 
 
 (defmacro brr (column)
-  `(body (rr ,column)))
+  `(body () (rr ,column)))
