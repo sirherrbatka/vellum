@@ -28,7 +28,7 @@
                           names
                           columns)
                 ,@(mapcar (lambda (binding gensym)
-                            `(,binding ,gensym))
+                            `(,gensym ,binding))
                           names
                           gensyms))
            (declare (special ,@selected-columns))
