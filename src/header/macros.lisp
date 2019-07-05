@@ -8,8 +8,8 @@
 
 
 (defmacro body (selected-columns &body body)
-  (let ((gensyms (mapcar (lambda (x) (declare (ignore x))
-                           (gensym)) selected-columns)))
+  (let ((gensyms (mapcar (lambda (x) (declare (ignore x)) (gensym))
+                         selected-columns)))
     (with-gensyms (!arg)
       `(lambda (&rest ,!arg)
          (declare (ignore ,!arg))
