@@ -185,24 +185,28 @@
 
 (defmethod convert ((value string)
                     (type (eql 'integer)))
-  (handler-case (round (parse-number value))
-    (error (e)
-      (declare (ignore e))
-      (error 'conversion-failed
-             :format-arguments (list value type)
-             :target-type type
-             :value value))))
+  (if (emptyp value)
+      :null
+      (handler-case (round (parse-number value))
+        (error (e)
+          (declare (ignore e))
+          (error 'conversion-failed
+                 :format-arguments (list value type)
+                 :target-type type
+                 :value value)))))
 
 
 (defmethod convert ((value string)
                     (type (eql 'float)))
-  (handler-case (parse-float value)
-    (error (e)
-      (declare (ignore e))
-      (error 'conversion-failed
-             :format-arguments (list value type)
-             :target-type type
-             :value value))))
+  (if (emptyp value)
+      :null
+      (handler-case (parse-float value)
+        (error (e)
+          (declare (ignore e))
+          (error 'conversion-failed
+                 :format-arguments (list value type)
+                 :target-type type
+                 :value value)))))
 
 
 (defmethod convert ((value (eql nil))
@@ -304,8 +308,8 @@
 
 (defmethod select-columns ((header standard-header)
                            columns)
-  (bind ((selected (~> (cl-ds.alg:on-each (curry #'column-signature header)
-                                          columns)
+  (bind ((selected (~> columns
+                       (cl-ds.alg:on-each (curry #'column-signature header))
                        cl-ds.alg:to-vector))
          (aliases (make-hash-table :size (length selected))))
     (declare (type vector selected))
