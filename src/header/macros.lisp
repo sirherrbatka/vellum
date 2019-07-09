@@ -24,7 +24,7 @@
       `(lambda (&rest ,!arg)
          (declare (ignore ,!arg))
          (let* (,@(mapcar (lambda (name column)
-                            `(,name (rr ,column)))
+                            `(,name (rr ',column)))
                           names
                           columns)
                 ,@(mapcar (lambda (binding gensym)
@@ -35,7 +35,7 @@
            ,@body
            ,@(mapcar (lambda (column name gensym)
                        `(unless (eql ,name ,gensym)
-                          (setf (rr ,column) ,name)))
+                          (setf (rr ',column) ,name)))
                      columns
                      names
                      gensyms))))))
