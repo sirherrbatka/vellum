@@ -32,13 +32,13 @@
                           names
                           gensyms))
            (declare (special ,@selected-columns))
-           ,@body
-           ,@(mapcar (lambda (column name gensym)
-                       `(unless (eql ,name ,gensym)
-                          (setf (rr ',column) ,name)))
-                     columns
-                     names
-                     gensyms))))))
+           (prog1 (progn ,@body)
+             ,@(mapcar (lambda (column name gensym)
+                         `(unless (eql ,name ,gensym)
+                            (setf (rr ',column) ,name)))
+                       columns
+                       names
+                       gensyms)))))))
 
 
 (defmacro brr (column)
