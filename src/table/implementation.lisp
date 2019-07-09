@@ -144,7 +144,7 @@
     (declare (type simple-vector columns new-columns))
     (cl-ds.utils:quasi-clone* frame
       :header new-header
-      :column new-columns)))
+      :columns new-columns)))
 
 
 (defmethod hselect ((frame standard-table) (selector selection))
