@@ -168,21 +168,24 @@
   (declare (ignore options))
   (with-output-to-file (stream output :if-exists if-exists)
     (let* ((h (cl-df.header:header))
-           (column-count (cl-df.header:column-count header)))
+           (column-count (cl-df.header:column-count header))
+           (write-csv-line-input (make-list column-count)))
       (when header
-        (fare-csv:write-csv-line
-         (iterate
-           (for column from 0 below column-count)
-           (for alias = (cl-df.header:index-to-alias h column))
-           (collect (if alias alias column)))
-         stream))
+        (iterate
+          (for column from 0 below column-count)
+          (for cell on write-csv-line-input)
+          (for alias = (cl-df.header:index-to-alias h column))
+          (setf (first cell) (if alias alias column)))
+        (fare-csv:write-csv-line write-csv-line-input stream))
       (cl-ds:across input
                     (lambda (row)
-                      (fare-csv:write-csv-line
-                       (iterate
-                         (for column from 0 below column-count)
-                         (collect (cl-df.header:row-at h row column)))
-                       stream)))))
+                      (iterate
+                        (for column from 0 below column-count)
+                        (for cell on write-csv-line-input)
+                        (setf (first cell)
+                              (cl-df.header:row-at h row column)))
+                      (fare-csv:write-csv-line write-csv-line-input
+                                               stream)))))
   input)
 
 
