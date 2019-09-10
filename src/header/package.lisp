@@ -22,6 +22,7 @@
    #:make-header
    #:no-column
    #:unable-to-construct-row
+   #:invalid-input-for-row
    #:row
    #:row-at
    #:rr

@@ -164,9 +164,9 @@
 
 (defun validate-row (row data)
   (unless (= (length (the simple-vector row)) (length data))
-    (error 'unable-to-construct-row
+    (error 'invalid-input-row-row
            :format-control "Desired number of columns is not equal to number of columns in the data."
-           :header (header)))
+           :value data))
   row)
 
 

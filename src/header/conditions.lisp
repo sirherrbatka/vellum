@@ -46,3 +46,7 @@
 (define-condition unable-to-construct-row (cl-ds:textual-error)
   ((%header :initarg :header))
   (:default-initargs :format-control "Can't create row from data."))
+
+
+(define-condition invalid-input-for-row (cl-ds:invalid-value)
+  ())
