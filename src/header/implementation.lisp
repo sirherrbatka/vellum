@@ -156,6 +156,12 @@
     (finally (return result))))
 
 
+(more-conditions:define-condition-translating-method
+    make-row (header range data)
+  ((no-column unable-to-construct-row)
+   :header (header)))
+
+
 (defmethod make-row ((header standard-header)
                      (range frame-range-mixin)
                      (data list))

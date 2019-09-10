@@ -41,3 +41,8 @@
 (define-condition headers-incompatible (cl-ds:operation-not-allowed)
   ((%headers :initarg :headers))
   (:default-initargs :format-control "Headers are incompatible."))
+
+
+(define-condition unable-to-construct-row (cl-ds:textual-error)
+  ((%header :initarg :header))
+  (:default-initargs :format-control "Can't create row from data."))
