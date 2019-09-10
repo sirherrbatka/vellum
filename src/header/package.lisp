@@ -21,6 +21,7 @@
    #:index-to-alias
    #:make-header
    #:no-column
+   #:unable-to-construct-row
    #:row
    #:row-at
    #:rr

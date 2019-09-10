@@ -158,8 +158,16 @@
 
 (more-conditions:define-condition-translating-method
     make-row (header range data)
-  ((no-column unable-to-construct-row)
+  ((error unable-to-construct-row)
    :header (header)))
+
+
+(defun validate-row (row data)
+  (unless (= (length (the simple-vector row)) (length data))
+    (error 'unable-to-construct-row
+           :format-control "Desired number of columns is not equal to number of columns in the data."
+           :header (header)))
+  row)
 
 
 (defmethod make-row ((header standard-header)
@@ -170,7 +178,8 @@
                    (make-value header (cdr data) 1)))
     (nil (iterate
            (with result = (~> header column-count
-                              (make-array :initial-element nil)))
+                              (make-array :initial-element nil)
+                              (validate-row data)))
            (for i from 0)
            (for elt in data)
            (setf (aref result i) (make-value header elt i))
