@@ -158,3 +158,42 @@
     (make 'cl-df.header:forward-proxy-frame-range
           :original-range (cl-ds:clone result)
           :header frame-header)))
+
+
+(defmethod cl-df:copy-to ((format (eql ':csv))
+                          (input cl-ds:fundamental-forward-range)
+                          output
+                          &rest options
+                          &key (header t) (if-exists :supersede))
+  (declare (ignore options))
+  (with-output-to-file (stream output :if-exists if-exists)
+    (let* ((h (cl-df.header:header))
+           (column-count (cl-df.header:column-count header)))
+      (when header
+        (fare-csv:write-csv-line
+         (iterate
+           (for column from 0 below column-count)
+           (for alias = (cl-df.header:index-to-alias h column))
+           (collect (if alias alias column)))
+         stream))
+      (cl-ds:across input
+                    (lambda (row)
+                      (fare-csv:write-csv-line
+                       (iterate
+                         (for column from 0 below column-count)
+                         (collect (cl-df.header:row-at h row column)))
+                       stream)))))
+  input)
+
+
+(defmethod cl-df:copy-to ((format (eql ':csv))
+                          (input cl-df.table:standard-table)
+                          output
+                          &rest options
+                          &key (header t) (if-exists :supersede))
+  (declare (ignore header if-exists))
+  (cl-df:with-table (input)
+    (apply #'cl-df:copy-to format
+           (cl-ds:whole-range input)
+           output options))
+  input)

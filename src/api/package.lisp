@@ -6,6 +6,7 @@
   (:export
    #:row-cant-be-created
    #:file-input-row-cant-be-created
+   #:copy-to
    #:copy-from))
 
 (in-package :cl-data-frames)

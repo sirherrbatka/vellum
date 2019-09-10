@@ -15,6 +15,9 @@
    #:hselect
    #:hstack
    #:no-transformation
+   #:fundamental-table
+   #:standard-table
+   #:standard-table-range
    #:nullify
    #:remove-nulls
    #:row-count
