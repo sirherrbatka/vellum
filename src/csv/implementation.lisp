@@ -161,37 +161,47 @@
 
 
 (defmethod cl-df:copy-to ((format (eql ':csv))
+                          (output stream)
                           (input cl-ds:fundamental-forward-range)
+                          &rest options
+                          &key (header t))
+  (declare (ignore options))
+  (let* ((h (cl-df.header:header))
+         (column-count (cl-df.header:column-count header))
+         (write-csv-line-input (make-list column-count)))
+    (when header
+      (iterate
+        (for column from 0 below column-count)
+        (for cell on write-csv-line-input)
+        (for alias = (cl-df.header:index-to-alias h column))
+        (setf (first cell) (if alias alias column)))
+      (fare-csv:write-csv-line write-csv-line-input output))
+    (cl-ds:across input
+                  (lambda (row)
+                    (iterate
+                      (for column from 0 below column-count)
+                      (for cell on write-csv-line-input)
+                      (setf (first cell)
+                            (cl-df.header:row-at h row column)))
+                    (fare-csv:write-csv-line write-csv-line-input
+                                             output)))
+    input))
+
+
+(defmethod cl-df:copy-to ((format (eql ':csv))
                           output
+                          (input cl-ds:fundamental-forward-range)
                           &rest options
                           &key (header t) (if-exists :supersede))
-  (declare (ignore options))
+  (declare (ignore header))
   (with-output-to-file (stream output :if-exists if-exists)
-    (let* ((h (cl-df.header:header))
-           (column-count (cl-df.header:column-count header))
-           (write-csv-line-input (make-list column-count)))
-      (when header
-        (iterate
-          (for column from 0 below column-count)
-          (for cell on write-csv-line-input)
-          (for alias = (cl-df.header:index-to-alias h column))
-          (setf (first cell) (if alias alias column)))
-        (fare-csv:write-csv-line write-csv-line-input stream))
-      (cl-ds:across input
-                    (lambda (row)
-                      (iterate
-                        (for column from 0 below column-count)
-                        (for cell on write-csv-line-input)
-                        (setf (first cell)
-                              (cl-df.header:row-at h row column)))
-                      (fare-csv:write-csv-line write-csv-line-input
-                                               stream)))))
+    (apply #'cl-df:copy-to format stream input options))
   input)
 
 
 (defmethod cl-df:copy-to ((format (eql ':csv))
-                          (input cl-df.table:standard-table)
                           output
+                          (input cl-df.table:standard-table)
                           &rest options
                           &key (header t) (if-exists :supersede))
   (declare (ignore header if-exists))
