@@ -80,7 +80,8 @@
                          (setf prev-state #'in-quote
                                current-state #'after-escape))
                         ((eql char ,quote)
-                         (setf current-state #'after-quote)))))
+                         (setf current-state #'after-quote))
+                        (t (push-char char)))))
          (setf current-state #'fresh)
          (iterate
            (for eof = (accept-eof stream))
