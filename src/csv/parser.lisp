@@ -56,9 +56,6 @@
                          (finish-column-write)
                          (ensure-all-columns)
                          (return-from fun t))
-                        ((serapeum:whitespacep char)
-                         (unless ,skip-whitespace
-                           (push-char char)))
                         (t (push-char char))))
                 (after-escape (char)
                   (push-char char)
@@ -73,8 +70,13 @@
                          (return-from fun t))
                         ((serapeum:whitespacep char)
                          (unless ,skip-whitespace
-                           cl-ds.utils:todo))
-                        (t cl-ds.utils:todo))))
+                           (error 'csv-format-error
+                                  :path path
+                                  :format-control "Whitespace directly after quote but whitespaces are not skipped.")))
+                        (t (error 'csv-format-error
+                                  :path path
+                                  :format-control "Invalid character '~a' after closing quote."
+                                  :format-arguments (list char))))))
                 (in-quote (char)
                   (cond ((eql char ,quote)
                          (setf prev-state #'in-quote
