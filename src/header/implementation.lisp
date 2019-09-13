@@ -117,24 +117,6 @@
           (values row t)))))
 
 
-(defmethod cl-ds:traverse ((range frame-range-mixin)
-                           function)
-  (ensure-functionf function)
-  (iterate
-    (for (values row more) = (cl-ds:consume-front range))
-    (while more)
-    (funcall function row))
-  range)
-
-
-(defmethod cl-ds:across ((range frame-range-mixin)
-                         function)
-  (ensure-functionf function)
-  (cl-ds:traverse (cl-ds:clone range)
-                  function)
-  range)
-
-
 (defmethod decorate-data ((header standard-header)
                           (data cl-ds:fundamental-forward-range)
                           &key list-format)

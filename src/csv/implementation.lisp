@@ -6,9 +6,23 @@
                      cl-ds:fundamental-forward-range)
   ((%separator :initarg :separator
                :reader read-separator)
+   (%quote :initarg :quote
+           :reader read-quote)
+   (%escape :initarg :escape
+            :reader read-escape)
    (%skip-whitespace :initarg :skip-whitespace
                      :reader read-skip-whitespace))
   (:default-initargs :initial-position 0))
+
+
+(defun make-data-buffer (size)
+  (~> size
+      make-array
+      (map-into (curry #'make-array
+                       0
+                       :adjustable t
+                       :fill-pointer 0
+                       :element-type 'character))))
 
 
 (defmethod cl-ds:clone ((range csv-range))
@@ -16,30 +30,11 @@
   (make 'csv-range
         :path (cl-ds.fs:read-path range)
         :separator (read-separator range)
+        :quote (read-quote range)
+        :escape (read-escape range)
         :skip-whitespace (read-skip-whitespace range)
         :reached-end (cl-ds.fs:access-reached-end range)
         :initial-position (cl-ds.fs:access-current-position range)))
-
-
-(declaim (inline accept-eof))
-(defun accept-eof (stream)
-  (not (peek-char nil stream nil nil)))
-
-
-(defun read-csv-line (range stream)
-  (if (accept-eof stream)
-      :EOF
-      (let ((result
-              (handler-case (fare-csv:read-csv-line stream)
-                (error (e)
-                  (error 'cl-data-frames:file-input-row-cant-be-created
-                         :cause e
-                         :path (cl-ds.fs:read-path range))))))
-        (if (null result)
-            (if (accept-eof stream)
-                :EOF
-                result)
-            result))))
 
 
 (defun consider-eof (line)
@@ -48,44 +43,97 @@
       (values line t)))
 
 
+(defun build-string-from-vector (x &aux (length (length x))
+                                     (result (make-string length)))
+  (iterate
+    (for i from 0 below length)
+    (setf (aref result i) (aref x i)))
+  result)
+
+
 (defmethod cl-ds:peek-front ((range csv-range))
   (when (cl-ds.fs:access-reached-end range)
     (return-from cl-ds:peek-front (values nil nil)))
   (let* ((stream (cl-ds.fs:ensure-stream range))
          (file-position (file-position stream))
-         (fare-csv:*separator* (read-separator range))
-         (fare-csv:*skip-whitespace* (read-skip-whitespace range))
-         (line (read-csv-line range stream)))
-    (when end
-      (return-from cl-ds:peek-front (values nil nil)))
+         (separator (read-separator range))
+         (skip-whitespace (read-skip-whitespace range))
+         (quote (read-quote range))
+         (buffer (~> (cl-df.header:header)
+                     cl-df.header:column-count
+                     make-data-buffer))
+         (path (cl-ds.fs:read-path range))
+         (escape-char (read-escape range))
+         (line (parse-csv-line separator escape-char
+                               skip-whitespace
+                               quote
+                               stream
+                               buffer
+                               path)))
     (unless (file-position stream file-position)
       (error 'cl-ds:file-releated-error
              :format-control "Can't set position in the stream."
-             :path (cl-ds.fs:read-path range)))
-    (consider-eof line)))
+             :path path))
+    (if (null line)
+        (values nil nil)
+        (values (map 'vector
+                     #'build-string-from-vector
+                     buffer)
+                t))))
 
 
 (defmethod cl-ds:consume-front ((range csv-range))
   (when (cl-ds.fs:access-reached-end range)
     (return-from cl-ds:consume-front (values nil nil)))
   (let* ((stream (cl-ds.fs:ensure-stream range))
-         (fare-csv:*separator* (read-separator range))
-         (fare-csv:*skip-whitespace* (read-skip-whitespace range))
-         (line (read-csv-line range stream)))
+         (separator (read-separator range))
+         (skip-whitespace (read-skip-whitespace range))
+         (quote (read-quote range))
+         (buffer (~> (cl-df.header:header)
+                     cl-df.header:column-count
+                     make-data-buffer))
+         (path (cl-ds.fs:read-path range))
+         (escape-char (read-escape range))
+         (line (parse-csv-line separator escape-char
+                               skip-whitespace
+                               quote
+                               stream
+                               buffer
+                               path)))
     (call-next-method range)
-    (consider-eof line)))
+    (if (null line)
+        (values nil nil)
+        (values (map 'vector
+                     #'build-string-from-vector
+                     buffer)
+                t))))
 
 
 (defmethod cl-ds:traverse ((range csv-range) function)
   (unless (~> range cl-ds.fs:access-reached-end)
-    (let ((stream (cl-ds.fs:ensure-stream range))
-          (fare-csv:*separator* (read-separator range))
-          (fare-csv:*skip-whitespace* (read-skip-whitespace range)))
+    (let* ((stream (cl-ds.fs:ensure-stream range))
+           (separator (read-separator range))
+           (skip-whitespace (read-skip-whitespace range))
+           (quote (read-quote range))
+           (column-count (~> (cl-df.header:header)
+                             cl-df.header:column-count))
+           (buffer (make-data-buffer column-count))
+           (buffer2 (make-array column-count))
+           (path (cl-ds.fs:read-path range))
+           (escape-char (read-escape range)))
       (unwind-protect
            (iterate
-             (for line = (read-csv-line range stream))
-             (until (eq :eof line))
-             (funcall function line)
+             (for line = (parse-csv-line separator escape-char
+                                         skip-whitespace
+                                         quote
+                                         stream
+                                         buffer
+                                         path))
+             (while line)
+             (funcall function
+                      (map-into buffer2
+                                #'build-string-from-vector
+                                buffer))
              (setf (cl-ds.fs:access-current-position range)
                    (file-position stream)))
         (setf (cl-ds.fs:access-current-position range) (file-position stream))
@@ -96,18 +144,35 @@
 (defmethod cl-ds:across ((range csv-range) function)
   (unless (~> range cl-ds.fs:access-reached-end)
     (unwind-protect
-         (let ((position (cl-ds.fs:access-current-position range))
-               (fare-csv:*separator* (read-separator range))
-               (fare-csv:*skip-whitespace* (read-skip-whitespace range)))
+         (let* ((separator (read-separator range))
+                (skip-whitespace (read-skip-whitespace range))
+                (quote (read-quote range))
+                (column-count (~> (cl-df.header:header)
+                                  cl-df.header:column-count))
+                (buffer (make-data-buffer column-count))
+                (buffer2 (make-array column-count))
+                (position (cl-ds.fs:access-current-position range))
+                (path (cl-ds.fs:read-path range))
+                (escape-char (read-escape range)))
            (with-open-file (stream (cl-ds.fs:read-path range))
              (unless (file-position stream position)
                (error 'cl-ds:file-releated-error
                       :format-control "Can't set position in the stream."
                       :path (cl-ds.fs:read-path range)))
              (iterate
-               (for line = (read-line stream nil nil))
-               (until (eq :eof line))
-               (funcall function line))))
+               (for line = (parse-csv-line separator escape-char
+                                           skip-whitespace
+                                           quote
+                                           stream
+                                           buffer
+                                           path))
+               (while line)
+               (funcall function
+                        (map-into buffer2
+                                  #'build-string-from-vector
+                                  buffer))
+               (setf (cl-ds.fs:access-current-position range)
+                     (file-position stream)))))
       (cl-ds.fs:close-stream range))) ; this is not strictly required, but it is handy.
   range)
 
@@ -118,12 +183,16 @@
                             &key
                               (separator #\,)
                               (header t)
+                              (quote #\")
+                              (escape #\\)
                               (skip-whitespace t))
   (declare (ignore options))
   (let ((frame-header (cl-df.header:header)))
     (cl-ds.fs:with-file-ranges ((result (make 'csv-range
                                               :path input
                                               :separator separator
+                                              :escape escape
+                                              :quote quote
                                               :skip-whitespace skip-whitespace)))
       (when header
         (cl-ds:consume-front result))
@@ -139,6 +208,8 @@
                             &key
                               (separator #\,)
                               (header t)
+                              (quote #\")
+                              (escape #\\)
                               (skip-whitespace t))
   (declare (ignore options))
   (bind ((frame-header (cl-df.header:header))
@@ -149,6 +220,8 @@
                             ((inner (make 'csv-range
                                           :path x
                                           :separator separator
+                                          :escape escape
+                                          :quote quote
                                           :skip-whitespace skip-whitespace)))
                           (when header
                             (cl-ds:consume-front inner))

@@ -52,4 +52,6 @@
                              (:file "generics")))
                (:module "csv"
                 :components ((:file "package")
+                             (:file "conditions")
+                             (:file "parser")
                              (:file "implementation")))))
