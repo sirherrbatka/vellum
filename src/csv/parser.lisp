@@ -36,6 +36,10 @@
                          (setf current-state #'in-quote))
                         ((eql char ,separator)
                          (finish-column-write))
+                        ((eql char #\newline)
+                         (finish-column-write)
+                         (ensure-all-columns)
+                         (return-from fun t))
                         ((serapeum:whitespacep char)
                          (unless ,skip-whitespace
                            (setf current-state #'in-field)
