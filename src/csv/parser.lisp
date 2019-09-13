@@ -98,5 +98,5 @@
         (finally (return t))))))
 
 
-(defun make-stream-parser (separator quote escape-char skip-whitespace)
+(defun make-line-parser (separator quote escape-char skip-whitespace)
   (curry #'parse-csv-line separator escape-char skip-whitespace quote))
