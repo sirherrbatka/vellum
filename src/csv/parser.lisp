@@ -82,8 +82,8 @@
                                :format-arguments (list char)))))
              (in-quote (char)
                (cond ((eql char escape-char)
-                      (setf prev-state #'after-escape
-                            current-state #'in-quote))
+                      (setf prev-state #'in-quote
+                            current-state #'after-escape))
                      ((eql char quote)
                       (setf current-state #'after-quote))
                      (t (push-char char)))))

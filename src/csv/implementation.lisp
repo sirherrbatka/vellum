@@ -187,6 +187,17 @@
                               (escape #\\)
                               (skip-whitespace t))
   (declare (ignore options))
+  (check-type separator character)
+  (check-type quote character)
+  (check-type escape character)
+  (unless (~> (list quote escape separator)
+              remove-duplicates
+              length
+              (eql 3))
+    (error 'cl-ds:incompatible-arguments
+           :values (list quote escape separator)
+           :parameters '(:quote :escape :separator)
+           :format-control "Quote, escape and separator have to be distinct from each other."))
   (let ((frame-header (cl-df.header:header)))
     (cl-ds.fs:with-file-ranges ((result (make 'csv-range
                                               :path input
@@ -212,6 +223,17 @@
                               (escape #\\)
                               (skip-whitespace t))
   (declare (ignore options))
+  (check-type separator character)
+  (check-type quote character)
+  (check-type escape character)
+  (unless (~> (list quote escape separator)
+              remove-duplicates
+              length
+              (eql 3))
+    (error 'cl-ds:incompatible-arguments
+           :values (list quote escape separator)
+           :parameters '(:quote :escape :separator)
+           :format-control "Quote, escape and separator have to be distinct from each other."))
   (bind ((frame-header (cl-df.header:header))
          (result (~> input
                      (cl-ds.alg:on-each
