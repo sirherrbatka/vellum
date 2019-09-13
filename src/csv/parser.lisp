@@ -64,17 +64,28 @@
                   (push-char char)
                   (setf current-state prev-state
                         prev-state nil))
+                (after-quote (char)
+                  (cond ((eql char ,separator)
+                         (finish-column-write))
+                        ((eql char #\newline)
+                         (finish-column-write)
+                         (ensure-all-columns)
+                         (return-from fun t))
+                        ((serapeum:whitespacep char)
+                         (unless ,skip-whitespace
+                           cl-ds.utils:todo))
+                        (t cl-ds.utils:todo))))
                 (in-quote (char)
                   (cond ((eql char ,quote)
                          (setf prev-state #'in-quote
                                current-state #'after-escape))
                         ((eql char ,quote)
-                         (setf )))))
+                         (setf current-state #'after-quote)))))
          (setf current-state #'fresh)
          (iterate
            (for eof = (accept-eof stream))
            (when eof
-             (leave :eof))
+             (leave nil))
            (for char = (read-char stream))
            (handle-char char))))))
 
