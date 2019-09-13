@@ -16,7 +16,10 @@
 
 
 (defun make-data-buffer (size)
-  (make-array `(,size 2) :element-type 'fixnum))
+  (~> (make-array size :element-type 'string)
+      (map-into (curry #'make-array 0 :fill-pointer 0
+                                      :adjustable t
+                                      :element-type 'character))))
 
 
 (defmethod cl-ds:clone ((range csv-range))
@@ -31,16 +34,21 @@
         :initial-position (cl-ds.fs:access-current-position range)))
 
 
-(defun build-strings-from-vector (line positions
-                                  &optional (output (make-array (array-dimension positions 0))))
-  (declare (type (simple-array fixnum (* 2)) positions)
+(defun build-strings-from-vector (line buffers
+                                  &optional (output (make-array (array-dimension buffers 0))))
+  (declare (type (simple-array string (*)) buffers)
+           (ignore line)
            (type string line)
            (type simple-vector output))
   (iterate
-    (for j from 0 below (length output))
-    (for start = (aref positions j 0))
-    (for end = (aref positions j 1))
-    (setf (aref output j) (subseq line start end)))
+    (for j from 0)
+    (for buffer in-vector buffers)
+    (setf (aref output j) (iterate
+                            (with result = (make-string (length buffer)))
+                            (for c in-vector buffer)
+                            (for i from 0)
+                            (setf (aref result i) c)
+                            (finally (return result)))))
   output)
 
 

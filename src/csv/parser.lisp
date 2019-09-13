@@ -3,7 +3,7 @@
 
 (defun parse-csv-line (separator escape-char skip-whitespace quote
                        line output path)
-  (declare (type (simple-array fixnum (* 2)) output)
+  (declare (type (simple-array string (*)) output)
            (type (or null string) line))
   (let* ((current-state nil)
          (prev-state nil)
@@ -14,8 +14,8 @@
     (when (null line)
       (return-from parse-csv-line nil))
     (iterate
-      (for i from 0 below (array-total-size output))
-      (setf (row-major-aref output i) -1))
+      (for b in-vector output)
+      (setf (fill-pointer b) 0))
     (labels ((handle-char (char)
                (funcall current-state char))
              (finish-column-write ()
@@ -33,9 +33,8 @@
                         :path path
                         :format-control "Header defines ~a columns but file contains ~a columns."
                         :format-arguments (list size index)))
-               (when (negative-fixnum-p (aref output index 0))
-                 (setf (aref output index 0) input-index))
-               (setf (aref output index 1) (1+ input-index)))
+               (vector-push-extend (aref line input-index)
+                                   (aref output index)))
              (fresh (char)
                (cond ((eql char quote)
                       (setf current-state #'in-quote))
