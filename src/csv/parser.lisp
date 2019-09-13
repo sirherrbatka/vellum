@@ -1,11 +1,6 @@
 (cl:in-package #:cl-df.csv)
 
 
-(declaim (inline accept-eof))
-(defun accept-eof (stream)
-  (not (peek-char nil stream nil nil)))
-
-
 (defun stream-parser-form (separator escape-char skip-whitespace quote)
   `(lambda (stream output path
             &aux
@@ -13,6 +8,10 @@
               (prev-state nil)
               (index 0)
               (size (length output)))
+     (declare (type fixnum index size)
+              (type (simple-array string (*)) output)
+              (type stream stream))
+     (assert (input-stream-p stream))
      (iterate
        (for o in-vector output)
        (setf (fill-pointer o) 0))
@@ -29,6 +28,11 @@
                            :format-control "Header defines ~a columns but file contains ~a columns."
                            :format-arguments (list size index))))
                 (push-char (char)
+                  (unless (< index size)
+                    (error 'wrong-number-of-columns-in-the-csv-file
+                           :path path
+                           :format-control "Header defines ~a columns but file contains ~a columns."
+                           :format-arguments (list size index)))
                   (~>> (aref output index)
                        (vector-push-extend char)))
                 (fresh (char)
@@ -86,10 +90,9 @@
                         (t (push-char char)))))
          (setf current-state #'fresh)
          (iterate
-           (for eof = (accept-eof stream))
-           (when eof
+           (for char = (read-char stream nil nil))
+           (when (null char)
              (leave nil))
-           (for char = (read-char stream))
            (handle-char char))))))
 
 
