@@ -2,23 +2,24 @@
 
 
 (defun parse-csv-line (separator escape-char skip-whitespace quote
-                       stream output path)
+                       line output path)
+  (declare (type (simple-array fixnum (* 2)) output)
+           (type (or null string) line))
   (let* ((current-state nil)
-        (prev-state nil)
-        (index 0)
-         (size (length output)))
-    (declare (type fixnum index size)
-             (type (simple-array string (*)) output)
-             (type stream stream))
-    (assert (input-stream-p stream))
+         (prev-state nil)
+         (index 0)
+         (input-index 0)
+         (size (array-dimension output 0)))
+    (declare (type fixnum index size))
+    (when (null line)
+      (return-from parse-csv-line nil))
     (iterate
-      (for o in-vector output)
-      (setf (fill-pointer o) 0))
+      (for i from 0 below (array-total-size output))
+      (setf (row-major-aref output i) -1))
     (labels ((handle-char (char)
                (funcall current-state char))
              (finish-column-write ()
                (setf current-state #'fresh)
-               (print (aref output index))
                (incf index))
              (ensure-all-columns ()
                (unless (eql size index)
@@ -26,14 +27,15 @@
                         :path path
                         :format-control "Header defines ~a columns but file contains ~a columns."
                         :format-arguments (list size index))))
-             (push-char (char)
+             (push-char ()
                (unless (< index size)
                  (error 'wrong-number-of-columns-in-the-csv-file
                         :path path
                         :format-control "Header defines ~a columns but file contains ~a columns."
                         :format-arguments (list size index)))
-               (~>> (aref output index)
-                    (vector-push-extend char)))
+               (when (negative-fixnum-p (aref output index 0))
+                 (setf (aref output index 0) input-index))
+               (setf (aref output index 1) (1+ input-index)))
              (fresh (char)
                (cond ((eql char quote)
                       (setf current-state #'in-quote))
@@ -59,9 +61,10 @@
                       (finish-column-write)
                       (ensure-all-columns)
                       (return-from parse-csv-line t))
-                     (t (push-char char))))
+                     (t (push-char))))
              (after-escape (char)
-               (push-char char)
+               (declare (ignore char))
+               (push-char)
                (setf current-state prev-state
                      prev-state nil))
              (after-quote (char)
@@ -86,13 +89,12 @@
                             current-state #'after-escape))
                      ((eql char quote)
                       (setf current-state #'after-quote))
-                     (t (push-char char)))))
+                     (t (push-char)))))
       (setf current-state #'fresh)
       (iterate
-        (for char = (read-char stream nil nil))
-        (when (null char)
-          (leave (not (zerop index))))
+        (for char in-vector line)
         (handle-char char)
+        (incf input-index)
         (finally (return t))))))
 
 

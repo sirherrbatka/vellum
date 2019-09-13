@@ -16,13 +16,7 @@
 
 
 (defun make-data-buffer (size)
-  (~> size
-      make-array
-      (map-into (curry #'make-array
-                       0
-                       :adjustable t
-                       :fill-pointer 0
-                       :element-type 'character))))
+  (make-array `(,size 2) :element-type 'fixnum))
 
 
 (defmethod cl-ds:clone ((range csv-range))
@@ -37,18 +31,17 @@
         :initial-position (cl-ds.fs:access-current-position range)))
 
 
-(defun consider-eof (line)
-  (if (eq line :eof)
-      (values nil nil)
-      (values line t)))
-
-
-(defun build-string-from-vector (x &aux (length (length x))
-                                     (result (make-string length)))
+(defun build-strings-from-vector (line positions
+                                  &optional (output (make-array (array-dimension positions 0))))
+  (declare (type (simple-array fixnum (* 2)) positions)
+           (type string line)
+           (type simple-vector output))
   (iterate
-    (for i from 0 below length)
-    (setf (aref result i) (aref x i)))
-  result)
+    (for j from 0 below (length output))
+    (for start = (aref positions j 0))
+    (for end = (aref positions j 1))
+    (setf (aref output j) (subseq line start end)))
+  output)
 
 
 (defmethod cl-ds:peek-front ((range csv-range))
@@ -64,21 +57,20 @@
                      make-data-buffer))
          (path (cl-ds.fs:read-path range))
          (escape-char (read-escape range))
-         (line (parse-csv-line separator escape-char
+         (line (read-line stream nil nil))
+         (status (parse-csv-line separator escape-char
                                skip-whitespace
                                quote
-                               stream
+                               line
                                buffer
                                path)))
     (unless (file-position stream file-position)
       (error 'cl-ds:file-releated-error
              :format-control "Can't set position in the stream."
              :path path))
-    (if (null line)
+    (if (null status)
         (values nil nil)
-        (values (map 'vector
-                     #'build-string-from-vector
-                     buffer)
+        (values (build-strings-from-vector line buffer)
                 t))))
 
 
@@ -94,18 +86,17 @@
                      make-data-buffer))
          (path (cl-ds.fs:read-path range))
          (escape-char (read-escape range))
-         (line (parse-csv-line separator escape-char
+         (line (read-line stream nil nil))
+         (status (parse-csv-line separator escape-char
                                skip-whitespace
                                quote
-                               stream
+                               line
                                buffer
                                path)))
     (call-next-method range)
-    (if (null line)
+    (if (null status)
         (values nil nil)
-        (values (map 'vector
-                     #'build-string-from-vector
-                     buffer)
+        (values (build-strings-from-vector line buffer)
                 t))))
 
 
@@ -123,17 +114,16 @@
            (escape-char (read-escape range)))
       (unwind-protect
            (iterate
-             (for line = (parse-csv-line separator escape-char
-                                         skip-whitespace
-                                         quote
-                                         stream
-                                         buffer
-                                         path))
-             (while line)
+             (for line = (read-line stream nil nil))
+             (for status = (parse-csv-line separator escape-char
+                                           skip-whitespace
+                                           quote
+                                           line
+                                           buffer
+                                           path))
+             (while status)
              (funcall function
-                      (map-into buffer2
-                                #'build-string-from-vector
-                                buffer))
+                      (build-strings-from-vector line buffer buffer2))
              (setf (cl-ds.fs:access-current-position range)
                    (file-position stream)))
         (setf (cl-ds.fs:access-current-position range) (file-position stream))
@@ -160,17 +150,16 @@
                       :format-control "Can't set position in the stream."
                       :path (cl-ds.fs:read-path range)))
              (iterate
-               (for line = (parse-csv-line separator escape-char
-                                           skip-whitespace
-                                           quote
-                                           stream
-                                           buffer
-                                           path))
-               (while line)
+               (for line = (read-line stream nil nil))
+               (for status = (parse-csv-line separator escape-char
+                                             skip-whitespace
+                                             quote
+                                             line
+                                             buffer
+                                             path))
+               (while status)
                (funcall function
-                        (map-into buffer2
-                                  #'build-string-from-vector
-                                  buffer))
+                        (build-strings-from-vector line buffer buffer2))
                (setf (cl-ds.fs:access-current-position range)
                      (file-position stream)))))
       (cl-ds.fs:close-stream range))) ; this is not strictly required, but it is handy.
