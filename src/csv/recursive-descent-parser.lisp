@@ -18,7 +18,7 @@
                (let ((char (aref line input-index)))
                  ,@body))))
        (unless result
-         (setf (fill-pointer (aref output field-index)) 0)))))
+         (setf (fill-pointer (aref output field-index)) result-index)))))
 
 
 (defun recursive-descent-parse-csv-line (separator escape-char skip-whitespace
