@@ -1,6 +1,12 @@
 (cl:in-package #:cl-df.csv)
 
 
+(defun clear-buffers (output)
+  (iterate
+    (for b in-vector output)
+    (setf (fill-pointer b) 0)))
+
+
 (defun parse-csv-line (separator escape-char skip-whitespace quote
                        line output path)
   (declare (type (simple-array string (*)) output)
@@ -13,9 +19,7 @@
     (declare (type fixnum index size))
     (when (null line)
       (return-from parse-csv-line nil))
-    (iterate
-      (for b in-vector output)
-      (setf (fill-pointer b) 0))
+    (clear-buffers output)
     (labels ((handle-char (char)
                (funcall current-state char))
              (finish-column-write ()
