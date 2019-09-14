@@ -1,12 +1,6 @@
 (cl:in-package #:cl-df.csv)
 
 
-(defun clear-buffers (output)
-  (iterate
-    (for b in-vector output)
-    (setf (fill-pointer b) 0)))
-
-
 (defun parse-csv-line (separator escape-char skip-whitespace quote
                        line output path)
   (declare (type (simple-array string (*)) output)

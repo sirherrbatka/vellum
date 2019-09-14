@@ -53,5 +53,7 @@
                (:module "csv"
                 :components ((:file "package")
                              (:file "conditions")
+                             (:file "common")
+                             (:file "recursive-descent-parser")
                              (:file "parser")
                              (:file "implementation")))))
