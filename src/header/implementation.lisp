@@ -180,30 +180,33 @@
              :value result))))
 
 
+(more-conditions:define-condition-translating-method convert
+    (value type)
+  ((error conversion-failed)
+   :format-arguments (list value type)
+   :target-type type
+   :value value))
+
+
+(defmethod convert ((value string)
+                    (type (eql 'datetime)))
+  (if (emptyp value)
+      :null
+      (local-time:parse-timestring value)))
+
+
 (defmethod convert ((value string)
                     (type (eql 'integer)))
   (if (emptyp value)
       :null
-      (handler-case (round (parse-number value))
-        (error (e)
-          (declare (ignore e))
-          (error 'conversion-failed
-                 :format-arguments (list value type)
-                 :target-type type
-                 :value value)))))
+      (round (parse-number value))))
 
 
 (defmethod convert ((value string)
                     (type (eql 'float)))
   (if (emptyp value)
       :null
-      (handler-case (parse-float value)
-        (error (e)
-          (declare (ignore e))
-          (error 'conversion-failed
-                 :format-arguments (list value type)
-                 :target-type type
-                 :value value)))))
+      (parse-float value)))
 
 
 (defmethod convert ((value (eql nil))
@@ -218,13 +221,7 @@
 
 (defmethod convert ((value string)
                     (type (eql 'number)))
-  (handler-case (parse-number value)
-    (error (e)
-      (declare (ignore e))
-      (error 'conversion-failed
-             :format-arguments (list value type)
-             :target-type type
-             :value value))))
+  (parse-number value))
 
 
 (defmethod convert ((value number)

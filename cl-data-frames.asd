@@ -11,7 +11,7 @@
                 :lparallel    :metabang-bind
                 :fare-csv     :alexandria
                 :documentation-utils-extensions
-                :gzip-stream  )
+                :local-time)
   :defsystem-depends-on (:prove-asdf)
   :serial T
   :pathname "src"
