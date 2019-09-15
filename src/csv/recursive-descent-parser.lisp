@@ -21,10 +21,9 @@
          (setf (fill-pointer (aref output field-index)) result-index)))))
 
 
-(define-parser parse-char
-  (switch (char)
-    (separator cl-ds.utils:todo)
-    (quote cl-ds.utils:todo)
+(defun parse-char (separator escape-char skip-whitespace quote
+                   line output path line-index field-index result-index)
+  (let ((char (aref line line-index)))
     ))
 
 
