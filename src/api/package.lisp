@@ -7,6 +7,7 @@
    #:row-cant-be-created
    #:file-input-row-cant-be-created
    #:copy-to
+   #:empty-column
    #:copy-from))
 
 (in-package :cl-data-frames)
