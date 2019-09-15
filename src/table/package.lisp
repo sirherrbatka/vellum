@@ -22,6 +22,7 @@
    #:remove-nulls
    #:row-count
    #:selection
+   #:make-table
    #:to-table
    #:transform
    #:vmask

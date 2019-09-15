@@ -491,3 +491,18 @@
 (defmethod cl-ds:across ((selection selection)
                          function)
   (cl-ds:traverse selection function))
+
+
+(defmethod make-table ((class (eql 'standard-table))
+                       (header cl-df.header:fundamental-header))
+  (make 'standard-table
+        :header header
+        :columns (iterate
+                   (with columns = (~> header
+                                       cl-df.header:column-count
+                                       make-array))
+                   (for i from 0 below (cl-df.header:column-count header))
+                   (setf (aref columns i)
+                         (cl-df.column:make-sparse-material-column
+                          :element-type (cl-df.header:column-type header i)))
+                   (finally (return columns)))))

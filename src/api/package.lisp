@@ -7,6 +7,7 @@
    #:row-cant-be-created
    #:file-input-row-cant-be-created
    #:copy-to
+   #:new-columns
    #:empty-column
    #:copy-from))
 
@@ -22,6 +23,7 @@
   cl-df.header:standard-header
   cl-df.header:with-header
   cl-df.table:at
+  cl-df.table:make-table
   cl-df.table:hstack
   cl-df.table:nullify
   cl-df.table:remove-nulls
