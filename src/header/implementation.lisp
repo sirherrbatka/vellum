@@ -189,7 +189,7 @@
 
 
 (defmethod convert ((value string)
-                    (type (eql 'datetime)))
+                    (type (eql 'local-time:timestamp)))
   (if (emptyp value)
       :null
       (local-time:parse-timestring value)))
