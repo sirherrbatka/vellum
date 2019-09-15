@@ -9,8 +9,7 @@
   :depends-on ( :iterate      :serapeum
                 :prove        :cl-data-structures
                 :lparallel    :metabang-bind
-                :fare-csv     :alexandria
-                :documentation-utils-extensions
+                :alexandria   :documentation-utils-extensions
                 :local-time)
   :defsystem-depends-on (:prove-asdf)
   :serial T

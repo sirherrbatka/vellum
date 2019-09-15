@@ -259,24 +259,24 @@
                           &key (header t))
   (declare (ignore options))
   (let* ((h (cl-df.header:header))
-         (column-count (cl-df.header:column-count header))
-         (write-csv-line-input (make-list column-count)))
+         (column-count (cl-df.header:column-count header)))
     (when header
       (iterate
         (for column from 0 below column-count)
-        (for cell on write-csv-line-input)
         (for alias = (cl-df.header:index-to-alias h column))
-        (setf (first cell) (if alias alias column)))
-      (fare-csv:write-csv-line write-csv-line-input output))
+        (when alias
+          (princ alias output))
+        (unless (= (1+ column) column-count)
+          (princ #\, output)))
+      (terpri output))
     (cl-ds:across input
                   (lambda (row)
                     (iterate
                       (for column from 0 below column-count)
-                      (for cell on write-csv-line-input)
-                      (setf (first cell)
-                            (cl-df.header:row-at h row column)))
-                    (fare-csv:write-csv-line write-csv-line-input
-                                             output)))
+                      (prin1 (cl-df.header:row-at h row column) output)
+                      (if (= (1+ column) column-count)
+                          (terpri output)
+                          (princ #\, output)))))
     input))
 
 
