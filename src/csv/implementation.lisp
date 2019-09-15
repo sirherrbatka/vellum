@@ -273,7 +273,9 @@
                   (lambda (row)
                     (iterate
                       (for column from 0 below column-count)
-                      (prin1 (cl-df.header:row-at h row column) output)
+                      (for value = (cl-df.header:row-at h row column))
+                      (unless (eq value :null)
+                        (prin1 value output))
                       (if (= (1+ column) column-count)
                           (terpri output)
                           (princ #\, output)))))
