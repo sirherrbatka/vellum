@@ -55,6 +55,8 @@
                      cl-ds:fundamental-forward-range)
   ((%separator :initarg :separator
                :reader read-separator)
+   (%check-predicates :initarg :check-predicates
+                      :reader read-check-predicates)
    (%quote :initarg :quote
            :reader read-quote)
    (%escape :initarg :escape
@@ -77,6 +79,7 @@
         :path (cl-ds.fs:read-path range)
         :separator (read-separator range)
         :quote (read-quote range)
+        :check-predicates (read-check-predicates range)
         :escape (read-escape range)
         :skip-whitespace (read-skip-whitespace range)
         :reached-end (cl-ds.fs:access-reached-end range)
@@ -90,13 +93,15 @@
            (type string line)
            (type simple-vector output))
   (iterate
+    (with check-predicates = (read-check-predicates range))
     (with header = (cl-df.header:header))
     (for j from 0)
     (for buffer in-vector buffers)
     (for type = (cl-df.header:column-type header j))
     (for value = (from-string range type buffer))
-    (unless (funcall (cl-df.header:column-predicate header j)
-                     value)
+    (unless (or (not check-predicates)
+                (funcall (cl-df.header:column-predicate header j)
+                         value))
       (error 'cl-df.header:predicate-failed
              :column-number j
              :format-arguments (list value j)
@@ -235,6 +240,7 @@
                               (header t)
                               (quote #\")
                               (escape #\\)
+                              (check-predicates t)
                               (skip-whitespace t))
   (declare (ignore options))
   (check-type separator character)
@@ -254,6 +260,7 @@
                                               :separator separator
                                               :escape escape
                                               :quote quote
+                                              :check-predicates check-predicates
                                               :skip-whitespace skip-whitespace)))
       (when header
         (cl-ds:consume-front result))
@@ -271,6 +278,7 @@
                               (header t)
                               (quote #\")
                               (escape #\\)
+                              (check-predicates t)
                               (skip-whitespace t))
   (declare (ignore options))
   (check-type separator character)
@@ -294,6 +302,7 @@
                                           :separator separator
                                           :escape escape
                                           :quote quote
+                                          :check-predicates check-predicates
                                           :skip-whitespace skip-whitespace)))
                           (when header
                             (cl-ds:consume-front inner))
