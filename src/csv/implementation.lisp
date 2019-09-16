@@ -23,6 +23,10 @@
   (parse-integer string))
 
 
+(defmethod from-string (range (type (eql t)) string)
+  (take (length string) string))
+
+
 (defmethod from-string (range (type (eql 'float)) string)
   (parse-float string))
 
