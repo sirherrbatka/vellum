@@ -13,7 +13,7 @@
   (princ (local-time:to-rfc3339-timestring object) stream))
 
 
-(defmethod from-stream :around ((range csv-range) type string)
+(defmethod from-string :around ((range csv-range) type string)
   (if (emptyp string)
       :null
       (call-next-method)))
@@ -83,21 +83,25 @@
         :initial-position (cl-ds.fs:access-current-position range)))
 
 
-(defun build-strings-from-vector (line buffers
+(defun build-strings-from-vector (range line buffers
                                   &optional (output (make-array (array-dimension buffers 0))))
   (declare (type (simple-array string (*)) buffers)
            (ignore line)
            (type string line)
            (type simple-vector output))
   (iterate
+    (with header = (cl-df.header:header))
     (for j from 0)
     (for buffer in-vector buffers)
-    (setf (aref output j) (iterate
-                            (with result = (make-string (length buffer)))
-                            (for c in-vector buffer)
-                            (for i from 0)
-                            (setf (aref result i) c)
-                            (finally (return result)))))
+    (for type = (cl-df.header:column-type header j))
+    (for value = (from-string range type buffer))
+    (unless (funcall (cl-df.header:column-predicate header j)
+                     value)
+      (error 'cl-df.header:predicate-failed
+             :column-number j
+             :format-arguments (list value j)
+             :value value))
+    (setf (aref output j) value))
   output)
 
 
@@ -127,7 +131,7 @@
              :path path))
     (if (null status)
         (values nil nil)
-        (values (build-strings-from-vector line buffer)
+        (values (build-strings-from-vector range line buffer)
                 t))))
 
 
@@ -153,7 +157,7 @@
     (call-next-method range)
     (if (null status)
         (values nil nil)
-        (values (build-strings-from-vector line buffer)
+        (values (build-strings-from-vector range line buffer)
                 t))))
 
 
@@ -180,7 +184,7 @@
                                            path))
              (while status)
              (funcall function
-                      (build-strings-from-vector line buffer buffer2))
+                      (build-strings-from-vector range line buffer buffer2))
              (setf (cl-ds.fs:access-current-position range)
                    (file-position stream)))
         (setf (cl-ds.fs:access-current-position range) (file-position stream))
@@ -216,7 +220,7 @@
                                              path))
                (while status)
                (funcall function
-                        (build-strings-from-vector line buffer buffer2))
+                        (build-strings-from-vector range line buffer buffer2))
                (setf (cl-ds.fs:access-current-position range)
                      (file-position stream)))))
       (cl-ds.fs:close-stream range))) ; this is not strictly required, but it is handy.

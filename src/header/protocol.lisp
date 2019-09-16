@@ -25,8 +25,6 @@
 
 (defgeneric make-value (header source index))
 
-(defgeneric convert (value type))
-
 (defgeneric concatenate-headers (header &rest more-headers))
 
 (defgeneric select-columns (header columns))

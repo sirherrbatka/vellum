@@ -9,9 +9,11 @@
    #:body
    #:brr
    #:column-count
-   #:conversion-failed
    #:column-type
+   #:column-predicate
+   #:predicate-failed
    #:concatenate-headers
+   #:validated-frame-range-mixin
    #:headers-incompatible
    #:decorate
    #:forward-proxy-frame-range

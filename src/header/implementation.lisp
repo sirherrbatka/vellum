@@ -138,6 +138,18 @@
     (finally (return result))))
 
 
+(defmethod make-row ((header standard-header)
+                     (range validated-frame-range-mixin)
+                     (data vector))
+  (iterate
+    (with result = (~> header column-count
+                       (make-array :initial-element :null)))
+    (for i from 0)
+    (for elt in-vector data)
+    (setf (aref result i) elt)
+    (finally (return result))))
+
+
 (more-conditions:define-condition-translating-method
     make-row (header range data)
   ((error unable-to-construct-row)
@@ -171,101 +183,13 @@
 (defmethod make-value ((header standard-header)
                        source
                        index)
-  (lret ((result (convert source (column-type header index))))
-    (unless (funcall (column-predicate header index)
-                     result)
-      (error 'predicate-failed
-             :column-number index
-             :format-arguments (list result index)
-             :value result))))
-
-
-(more-conditions:define-condition-translating-method convert
-    (value type)
-  ((error conversion-failed)
-   :format-arguments (list value type)
-   :target-type type
-   :value value))
-
-
-(defmethod convert ((value string)
-                    (type (eql 'local-time:timestamp)))
-  (if (emptyp value)
-      :null
-      (local-time:parse-timestring value)))
-
-
-(defmethod convert ((value string)
-                    (type (eql 'integer)))
-  (if (emptyp value)
-      :null
-      (round (parse-number value))))
-
-
-(defmethod convert ((value string)
-                    (type (eql 'float)))
-  (if (emptyp value)
-      :null
-      (parse-float value)))
-
-
-(defmethod convert ((value (eql nil))
-                    type)
-  :null)
-
-
-(defmethod convert ((value (eql nil))
-                    (type (eql 'boolean)))
-  nil)
-
-
-(defmethod convert ((value string)
-                    (type (eql 'number)))
-  (parse-number value))
-
-
-(defmethod convert ((value number)
-                    (type (eql 'integer)))
-  (round value))
-
-
-(defmethod convert ((value number)
-                    (type (eql 'float)))
-  (coerce value 'float))
-
-
-(defmethod convert ((value number)
-                    (type (eql 'number)))
-  value)
-
-
-(defmethod convert ((value string)
-                    (type (eql 'string)))
-  value)
-
-
-(defmethod convert (value
-                    (type (eql 't)))
-  value)
-
-
-(defmethod convert ((value string)
-                    (type (eql 'boolean)))
-  (flet ((same (a b)
-           (declare (type string a b))
-           (and (= (length a) (length b))
-                (every (lambda (a b)
-                         (char-equal (char-upcase a)
-                                     (char-upcase b)))
-                       a b))))
-    (or (member value '("TRUE" "T" "1") :test #'same)
-        (null (or (iterate
-                    (for elt in '("FALSE" "F" "NIL" "0"))
-                    (finding elt such-that (same elt value)))
-                  (error 'conversion-failed
-                         :target-type type
-                         :value value
-                         :format-arguments (list value type)))))))
+  (unless (funcall (column-predicate header index)
+                   source)
+    (error 'predicate-failed
+           :column-number index
+           :format-arguments (list source index)
+           :value source))
+  source)
 
 
 (defmethod row-at ((header standard-header)

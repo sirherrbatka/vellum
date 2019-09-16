@@ -52,6 +52,10 @@
   (:default-initargs :list-format nil))
 
 
+(defclass validated-frame-range-mixin (frame-range-mixin)
+  ())
+
+
 (defclass forward-proxy-frame-range (frame-range-mixin
                                      cl-ds.alg:forward-proxy-range)
   ())
