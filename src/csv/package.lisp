@@ -7,4 +7,5 @@
   (:export
    #:csv-range
    #:csv-format-error
+   #:to-stream
    #:wrong-number-of-columns-in-the-csv-file))

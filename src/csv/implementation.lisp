@@ -1,6 +1,18 @@
 (cl:in-package #:cl-df.csv)
 
 
+(defmethod to-stream ((object t) stream)
+  (prin1 object stream))
+
+
+(defmethod to-stream ((object (eql :null)) stream)
+  object)
+
+
+(defmethod to-stream ((object local-time:timestamp) stream)
+  (princ (local-time:to-rfc3339-timestring object) stream))
+
+
 (defclass csv-range (cl-ds:chunking-mixin
                      cl-ds.fs:file-range-mixin
                      cl-ds:fundamental-forward-range)
@@ -265,7 +277,7 @@
         (for column from 0 below column-count)
         (for alias = (cl-df.header:index-to-alias h column))
         (when alias
-          (princ alias output))
+          (prin1 (symbol-name alias) output))
         (unless (= (1+ column) column-count)
           (princ #\, output)))
       (terpri output))
@@ -274,8 +286,7 @@
                     (iterate
                       (for column from 0 below column-count)
                       (for value = (cl-df.header:row-at h row column))
-                      (unless (eq value :null)
-                        (prin1 value output))
+                      (to-stream value output)
                       (if (= (1+ column) column-count)
                           (terpri output)
                           (princ #\, output)))))

@@ -54,6 +54,7 @@
                 :components ((:file "package")
                              (:file "conditions")
                              (:file "common")
+                             (:file "generics")
                              (:file "recursive-descent-parser")
                              (:file "parser")
                              (:file "implementation")))))
