@@ -13,6 +13,43 @@
   (princ (local-time:to-rfc3339-timestring object) stream))
 
 
+(defmethod from-stream :around ((range csv-range) type string)
+  (if (emptyp string)
+      :null
+      (call-next-method)))
+
+
+(defmethod from-string (range (type (eql 'integer)) string)
+  (parse-integer string))
+
+
+(defmethod from-string (range (type (eql 'float)) string)
+  (parse-float string))
+
+
+(defmethod from-string (range (type (eql 'local-time:timestamp)) string)
+  (local-time:parse-timestring string))
+
+
+(defmethod from-string (range (type (eql 'string)) string)
+  (take (length string) string))
+
+
+(defmethod from-string (range (type (eql 'boolean)) string)
+  (flet ((same (a b)
+           (declare (type string a b))
+           (and (= (length a) (length b))
+                (every (lambda (a b)
+                         (char-equal (char-upcase a)
+                                     (char-upcase b)))
+                       a b))))
+    (or (member string '("TRUE" "T" "1") :test #'same)
+        (null (or (iterate
+                    (for elt in '("FALSE" "F" "NIL" "0"))
+                    (finding elt such-that (same elt string)))
+                  (error "Can't construct boolean from string."))))))
+
+
 (defclass csv-range (cl-ds:chunking-mixin
                      cl-ds.fs:file-range-mixin
                      cl-ds:fundamental-forward-range)
