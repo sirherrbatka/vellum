@@ -336,9 +336,8 @@
                 (setf (cl-df.column:iterator-at iterator 0) 1)
                 (setf (cl-df.column:iterator-at iterator 0) :null))
             (cl-df.column:move-iterator iterator 1))
-          (let* ((column-count (length new-columns))
-                 (cleaned-columns (adjust-array new-columns
-                                                (1+ column-count))))
+          (let ((cleaned-columns (adjust-array new-columns
+                                               (1+ column-count))))
             (setf (last-elt cleaned-columns) marker-column
                   new-columns (~> (remove-nulls-from-columns new-columns nil)
                                   (adjust-array column-count)))))
