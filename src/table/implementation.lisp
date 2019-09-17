@@ -339,7 +339,8 @@
           (let ((cleaned-columns (adjust-array new-columns
                                                (1+ column-count))))
             (setf (last-elt cleaned-columns) marker-column
-                  new-columns (~> (remove-nulls-from-columns new-columns nil)
+                  new-columns (~> (remove-nulls-from-columns cleaned-columns
+                                                             nil)
                                   (adjust-array column-count)))))
         (if in-place
             (progn
