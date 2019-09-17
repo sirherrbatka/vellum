@@ -18,6 +18,7 @@
    #:fundamental-table
    #:standard-table
    #:standard-table-range
+   #:drop-row
    #:nullify
    #:remove-nulls
    #:row-count

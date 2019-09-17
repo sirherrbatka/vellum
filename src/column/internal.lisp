@@ -547,7 +547,7 @@
 
 
 (defun remove-nulls-in-trees (iterator)
-  (declare (optimize (speed 3)))
+  (declare (optimize (debug 3) (speed 0)))
   (bind ((columns (the vector
                        (~>> iterator read-columns
                             (remove-if #'null _ :key #'column-root))))
@@ -570,14 +570,21 @@
                            old-bitmask new-bitmask))
             (with missing-mask = (reduce #'logand nodes
                                          :key #'missing-bitmask))
-            (with missing-count = (logcount missing-mask))
             (for node in-vector nodes)
             (for i from 0)
             (for old-bitmask = (cl-ds.common.rrb:sparse-rrb-node-bitmask
                                 node))
-            (for new-bitmask = (~> (logior old-bitmask missing-mask)
-                                   (ash (- missing-count))
-                                   truncate-mask))
+            (for distinct-missing = (~> old-bitmask
+                                        lognot
+                                        truncate-mask
+                                        (logxor missing-mask)))
+            (for new-bitmask = (~> (logior old-bitmask distinct-missing)
+                                   logcount
+                                   (byte 0)
+                                   (ldb most-positive-fixnum)
+                                   (logandc2 distinct-missing)))
+            (assert (or (zerop missing-mask)
+                        (not (zerop (logandc2 missing-mask old-bitmask)))))
             (assert (eql (logcount new-bitmask)
                          (logcount old-bitmask)))
             (unless (eql new-bitmask old-bitmask)
@@ -682,7 +689,7 @@
                           old-content
                           (make-array new-size
                                       :element-type (column-type column)))))
-    (declare (type simple-vector old-content)
+    (declare (type (or simple-vector simple-bit-vector) old-content)
              (type fixnum old-size new-size bitmask))
     (iterate
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
@@ -704,30 +711,32 @@
 
 
 (defun make-leaf (iterator column old-node change buffer)
-  (declare (type simple-vector buffer)
+  (declare (type (or simple-bit-vector simple-vector) buffer)
            (optimize (speed 3)))
-  (unless (null old-node)
-    (iterate
-      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-      (for changed in-vector change)
-      (unless (or changed
-                  (not (cl-ds.common.rrb:sparse-rrb-node-contains old-node
-                                                                  i)))
-        (setf (aref buffer i) (cl-ds.common.rrb:sparse-nref old-node i)))))
-  (let* ((new-size (- cl-ds.common.rrb:+maximum-children-count+
-                      (count :null buffer)))
-         (new-content (make-array new-size
-                                  :element-type (column-type column)))
-         (bitmask 0))
-    (iterate
-      (with index = 0)
-      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-      (for v = (aref buffer i))
-      (unless (eql v :null)
-        (setf (aref new-content index) v
-              (ldb (byte 1 i) bitmask) 1
-              index (1+ index))))
-    (make-node iterator column bitmask :content new-content)))
+  (cl-ds.utils:cases ((simple-bit-vector-p buffer)
+                      (simple-vector-p buffer))
+    (unless (null old-node)
+      (iterate
+        (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+        (for changed in-vector change)
+        (unless (or changed
+                    (not (cl-ds.common.rrb:sparse-rrb-node-contains old-node
+                                                                    i)))
+          (setf (aref buffer i) (cl-ds.common.rrb:sparse-nref old-node i)))))
+    (let* ((new-size (- cl-ds.common.rrb:+maximum-children-count+
+                        (count :null buffer)))
+           (new-content (make-array new-size
+                                    :element-type (column-type column)))
+           (bitmask 0))
+      (iterate
+        (with index = 0)
+        (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+        (for v = (aref buffer i))
+        (unless (eql v :null)
+          (setf (aref new-content index) v
+                (ldb (byte 1 i) bitmask) 1
+                index (1+ index))))
+      (make-node iterator column bitmask :content new-content))))
 
 
 (declaim (inline change-leaf))
@@ -755,7 +764,8 @@
          (changes (read-changes iterator))
          (buffers (read-buffers iterator))
          (length (length depths)))
-    (declare (type simple-vector stacks columns changes buffers)
+    (declare (type simple-vector stacks columns changes)
+             (type (or simple-vector simple-bit-vector) buffers)
              (type (simple-array fixnum (*)) depths)
              (type (simple-array boolean (*)) initialization-status))
     (iterate
@@ -822,11 +832,12 @@
   (first-elt stack))
 
 
-(declaim (inline fill-buffer))
+(declaim (notinline fill-buffer))
 (defun fill-buffer (depth buffer stack)
   (declare (type fixnum depth)
            (optimize (speed 3))
-           (type simple-vector buffer stack))
+           (type simple-vector stack)
+           (type (or simple-vector simple-bit-vector) buffer))
   (let ((node (aref stack depth)))
     (when (null node)
       (return-from fill-buffer nil))

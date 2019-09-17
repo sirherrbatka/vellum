@@ -27,3 +27,7 @@
 
 (defun nullify ()
   (funcall (transform-control) :nullify))
+
+
+(defun drop-row ()
+  (funcall (transform-control) :drop))

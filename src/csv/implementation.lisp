@@ -1,6 +1,22 @@
 (cl:in-package #:cl-df.csv)
 
 
+(defclass csv-range (cl-ds:chunking-mixin
+                     cl-ds.fs:file-range-mixin
+                     cl-ds:fundamental-forward-range)
+  ((%separator :initarg :separator
+               :reader read-separator)
+   (%check-predicates :initarg :check-predicates
+                      :reader read-check-predicates)
+   (%quote :initarg :quote
+           :reader read-quote)
+   (%escape :initarg :escape
+            :reader read-escape)
+   (%skip-whitespace :initarg :skip-whitespace
+                     :reader read-skip-whitespace))
+  (:default-initargs :initial-position 0))
+
+
 (defmethod to-stream ((object t) stream)
   (prin1 object stream))
 
@@ -52,22 +68,6 @@
                     (for elt in '("FALSE" "F" "NIL" "0"))
                     (finding elt such-that (same elt string)))
                   (error "Can't construct boolean from string."))))))
-
-
-(defclass csv-range (cl-ds:chunking-mixin
-                     cl-ds.fs:file-range-mixin
-                     cl-ds:fundamental-forward-range)
-  ((%separator :initarg :separator
-               :reader read-separator)
-   (%check-predicates :initarg :check-predicates
-                      :reader read-check-predicates)
-   (%quote :initarg :quote
-           :reader read-quote)
-   (%escape :initarg :escape
-            :reader read-escape)
-   (%skip-whitespace :initarg :skip-whitespace
-                     :reader read-skip-whitespace))
-  (:default-initargs :initial-position 0))
 
 
 (defun make-data-buffer (size)
