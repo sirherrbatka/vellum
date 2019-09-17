@@ -300,7 +300,10 @@
              (iterator (make-iterator columns :transformation transform))
              (row (make 'setfable-table-row :iterator iterator))
              (new-columns (cl-df.column:columns iterator))
-             (marker-column nil))
+             (marker-column (cl-df.column:make-sparse-material-column
+                             :element-type 'bit))
+             (dropped nil)
+             (marker-iterator (make-iterator (vector marker-column))))
         (assert (not (eq new-columns columns)))
         (cl-df.header:set-row row)
         (iterate
@@ -310,32 +313,31 @@
                     (eswitch (operation :test 'eq)
                       (:finish (leave))
                       (:drop
-                       (ensure marker-column
-                         (cl-df.column:make-sparse-material-column
-                          :element-type 'bit))
                        (iterate
                          (for i from 0 below column-count)
                          (setf (cl-df.header:row-at header row i) :null))
-                       (setf (cl-ds:at marker-column (cl-df.column:index
-                                                      iterator))
-                             0)
+                       (setf (cl-df.column:iterator-at marker-iterator 0) 0
+                             dropped t)
                        (next-iteration))
                       (:nullify
                        (iterate
                          (for i from 0 below column-count)
                          (setf (cl-df.header:row-at header row i) :null)))))))
             (funcall function))
+          (cl-df.column:move-iterator marker-iterator 1)
           (cl-df.column:move-iterator iterator 1))
         (cl-df.column:finish-iterator iterator)
-        (unless (null marker-column)
+        (when dropped
+          (cl-df.column:finish-iterator marker-iterator)
+          (setf marker-iterator (make-iterator (vector marker-column)))
           (iterate
-            (with iterator = (make-iterator (make-array marker-column)))
             (for i from 0 below old-size)
-            (for value = (cl-df.column:iterator-at iterator 0))
+            (for value = (cl-df.column:iterator-at marker-iterator 0))
             (if (eq :null value)
-                (setf (cl-df.column:iterator-at iterator 0) 1)
-                (setf (cl-df.column:iterator-at iterator 0) :null))
-            (cl-df.column:move-iterator iterator 1))
+                (setf (cl-df.column:iterator-at marker-iterator 0) 1)
+                (setf (cl-df.column:iterator-at marker-iterator 0) :null))
+            (cl-df.column:move-iterator marker-iterator 1))
+          (cl-df.column:finish-iterator marker-iterator)
           (let ((cleaned-columns (adjust-array new-columns
                                                (1+ column-count))))
             (setf (last-elt cleaned-columns) marker-column
