@@ -171,7 +171,6 @@
 
 
 (defmethod cl-ds:traverse ((range csv-range) function)
-  (declare (optimize (debug 3)))
   (unless (~> range cl-ds.fs:access-reached-end)
     (let* ((stream (cl-ds.fs:ensure-stream range))
            (separator (read-separator range))
