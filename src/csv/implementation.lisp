@@ -171,6 +171,7 @@
 
 
 (defmethod cl-ds:traverse ((range csv-range) function)
+  (declare (optimize (debug 3)))
   (unless (~> range cl-ds.fs:access-reached-end)
     (let* ((stream (cl-ds.fs:ensure-stream range))
            (separator (read-separator range))
@@ -182,6 +183,7 @@
            (buffer2 (make-array column-count))
            (path (cl-ds.fs:read-path range))
            (escape-char (read-escape range)))
+      (cl-df.header:set-row buffer2)
       (unwind-protect
            (iterate
              (for line = (read-line stream nil nil))
@@ -219,6 +221,7 @@
                (error 'cl-ds:file-releated-error
                       :format-control "Can't set position in the stream."
                       :path (cl-ds.fs:read-path range)))
+             (cl-df.header:set-row buffer2)
              (iterate
                (for line = (read-line stream nil nil))
                (for status = (parse-csv-line separator escape-char
