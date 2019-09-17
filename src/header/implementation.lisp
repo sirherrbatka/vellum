@@ -207,6 +207,37 @@
     (aref row column)))
 
 
+(defmethod (setf row-at) (new-value
+                          (header standard-header)
+                          (row vector)
+                          (column integer))
+  (declare (type (array t (*)) row))
+  (check-type column non-negative-integer)
+  (let ((length (array-dimension row 0)))
+    (unless (< column length)
+      (error 'no-column
+             :bounds (iota length)
+             :argument 'column
+             :value column
+             :format-arguments (list column)))
+    (unless (~> (column-predicate header column)
+                (funcall new-value))
+      (error 'predicate-failed
+             :column-number index
+             :format-arguments (list new-value column)
+             :value source))
+    (setf (aref row column) new-value)))
+
+
+(defmethod (setf row-at) (new-value
+                          (header standard-header)
+                          (row vector)
+                          (column symbol))
+  (declare (type (array t (*)) row))
+  (setf (row-at header row (alias-to-index header column))
+        new-value))
+
+
 (defmethod row-at ((header standard-header)
                    (row vector)
                    (column symbol))

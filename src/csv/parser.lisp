@@ -30,7 +30,7 @@
                  (error 'wrong-number-of-columns-in-the-csv-file
                         :path path
                         :format-control "Header defines ~a columns but file contains ~a columns."
-                        :format-arguments (list size index)))
+                        :format-arguments (list size (1+ index))))
                (vector-push-extend (aref line input-index)
                                    (aref output index)))
              (fresh (char)

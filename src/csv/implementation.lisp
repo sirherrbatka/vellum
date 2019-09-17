@@ -158,11 +158,11 @@
          (escape-char (read-escape range))
          (line (read-line stream nil nil))
          (status (parse-csv-line separator escape-char
-                               skip-whitespace
-                               quote
-                               line
-                               buffer
-                               path)))
+                                 skip-whitespace
+                                 quote
+                                 line
+                                 buffer
+                                 path)))
     (call-next-method range)
     (if (null status)
         (values nil nil)
@@ -261,19 +261,21 @@
            :parameters '(:quote :escape :separator)
            :format-control "Quote, escape and separator have to be distinct from each other."))
   (let ((frame-header (cl-df.header:header)))
-    (cl-ds.fs:with-file-ranges ((result (make 'csv-range
-                                              :path input
-                                              :separator separator
-                                              :escape escape
-                                              :quote quote
-                                              :check-predicates check-predicates
-                                              :skip-whitespace skip-whitespace)))
+    (with-open-file (stream input)
       (when header
-        (cl-ds:consume-front result))
-      (cl-ds.fs:close-inner-stream result)
-      (make 'cl-df.header:forward-proxy-frame-range
-            :original-range (cl-ds:clone result)
-            :header frame-header))))
+        (read-line stream nil nil))
+      (cl-ds.fs:with-file-ranges ((result (make 'csv-range
+                                                :path input
+                                                :separator separator
+                                                :initial-position (file-position stream)
+                                                :escape escape
+                                                :quote quote
+                                                :check-predicates check-predicates
+                                                :skip-whitespace skip-whitespace)))
+        (cl-ds.fs:close-inner-stream result)
+        (make 'cl-df.header:forward-proxy-frame-range
+              :original-range (cl-ds:clone result)
+              :header frame-header)))))
 
 
 (defmethod cl-df:copy-from ((format (eql ':csv))
@@ -327,7 +329,7 @@
                           &key (header t))
   (declare (ignore options))
   (let* ((h (cl-df.header:header))
-         (column-count (cl-df.header:column-count header)))
+         (column-count (cl-df.header:column-count h)))
     (when header
       (iterate
         (for column from 0 below column-count)
@@ -338,8 +340,10 @@
           (princ #\, output)))
       (terpri output))
     (cl-ds:across input
-                  (lambda (row)
+                  (lambda (&rest all)
+                    (declare (ignore all))
                     (iterate
+                      (with row = (cl-df.header:row))
                       (for column from 0 below column-count)
                       (for value = (cl-df.header:row-at h row column))
                       (to-stream value output)
