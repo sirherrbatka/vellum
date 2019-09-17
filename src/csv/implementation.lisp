@@ -322,6 +322,17 @@
           :header frame-header)))
 
 
+(defun write-row (output header row)
+  (iterate
+    (with column-count = (cl-df.header:column-count header))
+    (for column from 0 below column-count)
+    (for value = (cl-df.header:row-at header row column))
+    (to-stream value output)
+    (if (= (1+ column) column-count)
+        (terpri output)
+        (princ #\, output))))
+
+
 (defmethod cl-df:copy-to ((format (eql ':csv))
                           (output stream)
                           (input cl-ds:fundamental-forward-range)
@@ -342,14 +353,7 @@
     (cl-ds:across input
                   (lambda (&rest all)
                     (declare (ignore all))
-                    (iterate
-                      (with row = (cl-df.header:row))
-                      (for column from 0 below column-count)
-                      (for value = (cl-df.header:row-at h row column))
-                      (to-stream value output)
-                      (if (= (1+ column) column-count)
-                          (terpri output)
-                          (princ #\, output)))))
+                    (write-row output h (cl-df.header:row))))
     input))
 
 
