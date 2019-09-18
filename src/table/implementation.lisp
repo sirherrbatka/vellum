@@ -320,9 +320,7 @@
                          (for i from 0 below column-count)
                          (setf (cl-df.header:row-at header row i) :null))
                        (setf (cl-df.column:iterator-at marker-iterator 0) t
-                             dropped t)
-                       (move-iterators)
-                       (next-iteration))
+                             dropped t))
                       (:nullify
                        (iterate
                          (declare (type fixnum i))

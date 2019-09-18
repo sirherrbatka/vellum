@@ -162,7 +162,7 @@
 (defstruct concatenation-state
   iterator
   (changed-parents #() :type vector)
-  (masks (make-hash-table) :type hash-table)
+  (masks (make-hash-table) :type hash-table) ; logior from all masks on a tree level, see gather-masks function
   (max-index 0 :type non-negative-fixnum)
   (nodes #() :type vector)
   (parents nil :type (or null concatenation-state))
