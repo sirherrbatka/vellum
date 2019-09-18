@@ -546,6 +546,39 @@
                 root)))))
 
 
+(declaim (inline truncate-mask))
+(defun truncate-mask (mask)
+  (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
+
+
+(defun build-new-mask (old-bitmask missing-mask)
+  (declare (type fixnum old-bitmask missing-mask))
+  (let* ((distinct-missing (~> old-bitmask
+                               lognot
+                               truncate-mask
+                               (logxor missing-mask)))
+         (new-bitmask (~> (logior old-bitmask distinct-missing)
+                          logcount
+                          (byte 0)
+                          (ldb most-positive-fixnum))))
+    (iterate
+      (declare (type fixnum i new-index zero-sum))
+      (with zero-sum = 0)
+      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+      (unless (ldb-test (byte 1 i) distinct-missing)
+        (next-iteration))
+      (for old-index = (~> (byte i 0)
+                           (ldb old-bitmask)
+                           logcount))
+      (for new-index = (~> (byte old-index 0)
+                           (ldb new-bitmask)
+                           logcount
+                           (+ zero-sum)))
+      (setf (ldb (byte 1 new-index) new-bitmask) 0)
+      (incf zero-sum)
+      (finally (return new-bitmask)))))
+
+
 (defun remove-nulls-in-trees (iterator)
   (declare (optimize (debug 3) (speed 0)))
   (bind ((columns (the vector
@@ -555,8 +588,6 @@
                      (~> (extremum columns #'>
                                    :key #'cl-ds.dicts.srrb:access-shift)
                          cl-ds.dicts.srrb:access-shift)))
-         ((:flet truncate-mask (mask))
-          (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
          ((:flet missing-bitmask (node))
           (~> node
               cl-ds.common.rrb:sparse-rrb-node-bitmask
