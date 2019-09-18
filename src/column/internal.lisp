@@ -16,6 +16,14 @@
    :bitmask bitmask))
 
 
+(declaim (inline truncate-mask))
+(-> truncate-mask (fixnum) fixnum)
+(defun truncate-mask (mask)
+  (declare (type fixnum mask)
+           (optimize (speed 3) (safety 0)))
+  (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
+
+
 (defun offset (index)
   (declare (type fixnum index))
   (logandc2 index cl-ds.common.rrb:+tail-mask+))
@@ -300,13 +308,13 @@
            (real-to-size (cl-ds.common.rrb:sparse-rrb-node-size to-node))
            (real-to-mask (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node))
            (real-from-mask (cl-ds.common.rrb:sparse-rrb-node-bitmask from-node))
-           (shifted-from-mask (ldb mask-bytes (ash real-from-mask taken)))
+           (shifted-from-mask (truncate-mask (ash real-from-mask taken)))
            (shifted-count (logcount shifted-from-mask))
            (new-from-mask (ldb (byte cl-ds.common.rrb:+maximum-children-count+
                                      free-space)
                                real-from-mask))
-           (new-to-mask (ldb mask-bytes
-                             (logior real-to-mask shifted-from-mask)))
+           (new-to-mask (truncate-mask (logior real-to-mask
+                                               shifted-from-mask)))
            (new-to-size (logcount new-to-mask)))
       (declare (type list from-node to-node))
       (assert (< new-from-mask real-from-mask))
@@ -544,14 +552,6 @@
             (if (null root)
                 cl-ds.meta:null-bucket
                 root)))))
-
-
-(declaim (inline truncate-mask))
-(-> truncate-mask (fixnum) fixnum)
-(defun truncate-mask (mask)
-  (declare (type fixnum mask)
-           (optimize (speed 3) (safety 0)))
-  (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
 
 
 (defun build-new-mask (old-bitmask missing-mask)
