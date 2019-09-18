@@ -547,12 +547,16 @@
 
 
 (declaim (inline truncate-mask))
+(-> truncate-mask (fixnum) fixnum)
 (defun truncate-mask (mask)
+  (declare (type fixnum mask)
+           (optimize (speed 3) (safety 0)))
   (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
 
 
 (defun build-new-mask (old-bitmask missing-mask)
-  (declare (type fixnum old-bitmask missing-mask))
+  (declare (type fixnum old-bitmask missing-mask)
+           (optimize (speed 3) (safety 0)))
   (let* ((distinct-missing (~> old-bitmask
                                lognot
                                truncate-mask
@@ -561,21 +565,21 @@
                           logcount
                           (byte 0)
                           (ldb most-positive-fixnum))))
+    (declare (type fixnum new-bitmask distinct-missing))
     (iterate
-      (declare (type fixnum i new-index zero-sum))
+      (declare (type fixnum i zero-sum)
+               (type (integer 0 32) new-index old-index))
       (with zero-sum = 0)
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
       (unless (ldb-test (byte 1 i) distinct-missing)
         (next-iteration))
-      (for old-index = (~> (byte i 0)
-                           (ldb old-bitmask)
+      (for old-index = (~> (ldb (byte i 0) old-bitmask)
                            logcount))
-      (for new-index = (~> (byte old-index 0)
-                           (ldb new-bitmask)
+      (for new-index = (~> (ldb (byte old-index 0) new-bitmask)
                            logcount
                            (+ zero-sum)))
-      (setf (ldb (byte 1 new-index) new-bitmask) 0)
-      (incf zero-sum)
+      (setf new-bitmask (the fixnum (dpb 0 (byte 1 new-index) new-bitmask)))
+      (the fixnum (incf zero-sum))
       (finally (return new-bitmask)))))
 
 
@@ -605,15 +609,7 @@
             (for i from 0)
             (for old-bitmask = (cl-ds.common.rrb:sparse-rrb-node-bitmask
                                 node))
-            (for distinct-missing = (~> old-bitmask
-                                        lognot
-                                        truncate-mask
-                                        (logxor missing-mask)))
-            (for new-bitmask = (~> (logior old-bitmask distinct-missing)
-                                   logcount
-                                   (byte 0)
-                                   (ldb most-positive-fixnum)
-                                   (logandc2 distinct-missing)))
+            (for new-bitmask = (build-new-mask old-bitmask missing-mask))
             (assert (or (zerop missing-mask)
                         (not (zerop (logandc2 missing-mask old-bitmask)))))
             (assert (eql (logcount new-bitmask)
