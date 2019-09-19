@@ -298,7 +298,6 @@
              (column-count (the fixnum (column-count frame)))
              (iterator (make-iterator columns :transformation transform))
              (row (make 'setfable-table-row :iterator iterator))
-             (new-columns (cl-df.column:columns iterator))
              (marker-column (cl-df.column:make-sparse-material-column
                              :element-type 'symbol))
              (dropped nil)
@@ -306,7 +305,6 @@
              ((:flet move-iterators ())
               (cl-df.column:move-iterator iterator 1)
               (cl-df.column:move-iterator marker-iterator 1)))
-        (assert (not (eq new-columns columns)))
         (cl-df.header:set-row row)
         (iterate
           (for i from 0 below old-size)
@@ -329,28 +327,30 @@
             (funcall function))
           (move-iterators))
         (cl-df.column:finish-iterator iterator)
-        (when dropped
-          (cl-df.column:finish-iterator marker-iterator)
-          (setf marker-iterator (make-iterator (vector marker-column)))
-          (iterate
-            (for i from 0 below old-size)
-            (for value = (cl-df.column:iterator-at marker-iterator 0))
-            (if (eq :null value)
-                (setf (cl-df.column:iterator-at marker-iterator 0) t)
-                (setf (cl-df.column:iterator-at marker-iterator 0) :null))
-            (cl-df.column:move-iterator marker-iterator 1))
-          (cl-df.column:finish-iterator marker-iterator)
-          (let ((cleaned-columns (adjust-array new-columns
-                                               (1+ column-count))))
-            (setf (last-elt cleaned-columns) marker-column
-                  new-columns (~> (remove-nulls-from-columns cleaned-columns)
-                                  (adjust-array column-count)))))
-        (if in-place
-            (progn
-              (write-columns new-columns frame)
-              frame)
-            (cl-ds.utils:quasi-clone* frame
-              :columns (ensure-replicas columns new-columns)))))))
+        (let ((new-columns (cl-df.column:columns iterator)))
+          (assert (not (eq new-columns columns)))
+          (when dropped
+            (cl-df.column:finish-iterator marker-iterator)
+            (setf marker-iterator (make-iterator (vector marker-column)))
+            (iterate
+              (for i from 0 below old-size)
+              (for value = (cl-df.column:iterator-at marker-iterator 0))
+              (if (eq :null value)
+                  (setf (cl-df.column:iterator-at marker-iterator 0) t)
+                  (setf (cl-df.column:iterator-at marker-iterator 0) :null))
+              (cl-df.column:move-iterator marker-iterator 1))
+            (cl-df.column:finish-iterator marker-iterator)
+            (let ((cleaned-columns (adjust-array new-columns
+                                                 (1+ column-count))))
+              (setf (last-elt cleaned-columns) marker-column
+                    new-columns (~> (remove-nulls-from-columns cleaned-columns)
+                                    (adjust-array column-count)))))
+          (if in-place
+              (progn
+                (write-columns new-columns frame)
+                frame)
+              (cl-ds.utils:quasi-clone* frame
+                :columns (ensure-replicas columns new-columns))))))))
 
 
 (defmethod remove-nulls ((frame standard-table)
