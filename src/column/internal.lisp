@@ -332,7 +332,7 @@
                            new-to-mask)))
           (let ((new-content (make-array new-to-size
                                          :element-type element-type)))
-            (assert (> new-to-size taken))
+            (assert (>= new-to-size real-to-size))
             (iterate
               (for i from 0 below real-to-size)
               (setf (aref new-content i) (aref to-content i)))
