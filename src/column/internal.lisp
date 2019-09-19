@@ -17,10 +17,9 @@
 
 
 (declaim (inline truncate-mask))
-(-> truncate-mask (fixnum) fixnum)
+(-> truncate-mask (integer) fixnum)
 (defun truncate-mask (mask)
-  (declare (type fixnum mask)
-           (optimize (speed 3) (safety 0)))
+  (declare (optimize (speed 3) (safety 0)))
   (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
 
 
