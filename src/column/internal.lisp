@@ -139,17 +139,21 @@
         (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
         (when (cl-ds.common.rrb:sparse-rrb-node-contains n i)
           (setf (gethash (child-index index i) result)
-                (cl-ds.common.rrb:sparse-nref n i)))))
-    (assert (= (~> result
-                   cl-ds.utils:inverted-hash-table
-                   hash-table-count)
-               (hash-table-count result)))))
+                (cl-ds.common.rrb:sparse-nref n i)))))))
 
 
 (defun gather-masks (nodes)
   (iterate outer
-    (with result = (make-hash-table))
-    (for column in-vector nodes)
+    (declare (type fixnum i length))
+    (with length = (length nodes))
+    (with result =
+          (~>> (reduce #'* nodes
+                       :key #'hash-table-count
+                       :initial-value 1)
+               (* 16)
+               (make-hash-table :test 'eql :size)))
+    (for i from 0 below length)
+    (for column = (aref nodes i))
     (iterate
       (for (index n) in-hashtable column)
       (in outer (maximizing index into max-index))
@@ -171,12 +175,6 @@
 
 (defun concatenation-state (iterator columns nodes parents)
   (bind (((:values masks max-index) (gather-masks nodes)))
-    (assert (every (lambda (nodes)
-                     (= (~> nodes
-                            cl-ds.utils:inverted-hash-table
-                            hash-table-count)
-                        (hash-table-count nodes)))
-                   nodes))
     (make-concatenation-state
      :changed-parents (map 'vector
                            (lambda (x)
@@ -210,11 +208,6 @@
   (declare (type concatenation-state state)
            (type fixnum index column))
   (with-concatenation-state (state)
-    (assert (= (~> nodes
-                   (aref column)
-                   cl-ds.utils:inverted-hash-table
-                   hash-table-count)
-               (hash-table-count (aref nodes column))))
     (gethash index (aref nodes column))))
 
 
@@ -227,11 +220,6 @@
     (if (null new-value)
         (remhash index (aref nodes column))
         (setf (gethash index (aref nodes column)) new-value))
-    (assert (= (~> nodes
-                   (aref column)
-                   cl-ds.utils:inverted-hash-table
-                   hash-table-count)
-               (hash-table-count (aref nodes column))))
     new-value))
 
 
@@ -321,7 +309,7 @@
                                                shifted-from-mask)))
            (new-to-size (logcount new-to-mask)))
       (declare (type list from-node to-node)
-               (type fixnum taken free-space from-size to-mask
+               (type fixnum taken free-space from-size
                      real-from-mask real-to-mask new-to-mask new-to-size))
       (assert (< new-from-mask real-from-mask))
       (assert (<= (logcount new-from-mask) (logcount from-mask)))

@@ -273,11 +273,11 @@
               :columns (ensure-replicas columns new-columns)))))))
 
 
-(defun remove-nulls-from-columns (columns)
+(defun remove-nulls-from-columns (columns &optional (transform #'identity))
   (bind ((column-count (length columns)))
     (when (zerop column-count)
       (return-from remove-nulls-from-columns columns))
-    (let* ((iterator (make-iterator columns))
+    (let* ((iterator (make-iterator columns :transformation transform))
            (new-columns (cl-df.column:columns iterator)))
       (assert (not (eq new-columns columns)))
       (cl-df.column:remove-nulls iterator)
@@ -340,7 +340,7 @@
                 (setf (cl-df.column:iterator-at marker-iterator 0) :null))
             (cl-df.column:move-iterator marker-iterator 1))
           (cl-df.column:finish-iterator marker-iterator)
-          (let ((cleaned-columns (adjust-array (ensure-replicas columns new-columns)
+          (let ((cleaned-columns (adjust-array new-columns
                                                (1+ column-count))))
             (setf (last-elt cleaned-columns) marker-column
                   new-columns (~> (remove-nulls-from-columns cleaned-columns)
@@ -356,12 +356,9 @@
 (defmethod remove-nulls ((frame standard-table)
                          &key (in-place *transform-in-place*))
   (let* ((columns (read-columns frame))
-         (clones (map 'vector
-                      (lambda (x)
-                        (cl-ds:replica x (not in-place)))
-                      columns))
-         (new-columns (remove-nulls-from-columns clones)))
-    (when (eq clones new-columns)
+         (new-columns (remove-nulls-from-columns columns
+                       (curry #'cl-ds:replica (not in-place)))))
+    (when (eq columns new-columns)
       (return-from remove-nulls frame))
     (if in-place
         (progn
