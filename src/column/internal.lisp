@@ -146,12 +146,7 @@
   (iterate outer
     (declare (type fixnum i length))
     (with length = (length nodes))
-    (with result =
-          (~>> (reduce #'* nodes
-                       :key #'hash-table-count
-                       :initial-value 1)
-               (* 16)
-               (make-hash-table :test 'eql :size)))
+    (with result = (make-hash-table :size (* 32 length)))
     (for i from 0 below length)
     (for column = (aref nodes i))
     (iterate
@@ -586,7 +581,7 @@
 
 
 (defun remove-nulls-in-trees (iterator)
-  (declare (optimize (speed 3) (debug 0) (safety 0)))
+  (declare (optimize (speed 0) (debug 3) (safety 3)))
   (bind ((columns (the vector
                        (~>> iterator read-columns
                             (remove-if #'null _ :key #'column-root))))
@@ -594,6 +589,23 @@
                      (~> (extremum columns #'>
                                    :key #'cl-ds.dicts.srrb:access-shift)
                          cl-ds.dicts.srrb:access-shift)))
+         ((:flet change-parents (i nodes next-nodes))
+          (declare (type fixnum i))
+          (iterate
+            (declare (type fixnum j))
+            (for j from 0 below (length nodes))
+            (for parent-node = (aref nodes j))
+            (for child-node = (aref next-nodes j))
+            (for column = (aref columns j))
+            (for tag = (cl-ds.common.abstract:read-ownership-tag column))
+            (for owned = (cl-ds.common.abstract:acquire-ownership parent-node tag))
+            (unless owned
+              (setf parent-node (cl-ds.common.rrb:deep-copy-sparse-rrb-node parent-node
+                                                                            0
+                                                                            tag)
+                    (aref nodes j) parent-node))
+            (setf (cl-ds.common.rrb:sparse-nref parent-node i)
+                  child-node)))
          ((:flet missing-bitmask (node))
           (~> node
               cl-ds.common.rrb:sparse-rrb-node-bitmask
@@ -643,12 +655,7 @@
                           (rcurry #'cl-ds.common.rrb:sparse-nref i)
                           nodes)
                 (impl (1+ d) next-nodes)
-                (map nil
-                     (lambda (parent-node child-node)
-                       (setf (cl-ds.common.rrb:sparse-nref parent-node i)
-                             child-node))
-                     nodes
-                     next-nodes)))))
+                (change-parents i nodes next-nodes)))))
          (roots (map 'vector #'column-root columns)))
     (impl 0 roots)
     (iterate
