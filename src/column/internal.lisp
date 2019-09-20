@@ -590,7 +590,8 @@
                                    :key #'cl-ds.dicts.srrb:access-shift)
                          cl-ds.dicts.srrb:access-shift)))
          ((:flet change-parents (i nodes next-nodes))
-          (declare (type fixnum i))
+          (declare (type fixnum i)
+                   (simple-vector nodes next-nodes))
           (iterate
             (declare (type fixnum j))
             (for j from 0 below (length nodes))
