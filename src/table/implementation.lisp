@@ -53,9 +53,9 @@
 
 
 (defmethod row-count ((frame standard-table))
-  (~> frame read-columns
-      (extremum #'> :key #'cl-df.column:column-size)
-      cl-df.column:column-size))
+  (iterate
+    (for column in-vector (read-columns frame))
+    (maximize (cl-df.column:column-size column))))
 
 
 (defmethod column-name ((frame standard-table) (column integer))

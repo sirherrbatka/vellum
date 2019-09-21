@@ -495,11 +495,6 @@
               (assert child)
               (setf (aref new-content content-position) child)
               (incf content-position))
-            (assert
-             (iterate
-               (for child in-vector new-content)
-               (for prev-child previous child)
-               (always (not (eq child prev-child)))))
             (if (cl-ds.common.abstract:acquire-ownership parent tag)
                 (setf (cl-ds.common.rrb:sparse-rrb-node-content parent)
                       new-content
