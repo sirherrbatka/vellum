@@ -576,7 +576,7 @@
 
 
 (defun remove-nulls-in-trees (iterator)
-  (declare (optimize (speed 0) (debug 3) (safety 3)))
+  (declare (optimize (speed 3) (debug 0) (safety 0)))
   (bind ((columns (the vector
                        (~>> iterator read-columns
                             (remove-if #'null _ :key #'column-root))))
@@ -668,8 +668,7 @@
     (declare (type fixnum i offset size byte)
              (type boolean present))
     (with node = (aref stack 0))
-    (with size = (logand most-positive-fixnum
-                         (* depth cl-ds.common.rrb:+bit-count+)))
+    (with size = (* depth cl-ds.common.rrb:+bit-count+))
     (for i from 1 to depth)
     (for byte
          from size
@@ -683,10 +682,8 @@
         (for j from i to depth)
         (setf (aref stack j) nil))
       (leave))
-    (for child = (cl-ds.common.rrb:sparse-nref node offset))
-    (setf node child)
-    (unless (eq child (aref stack i))
-      (setf (aref stack i) child)))
+    (setf node (cl-ds.common.rrb:sparse-nref node offset)
+          (aref stack i) node))
   (first-elt stack))
 
 
@@ -767,7 +764,7 @@
         (for v = (aref buffer i))
         (unless (eql v :null)
           (setf (aref new-content index) v
-                (ldb (byte 1 i) bitmask) 1
+                bitmask (dpb 1 (byte 1 i) bitmask)
                 index (1+ index))))
       (make-node iterator column bitmask :content new-content))))
 
@@ -836,8 +833,8 @@
                          0
                          tag)))
              (if (null child)
-                 (when (cl-ds.common.rrb:sparse-rrb-node-contains parent position)
-                   (cl-ds.common.rrb:sparse-rrb-node-erase! parent position))
+                 (when (cl-ds.common.rrb:sparse-rrb-node-contains copy position)
+                   (cl-ds.common.rrb:sparse-rrb-node-erase! copy position))
                  (setf (cl-ds.common.rrb:sparse-nref copy position)
                        child))))))
 
