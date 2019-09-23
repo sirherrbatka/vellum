@@ -143,6 +143,22 @@
                 (cl-ds.common.rrb:sparse-nref n i)))))))
 
 
+(defun max-index (nodes)
+  (iterate outer
+    (declare (type fixnum i length))
+    (with length = (length nodes))
+    (for i from 0 below length)
+    (for column = (aref nodes i))
+    (when (null column)
+      (next-iteration))
+    (iterate
+      (for (index n) in-hashtable column)
+      (when (null n)
+        (next-iteration))
+      (in outer (maximizing index into max-index)))
+    (finally (return-from outer max-index))))
+
+
 (defun gather-masks (nodes &optional (result (make-hash-table
                                               :size (* 32 (length nodes)))))
   (declare (type simple-array nodes))
@@ -203,19 +219,18 @@
 
 (defun concatenation-state (iterator columns nodes parents)
   (bind (((:values masks max-index) (gather-masks nodes))
-         (result
-          (make-concatenation-state
-           :changed-parents (map 'vector
-                                 (lambda (x)
-                                   (declare (ignore x))
-                                   (make-hash-table))
-                                 columns)
-           :iterator iterator
-           :max-index max-index
-           :masks masks
-           :nodes nodes
-           :columns columns
-           :parents parents)))
+         (result (make-concatenation-state
+                  :changed-parents (map 'vector
+                                        (lambda (x)
+                                          (declare (ignore x))
+                                          (make-hash-table))
+                                        columns)
+                  :iterator iterator
+                  :max-index max-index
+                  :masks masks
+                  :nodes nodes
+                  :columns columns
+                  :parents parents)))
     (iterate
       (for (key value) in-hashtable (concatenation-state-masks result))
       (assert (= (integer-length value) (logcount value))))
