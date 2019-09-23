@@ -289,7 +289,7 @@
                         (in-place *transform-in-place*)
                         (start 0)
                         (end (row-count frame)))
-  (declare (optimize (debug 3)))
+  (declare (optimize (speed 3)))
   (ensure-functionf function)
   (check-type start non-negative-fixnum)
   (check-type end (or null non-negative-fixnum))
@@ -298,7 +298,11 @@
     (when (zerop column-count)
       (return-from transform frame))
     (with-table (frame)
-      (bind ((transform (rcurry #'cl-ds:replica (not in-place)))
+      (bind ((transform (lambda (column)
+                          (lret ((result (cl-ds:replica column (not in-place))))
+                            (cl-ds.dicts.srrb:transactional-insert-tail!
+                             column
+                             (cl-ds.common.abstract:read-ownership-tag column)))))
              (column-count (the fixnum (column-count frame)))
              (iterator (make-iterator columns :transformation transform))
              (row (make 'setfable-table-row :iterator iterator))
@@ -347,12 +351,10 @@
             (iterate
               (for i from 0 below (the fixnum (+ start count)))
               (for value = (cl-df.column:iterator-at marker-iterator 0))
-              (if (eq :null value)
-                  (setf (cl-df.column:iterator-at marker-iterator 0) t)
-                  (setf (cl-df.column:iterator-at marker-iterator 0) :null))
+              (setf (cl-df.column:iterator-at marker-iterator 0)
+                    (if (eql :null value) t :null))
               (cl-df.column:move-iterator marker-iterator 1))
             (cl-df.column:finish-iterator marker-iterator)
-            (ensure-replicas columns new-columns nil)
             (let ((cleaned-columns (adjust-array new-columns
                                                  (1+ column-count))))
               (setf (last-elt cleaned-columns) marker-column

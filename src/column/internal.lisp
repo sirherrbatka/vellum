@@ -143,11 +143,12 @@
                 (cl-ds.common.rrb:sparse-nref n i)))))))
 
 
-(defun gather-masks (nodes)
+(defun gather-masks (nodes &optional (result (make-hash-table
+                                              :size (* 32 (length nodes)))))
+  (declare (type simple-array nodes))
   (iterate outer
     (declare (type fixnum i length))
     (with length = (length nodes))
-    (with result = (make-hash-table :size (* 32 length)))
     (for i from 0 below length)
     (for column = (aref nodes i))
     (when (null column)
@@ -163,6 +164,14 @@
     (finally (return-from outer (values result max-index)))))
 
 
+(defun clear-masks (state)
+  (let ((table (concatenation-state-masks state)))
+    (iterate
+      (for (key value) in-hashtable table)
+      (setf (gethash key table) 0)))
+  state)
+
+
 (defstruct concatenation-state
   iterator
   (changed-parents #() :type vector)
@@ -171,6 +180,25 @@
   (nodes #() :type vector)
   (parents nil :type (or null concatenation-state))
   (columns #() :type simple-vector))
+
+
+(defun concatenation-state-masks-logcount (state)
+  (iterate
+    (for (index mask) in-hashtable (concatenation-state-masks state))
+    (sum (logcount mask))))
+
+
+(defun concatenation-state-nodes-logcount (state)
+  (iterate outer
+    (for column in-vector (concatenation-state-nodes state))
+    (iterate
+      (for (index node) in-hashtable column)
+      (when (null node)
+        (next-iteration))
+      (in outer (~> node
+                    cl-ds.common.rrb:sparse-rrb-node-bitmask
+                    logcount
+                    sum)))))
 
 
 (defun concatenation-state (iterator columns nodes parents)
@@ -183,8 +211,8 @@
                                    (make-hash-table))
                                  columns)
            :iterator iterator
-           :masks masks
            :max-index max-index
+           :masks masks
            :nodes nodes
            :columns columns
            :parents parents)))
@@ -232,7 +260,8 @@
 (defun (setf node) (new-value state column index)
   (declare (optimize (speed 3)))
   (unless (null (concatenation-state-parents state))
-    (setf (parent-changed state column (parent-index index)) t))
+    (unless (eq new-value (node state column index))
+      (setf (parent-changed state column (parent-index index)) t)))
   (with-concatenation-state (state)
     (if (null new-value)
         (remhash index (aref nodes column))
@@ -251,6 +280,11 @@
 (defun (setf mask) (mask state index)
   (with-concatenation-state (state)
     (setf (gethash index masks) mask)))
+
+
+(defun logior-mask (state index mask)
+  (with-concatenation-state (state)
+    (setf #1=(gethash index masks 0) (logior mask #1#))))
 
 
 (-> parent-changed (concatenation-state fixnum fixnum) boolean)
@@ -287,12 +321,12 @@
                                                  fixnum)
     t)
 (defun move-to-existing-column (state from to from-mask to-mask column-index)
-  (declare (optimize (debug 3) (safety 3)))
+  (declare (optimize (speed 3) (safety 0)))
   (assert (< to from))
   (assert (= (logcount to-mask) (integer-length to-mask)))
   (assert (= (logcount from-mask) (integer-length from-mask)))
   (with-concatenation-state (state)
-    (bind ((column (aref columns column-index))
+    (let* ((column (aref columns column-index))
            (column-tag (cl-ds.common.abstract:read-ownership-tag column))
            (from-node (node state column-index from))
            (to-node (node state column-index to))
@@ -301,7 +335,6 @@
                           taken))
            (from-content (cl-ds.common.rrb:sparse-rrb-node-content from-node))
            (real-from-size (cl-ds.common.rrb:sparse-rrb-node-size from-node))
-           (from-size (logcount from-mask))
            (element-type (array-element-type from-content))
            (from-owned (cl-ds.common.abstract:acquire-ownership
                         from-node column-tag))
@@ -316,14 +349,22 @@
            (new-from-mask (ldb (byte cl-ds.common.rrb:+maximum-children-count+
                                      free-space)
                                real-from-mask))
-           (new-to-mask (truncate-mask (logior real-to-mask
-                                               shifted-from-mask)))
+           (new-to-mask (logior real-to-mask shifted-from-mask))
            (new-to-size (logcount new-to-mask)))
       (declare (type list from-node to-node)
-               (type fixnum taken free-space real-from-size from-size
+               (type simple-vector from-content)
+               (type fixnum taken free-space real-from-size
                      real-from-mask real-to-mask new-to-mask new-to-size))
+      (assert (= real-to-mask (logand real-to-mask to-mask)))
+      (assert (= real-from-mask (logand real-from-mask from-mask)))
+      (assert (zerop (logand to-mask shifted-from-mask)))
+      (assert (zerop (logand real-to-mask shifted-from-mask)))
       (assert (< new-from-mask real-from-mask))
       (assert (<= (logcount new-from-mask) (logcount from-mask)))
+      (assert (= (+ (logcount new-from-mask)
+                    (logcount new-to-mask))
+                 (+ (logcount real-from-mask)
+                    (logcount real-to-mask))))
       (when (zerop new-from-mask)
         (setf (node state column-index from) nil))
       (if (and to-owned
@@ -338,6 +379,7 @@
                            new-to-mask)))
           (let ((new-content (make-array new-to-size
                                          :element-type element-type)))
+            (declare (type simple-vector new-content))
             (assert (>= new-to-size real-to-size))
             (iterate
               (declare (type fixnum i))
@@ -359,7 +401,7 @@
              (iterate
                (declare (type fixnum i j new-from-size))
                (with new-from-size = (logcount new-from-mask))
-               (for i from (- real-from-size new-from-size))
+               (for i from free-space below real-from-size)
                (for j from 0 below new-from-size)
                (setf (aref from-content j) (aref from-content i))))
             (t (let* ((new-from (make-node iterator
@@ -367,6 +409,7 @@
                                            :type element-type))
                       (new-content (cl-ds.common.rrb:sparse-rrb-node-content
                                     new-from)))
+                 (declare (type simple-vector new-content))
                  (iterate
                    (declare (type fixnum i j))
                    (for i from shifted-count)
@@ -477,6 +520,7 @@
 
 (defun update-parents (state column)
   (with-concatenation-state (state)
+    (clear-masks parents)
     (iterate
       (declare (type fixnum mask))
       (with tag = (~> columns
@@ -492,6 +536,8 @@
         (for child = (node state column child-index))
         (unless (null child)
           (setf mask (dpb 1 (byte 1 i) mask))))
+      (setf mask (truncate-mask mask))
+      (logior-mask parents index mask)
       (if (zerop mask)
           (setf (node parents column index) nil)
           (let ((new-content
@@ -519,7 +565,7 @@
 
 
 (defun concatenate-trees (iterator)
-  (declare (optimize (debug 3) (safety 3)))
+  (declare (optimize (speed 3) (debug 0) (safety 0)))
   (bind ((columns (the simple-vector
                        (~>> iterator read-columns
                             (remove-if #'null _ :key #'column-root))))
@@ -529,7 +575,7 @@
                          cl-ds.dicts.srrb:access-shift)))
          ((:labels impl (d nodes parent-state))
           (declare (type simple-vector nodes))
-          (let ((current-state (concatenation-state iterator
+          (let* ((current-state (concatenation-state iterator
                                                     columns
                                                     nodes
                                                     parent-state)))
@@ -561,7 +607,7 @@
 
 (defun build-new-mask (old-bitmask missing-mask)
   (declare (type fixnum old-bitmask missing-mask)
-           (optimize (speed 0) (safety 3) (debug 3)))
+           (optimize (speed 3)))
   (let* ((distinct-missing (~> old-bitmask
                                lognot
                                truncate-mask
@@ -588,7 +634,7 @@
 
 
 (defun remove-nulls-in-trees (iterator)
-  (declare (optimize (speed 0) (debug 3) (safety 3)))
+  (declare (optimize (speed 3) (debug 0) (safety 0)))
   (bind ((columns (the vector
                        (~>> iterator read-columns
                             (remove-if #'null _ :key #'column-root))))
