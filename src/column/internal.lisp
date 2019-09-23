@@ -824,32 +824,34 @@
 
 
 (defun make-leaf (iterator column old-node change buffer)
-  (declare (type (or simple-bit-vector simple-vector) buffer)
-           (optimize (speed 3)))
-  (cl-ds.utils:cases ((simple-bit-vector-p buffer)
-                      (simple-vector-p buffer))
-    (unless (null old-node)
-      (iterate
-        (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-        (for changed in-vector change)
-        (unless (or changed
-                    (not (cl-ds.common.rrb:sparse-rrb-node-contains old-node
-                                                                    i)))
-          (setf (aref buffer i) (cl-ds.common.rrb:sparse-nref old-node i)))))
-    (let* ((new-size (- cl-ds.common.rrb:+maximum-children-count+
-                        (count :null buffer)))
-           (new-content (make-array new-size
-                                    :element-type (column-type column)))
-           (bitmask 0))
-      (iterate
-        (with index = 0)
-        (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-        (for v = (aref buffer i))
-        (unless (eql v :null)
-          (setf (aref new-content index) v
-                bitmask (dpb 1 (byte 1 i) bitmask)
-                index (1+ index))))
-      (make-node iterator column bitmask :content new-content))))
+  (declare (type simple-vector buffer)
+           (optimize (speed 3) (safety 0) (debug 0)))
+  (unless (null old-node)
+    (iterate
+      (declare (type fixnum i))
+      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+      (for changed = (aref change i))
+      (unless (or changed
+                  (not (cl-ds.common.rrb:sparse-rrb-node-contains old-node
+                                                                  i)))
+        (setf (aref buffer i) (cl-ds.common.rrb:sparse-nref old-node i)))))
+  (let* ((new-size (- cl-ds.common.rrb:+maximum-children-count+
+                      (count :null buffer)))
+         (new-content (make-array new-size
+                                  :element-type (column-type column)))
+         (bitmask 0))
+    (declare (type fixnum bitmask)
+             (type simple-vector new-content))
+    (iterate
+      (declare (type fixnum index i))
+      (with index = 0)
+      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+      (for v = (aref buffer i))
+      (unless (eql v :null)
+        (setf (aref new-content index) v
+              bitmask (dpb 1 (byte 1 i) bitmask)
+              index (the fixnum (1+ index)))))
+    (make-node iterator column bitmask :content new-content)))
 
 
 (declaim (inline change-leaf))
