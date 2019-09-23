@@ -134,6 +134,7 @@
   (lret ((result (make-hash-table)))
     (iterate
       (for (index n) in-hashtable nodes)
+      (when (null n) (next-iteration))
       (iterate
         (declare (type fixnum i))
         (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
@@ -149,8 +150,12 @@
     (with result = (make-hash-table :size (* 32 length)))
     (for i from 0 below length)
     (for column = (aref nodes i))
+    (when (null column)
+      (next-iteration))
     (iterate
       (for (index n) in-hashtable column)
+      (when (null n)
+        (next-iteration))
       (in outer (maximizing index into max-index))
       (for existing-mask = (cl-ds.common.rrb:sparse-rrb-node-bitmask n))
       (for mask = (gethash index result 0))
@@ -169,19 +174,24 @@
 
 
 (defun concatenation-state (iterator columns nodes parents)
-  (bind (((:values masks max-index) (gather-masks nodes)))
-    (make-concatenation-state
-     :changed-parents (map 'vector
-                           (lambda (x)
-                             (declare (ignore x))
-                             (make-hash-table))
-                           columns)
-     :iterator iterator
-     :masks masks
-     :max-index max-index
-     :nodes nodes
-     :columns columns
-     :parents parents)))
+  (bind (((:values masks max-index) (gather-masks nodes))
+         (result
+          (make-concatenation-state
+           :changed-parents (map 'vector
+                                 (lambda (x)
+                                   (declare (ignore x))
+                                   (make-hash-table))
+                                 columns)
+           :iterator iterator
+           :masks masks
+           :max-index max-index
+           :nodes nodes
+           :columns columns
+           :parents parents)))
+    (iterate
+      (for (key value) in-hashtable (concatenation-state-masks result))
+      (assert (= (integer-length value) (logcount value))))
+    result))
 
 
 (defmacro with-concatenation-state ((state) &body body)
@@ -206,11 +216,23 @@
     (gethash index (aref nodes column))))
 
 
+(-> (setf parent-changed) (boolean concatenation-state fixnum fixnum) boolean)
+(defun (setf parent-changed) (new-value state column parent-index)
+  (unless (null state)
+    (with-concatenation-state (state)
+      (if new-value
+          (setf (gethash parent-index (aref changed-parents column)) t)
+          (remhash parent-index (aref changed-parents column)))
+      new-value)))
+
+
 (-> (setf node) ((or null cl-ds.common.rrb:sparse-rrb-node)
                  concatenation-state fixnum fixnum)
     (or null cl-ds.common.rrb:sparse-rrb-node))
 (defun (setf node) (new-value state column index)
   (declare (optimize (speed 3)))
+  (unless (null (concatenation-state-parents state))
+    (setf (parent-changed state column (parent-index index)) t))
   (with-concatenation-state (state)
     (if (null new-value)
         (remhash index (aref nodes column))
@@ -229,16 +251,6 @@
 (defun (setf mask) (mask state index)
   (with-concatenation-state (state)
     (setf (gethash index masks) mask)))
-
-
-(-> (setf parent-changed) (boolean concatenation-state fixnum fixnum) boolean)
-(defun (setf parent-changed) (new-value state column parent-index)
-  (unless (null state)
-    (with-concatenation-state (state)
-      (if new-value
-          (setf (gethash parent-index (aref changed-parents column)) t)
-          (remhash parent-index (aref changed-parents column)))
-      new-value)))
 
 
 (-> parent-changed (concatenation-state fixnum fixnum) boolean)
@@ -275,7 +287,10 @@
                                                  fixnum)
     t)
 (defun move-to-existing-column (state from to from-mask to-mask column-index)
-  (declare (optimize (speed 3) (safety 0)))
+  (declare (optimize (debug 3) (safety 3)))
+  (assert (< to from))
+  (assert (= (logcount to-mask) (integer-length to-mask)))
+  (assert (= (logcount from-mask) (integer-length from-mask)))
   (with-concatenation-state (state)
     (bind ((column (aref columns column-index))
            (column-tag (cl-ds.common.abstract:read-ownership-tag column))
@@ -285,7 +300,8 @@
            (free-space (- cl-ds.common.rrb:+maximum-children-count+
                           taken))
            (from-content (cl-ds.common.rrb:sparse-rrb-node-content from-node))
-           (from-size (cl-ds.common.rrb:sparse-rrb-node-size from-node))
+           (real-from-size (cl-ds.common.rrb:sparse-rrb-node-size from-node))
+           (from-size (logcount from-mask))
            (element-type (array-element-type from-content))
            (from-owned (cl-ds.common.abstract:acquire-ownership
                         from-node column-tag))
@@ -304,7 +320,7 @@
                                                shifted-from-mask)))
            (new-to-size (logcount new-to-mask)))
       (declare (type list from-node to-node)
-               (type fixnum taken free-space from-size
+               (type fixnum taken free-space real-from-size from-size
                      real-from-mask real-to-mask new-to-mask new-to-size))
       (assert (< new-from-mask real-from-mask))
       (assert (<= (logcount new-from-mask) (logcount from-mask)))
@@ -314,7 +330,7 @@
                (>= (length to-content) new-to-size))
           (iterate
             (declare (type fixnum i j shifted-count))
-            (for j from 0 below from-size)
+            (for j from 0 below real-from-size)
             (for i from (logcount real-to-mask) below (length to-content))
             (repeat shifted-count)
             (setf (aref to-content i) (aref from-content j))
@@ -343,7 +359,7 @@
              (iterate
                (declare (type fixnum i j new-from-size))
                (with new-from-size = (logcount new-from-mask))
-               (for i from (- from-size new-from-size) below from-size)
+               (for i from (- real-from-size new-from-size))
                (for j from 0 below new-from-size)
                (setf (aref from-content j) (aref from-content i))))
             (t (let* ((new-from (make-node iterator
@@ -382,8 +398,6 @@
       (declare (type list from-node to-node))
       (unless from-exists
         (return-from move-children-in-column nil))
-      (setf (parent-changed state column-index from-parent) t
-            (parent-changed state column-index to-parent) t)
       (if to-exists
           (move-to-existing-column state from to
                                    from-mask to-mask
@@ -438,9 +452,9 @@
         (setf (mask state from) (ldb (byte cl-ds.common.rrb:+maximum-children-count+
                                            free-space)
                                      from-mask)
-              (mask state to) (ldb mask-bytes
-                                   (logior to-mask
-                                           (ash from-mask taken))))))))
+              (mask state to) (~> (ash from-mask taken)
+                                  (logior to-mask)
+                                  truncate-mask))))))
 
 
 (defun shift-content (state)
@@ -464,6 +478,7 @@
 (defun update-parents (state column)
   (with-concatenation-state (state)
     (iterate
+      (declare (type fixnum mask))
       (with tag = (~> columns
                       (aref column)
                       cl-ds.common.abstract:read-ownership-tag))
@@ -478,8 +493,7 @@
         (unless (null child)
           (setf mask (dpb 1 (byte 1 i) mask))))
       (if (zerop mask)
-          (setf (parent-changed parents column (parent-index index)) t
-                (node parents column index) nil)
+          (setf (node parents column index) nil)
           (let ((new-content
                   (~>> parent
                        cl-ds.common.rrb:sparse-rrb-node-content
@@ -499,23 +513,22 @@
                 (setf (cl-ds.common.rrb:sparse-rrb-node-content parent)
                       new-content
                       (cl-ds.common.rrb:sparse-rrb-node-bitmask parent) mask)
-                (let* ((parent-index (parent-index index))
-                       (new-node (make-node iterator column mask
-                                            :content new-content)))
-                  (setf (parent-changed parents column parent-index) t
-                        (node parents column index) new-node))))))))
+                (let ((new-node (make-node iterator column mask
+                                           :content new-content)))
+                  (setf (node parents column index) new-node))))))))
 
 
 (defun concatenate-trees (iterator)
-  (declare (optimize (speed 3)))
+  (declare (optimize (debug 3) (safety 3)))
   (bind ((columns (the simple-vector
                        (~>> iterator read-columns
                             (remove-if #'null _ :key #'column-root))))
          (depth (the fixnum
-                     (~> (extremum columns #'>
-                                   :key #'cl-ds.dicts.srrb:access-shift)
+                     (~> columns
+                         (extremum #'> :key #'cl-ds.dicts.srrb:access-shift)
                          cl-ds.dicts.srrb:access-shift)))
          ((:labels impl (d nodes parent-state))
+          (declare (type simple-vector nodes))
           (let ((current-state (concatenation-state iterator
                                                     columns
                                                     nodes
@@ -548,7 +561,7 @@
 
 (defun build-new-mask (old-bitmask missing-mask)
   (declare (type fixnum old-bitmask missing-mask)
-           (optimize (speed 3) (safety 0)))
+           (optimize (speed 0) (safety 3) (debug 3)))
   (let* ((distinct-missing (~> old-bitmask
                                lognot
                                truncate-mask
@@ -558,6 +571,7 @@
                           (byte 0)
                           (ldb most-positive-fixnum))))
     (declare (type fixnum new-bitmask distinct-missing))
+    (assert (zerop (logand distinct-missing missing-mask)))
     (iterate
       (declare (type fixnum i zero-sum)
                (type (integer 0 32) new-index old-index))
@@ -567,16 +581,14 @@
         (next-iteration))
       (for old-index = (~> (ldb (byte i 0) old-bitmask)
                            logcount))
-      (for new-index = (~> (ldb (byte old-index 0) new-bitmask)
-                           logcount
-                           (+ zero-sum)))
+      (for new-index = (+ old-index zero-sum))
       (setf new-bitmask (the fixnum (dpb 0 (byte 1 new-index) new-bitmask)))
       (the fixnum (incf zero-sum))
       (finally (return new-bitmask)))))
 
 
 (defun remove-nulls-in-trees (iterator)
-  (declare (optimize (speed 3) (debug 0) (safety 0)))
+  (declare (optimize (speed 0) (debug 3) (safety 3)))
   (bind ((columns (the vector
                        (~>> iterator read-columns
                             (remove-if #'null _ :key #'column-root))))
@@ -591,7 +603,14 @@
             (declare (type fixnum j))
             (for j from 0 below (length nodes))
             (for parent-node = (aref nodes j))
+            (when (null parent-node)
+              (next-iteration))
             (for child-node = (aref next-nodes j))
+            (when (null child-node)
+              (next-iteration))
+            (for existing-child = (cl-ds.common.rrb:sparse-nref parent-node i))
+            (when (eq existing-child child-node)
+              (next-iteration))
             (for column = (aref columns j))
             (for tag = (cl-ds.common.abstract:read-ownership-tag column))
             (for owned = (cl-ds.common.abstract:acquire-ownership parent-node tag))
@@ -600,13 +619,19 @@
                                                                             0
                                                                             tag)
                     (aref nodes j) parent-node))
-            (setf (cl-ds.common.rrb:sparse-nref parent-node i)
-                  child-node)))
+            (setf (cl-ds.common.rrb:sparse-nref parent-node i) child-node)))
          ((:flet missing-bitmask (node))
-          (~> node
-              cl-ds.common.rrb:sparse-rrb-node-bitmask
-              lognot
-              truncate-mask))
+          (if (null node)
+              #.(truncate-mask most-positive-fixnum)
+              (~> node
+                  cl-ds.common.rrb:sparse-rrb-node-bitmask
+                  lognot
+                  truncate-mask)))
+         ((:flet get-next-nodes (node i))
+          (if (and node
+                   (cl-ds.common.rrb:sparse-rrb-node-contains node i))
+              (cl-ds.common.rrb:sparse-nref node i)
+              nil))
          ((:labels impl (d nodes))
           (declare (type fixnum d)
                    (type simple-vector nodes))
@@ -617,8 +642,11 @@
                                          :key #'missing-bitmask))
             (for i from 0 below (length nodes))
             (for node = (aref nodes i))
-            (for old-bitmask = (cl-ds.common.rrb:sparse-rrb-node-bitmask
-                                node))
+            (for node-exists = (not (null node)))
+            (unless node-exists (next-iteration))
+            (for old-bitmask = (if node-exists
+                                   (cl-ds.common.rrb:sparse-rrb-node-bitmask node)
+                                   0))
             (for new-bitmask = (build-new-mask old-bitmask missing-mask))
             (assert (or (zerop missing-mask)
                         (not (zerop (logandc2 missing-mask old-bitmask)))))
@@ -636,22 +664,16 @@
                         (aref nodes i) node))
                 (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask node)
                       new-bitmask))))
-          (when-let* ((subtree (not (eql d depth)))
-                      (present-mask (the fixnum
-                                         (reduce
-                                          #'logand nodes
-                                          :key #'cl-ds.common.rrb:sparse-rrb-node-bitmask)))
-                      (more-to-do (not (zerop present-mask))))
+          (unless (eql d depth)
             (iterate
               (declare (type fixnum i))
               (with next-nodes = (copy-array nodes))
               (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-              (when (ldb-test (byte 1 i) present-mask)
-                (map-into next-nodes
-                          (rcurry #'cl-ds.common.rrb:sparse-nref i)
-                          nodes)
-                (impl (1+ d) next-nodes)
-                (change-parents i nodes next-nodes)))))
+              (map-into next-nodes
+                        (lambda (node) (get-next-nodes node i))
+                        nodes)
+              (impl (1+ d) next-nodes)
+              (change-parents i nodes next-nodes))))
          (roots (map 'vector #'column-root columns)))
     (impl 0 roots)
     (iterate

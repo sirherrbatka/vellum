@@ -285,12 +285,16 @@
 
 
 (defmethod transform ((frame standard-table) function
-                      &key (in-place *transform-in-place*))
-  (declare (optimize (speed 3)))
+                      &key
+                        (in-place *transform-in-place*)
+                        (start 0)
+                        (end (row-count frame)))
+  (declare (optimize (debug 3)))
   (ensure-functionf function)
+  (check-type start non-negative-fixnum)
+  (check-type end (or null non-negative-fixnum))
   (bind ((columns (read-columns frame))
-         (column-count (length columns))
-         (old-size (row-count frame)))
+         (column-count (length columns)))
     (when (zerop column-count)
       (return-from transform frame))
     (with-table (frame)
@@ -302,14 +306,15 @@
                              :element-type 'symbol))
              (dropped nil)
              (marker-iterator (make-iterator (vector marker-column)))
-             ((:flet move-iterators ())
-              (cl-df.column:move-iterator iterator 1)
-              (cl-df.column:move-iterator marker-iterator 1))
-             (end nil)
+             ((:flet move-iterators (&optional (count 1)))
+              (cl-df.column:move-iterator iterator count)
+              (cl-df.column:move-iterator marker-iterator count))
+             (done nil)
+             (count 0)
              (*transform-control*
               (lambda (operation)
                 (eswitch (operation :test 'eq)
-                  (:finish (setf end t))
+                  (:finish (setf done t))
                   (:drop
                    (iterate
                      (declare (type fixnum i))
@@ -323,10 +328,15 @@
                      (for i from 0 below column-count)
                      (setf (cl-df.column:iterator-at iterator i) :null)))))))
         (cl-df.header:set-row row)
+        (move-iterators start)
         (iterate
-          (for i from 0 below old-size)
+          (declare (type fixnum i))
+          (for i from start)
+          (until (or done
+                     (and (not (null end))
+                          (>= i end))))
           (funcall function)
-          (until end)
+          (incf count)
           (move-iterators))
         (cl-df.column:finish-iterator iterator)
         (let ((new-columns (cl-df.column:columns iterator)))
@@ -335,7 +345,7 @@
             (cl-df.column:finish-iterator marker-iterator)
             (setf marker-iterator (make-iterator (vector marker-column)))
             (iterate
-              (for i from 0 below old-size)
+              (for i from 0 below (the fixnum (+ start count)))
               (for value = (cl-df.column:iterator-at marker-iterator 0))
               (if (eq :null value)
                   (setf (cl-df.column:iterator-at marker-iterator 0) t)
@@ -346,7 +356,8 @@
             (let ((cleaned-columns (adjust-array new-columns
                                                  (1+ column-count))))
               (setf (last-elt cleaned-columns) marker-column
-                    new-columns (~> (remove-nulls-from-columns cleaned-columns)
+                    new-columns (~> cleaned-columns
+                                    remove-nulls-from-columns
                                     (adjust-array column-count)))))
           (if in-place
               (progn
