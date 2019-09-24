@@ -5,8 +5,9 @@
 (defun make-node (iterator column bitmask
                   &key
                     type
+                    (length (logcount bitmask))
                     (content (make-array
-                              (logcount bitmask)
+                              length
                               :element-type (or type (column-type column))))
                     (tag (cl-ds.common.abstract:read-ownership-tag column)))
   (declare (ignore iterator))
@@ -331,6 +332,14 @@
 (define-symbol-macro mask-bytes (byte cl-ds.common.rrb:+maximum-children-count+ 0))
 
 
+(declaim (inline distinct-missing))
+(defun distinct-missing (real-mask logior-mask)
+  (~> real-mask
+      lognot
+      (logxor logior-mask)
+      truncate-mask))
+
+
 (-> move-to-existing-column (concatenation-state fixnum fixnum
                                                  fixnum fixnum
                                                  fixnum)
@@ -383,7 +392,7 @@
       (when (zerop new-from-mask)
         (setf (node state column-index from) nil))
       (if (and to-owned
-               (>= (length to-content) new-to-size))
+               (> (length to-content) new-to-size))
           (iterate
             (declare (type fixnum i j shifted-count))
             (for j from 0 below real-from-size)
@@ -392,8 +401,9 @@
             (setf (aref to-content i) (aref from-content j))
             (finally (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node)
                            new-to-mask)))
-          (let ((new-content (make-array new-to-size
-                                         :element-type element-type)))
+          (let ((new-content (make-array
+                              new-to-size
+                              :element-type element-type)))
             (declare (type simple-vector new-content))
             (assert (>= new-to-size real-to-size))
             (iterate
@@ -419,8 +429,15 @@
                (for i from free-space below real-from-size)
                (for j from 0 below new-from-size)
                (setf (aref from-content j) (aref from-content i))))
-            (t (let* ((new-from (make-node iterator
+            (t (let* ((distinct-missing (ldb (byte cl-ds.common.rrb:+maximum-children-count+
+                                                   free-space)
+                                             (distinct-missing real-from-mask
+                                                               from-mask)))
+                      (desired-size (- cl-ds.common.rrb:+maximum-children-count+
+                                       (logcount distinct-missing)))
+                      (new-from (make-node iterator
                                            column new-from-mask
+                                           :length desired-size
                                            :type element-type))
                       (new-content (cl-ds.common.rrb:sparse-rrb-node-content
                                     new-from)))
@@ -683,7 +700,7 @@
             (setf (cl-ds.common.rrb:sparse-nref parent-node i) child-node)))
          ((:flet missing-bitmask (node))
           (if (null node)
-              #.(truncate-mask most-positive-fixnum)
+              (truncate-mask most-positive-fixnum)
               (~> node
                   cl-ds.common.rrb:sparse-rrb-node-bitmask
                   lognot
