@@ -7,6 +7,7 @@
   (:export
    #:augment-iterator
    #:columns
+   #:move-sparse-material-column-iterator
    #:column-at
    #:column-size
    #:column-type
