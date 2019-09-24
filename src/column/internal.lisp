@@ -392,7 +392,7 @@
       (when (zerop new-from-mask)
         (setf (node state column-index from) nil))
       (if (and to-owned
-               (> (length to-content) new-to-size))
+               (>= (length to-content) new-to-size))
           (iterate
             (declare (type fixnum i j shifted-count))
             (for j from 0 below real-from-size)
@@ -426,9 +426,12 @@
               (for i from real-to-size below new-to-size)
               (for j from 0)
               (setf (aref new-content i) (aref from-content j)))
-            (setf (node state column-index to)
-                  (make-node iterator column new-to-mask
-                             :content new-content))))
+            (if to-owned
+                (setf (cl-ds.common.rrb:sparse-rrb-node-content to-node) new-content
+                      (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node) new-to-mask)
+                (setf (node state column-index to)
+                      (make-node iterator column new-to-mask
+                                 :content new-content)))))
       (cond ((zerop new-from-mask)
              (setf (node state column-index from) nil))
             (from-owned
