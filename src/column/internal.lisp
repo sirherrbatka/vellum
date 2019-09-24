@@ -335,7 +335,6 @@
 (declaim (inline distinct-missing))
 (defun distinct-missing (real-mask logior-mask)
   (~> real-mask
-      lognot
       (logxor logior-mask)
       truncate-mask))
 
@@ -561,6 +560,12 @@
         (setf (mask parents index) 0)))))
 
 
+#|
+This code determines both masks in the concatenation-state AND changes parents.
+This is simple, but not efficient because it may force creating node contents twice
+(first here, according to changes in the children, and secondly when this level is shifted towards
+lower indexes). In practice however, this seems to have minimal impact on performance.
+|#
 (defun update-parents (state column)
   (with-concatenation-state (state)
     (iterate
