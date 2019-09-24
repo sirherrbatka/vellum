@@ -333,6 +333,7 @@
 
 
 (declaim (inline distinct-missing))
+(-> distinct-missing (fixnum fixnum) fixnum)
 (defun distinct-missing (real-mask logior-mask)
   (~> real-mask
       (logxor logior-mask)
@@ -344,7 +345,7 @@
                                                  fixnum)
     t)
 (defun move-to-existing-column (state from to from-mask to-mask column-index)
-  (declare (optimize (speed 3) (safety 0)))
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
   (assert (< to from))
   (assert (= (logcount to-mask) (integer-length to-mask)))
   (assert (= (logcount from-mask) (integer-length from-mask)))
@@ -400,10 +401,21 @@
             (setf (aref to-content i) (aref from-content j))
             (finally (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node)
                            new-to-mask)))
-          (let ((new-content (make-array
-                              new-to-size
-                              :element-type element-type)))
-            (declare (type simple-vector new-content))
+          (let* ((new-content-size
+                   (if (zerop new-from-mask)
+                       (~>> (ash from-mask taken)
+                            (logior to-mask)
+                            truncate-mask
+                            (distinct-missing new-to-mask)
+                            logcount
+                            (- cl-ds.common.rrb:+maximum-children-count+))
+                       new-to-size))
+                 (new-content (make-array
+                               new-content-size
+                               :element-type element-type)))
+            (declare (type simple-vector new-content)
+                     (type fixnum new-content-size))
+            (assert (>= new-content-size new-to-size))
             (assert (>= new-to-size real-to-size))
             (iterate
               (declare (type fixnum i))
