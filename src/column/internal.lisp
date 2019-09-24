@@ -550,9 +550,19 @@
           child-position))
 
 
+(defun clear-changed-parents-masks (state)
+  (with-concatenation-state (state)
+    (iterate
+      (declare (type fixnum i))
+      (for i from 0 below (length nodes))
+      (iterate
+        (for (index changed) in-hashtable (aref changed-parents i))
+        (assert changed)
+        (setf (mask parents index) 0)))))
+
+
 (defun update-parents (state column)
   (with-concatenation-state (state)
-    (clear-masks parents)
     (iterate
       (declare (type fixnum mask))
       (with tag = (~> columns
@@ -617,6 +627,7 @@
                     current-state))
             (shift-content current-state)
             (unless (null parent-state)
+              (clear-changed-parents-masks current-state)
               (iterate
                 (declare (type fixnum i))
                 (for i from 0 below (length nodes))
