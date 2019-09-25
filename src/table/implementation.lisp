@@ -301,7 +301,7 @@
       (bind ((transform (lambda (column)
                           (lret ((result (cl-ds:replica column (not in-place))))
                             (cl-ds.dicts.srrb:transactional-insert-tail!
-                             column
+                             result
                              (cl-ds.common.abstract:read-ownership-tag column)))))
              (column-count (the fixnum (column-count frame)))
              (iterator (make-iterator columns :transformation transform))
