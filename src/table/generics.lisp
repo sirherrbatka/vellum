@@ -31,4 +31,4 @@
 
 (defgeneric remove-nulls (frame &key in-place))
 
-(defgeneric make-table (class header))
+(defgeneric make-table (class &optional header))
