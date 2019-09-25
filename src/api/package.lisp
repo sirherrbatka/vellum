@@ -8,6 +8,7 @@
    #:file-input-row-cant-be-created
    #:copy-to
    #:new-columns
+   #:print-table
    #:empty-column
    #:copy-from))
 
@@ -28,6 +29,7 @@
   cl-df.table:nullify
   cl-df.table:remove-nulls
   cl-df.table:row-count
+  cl-df.table:column-count
   cl-df.table:selection
   cl-df.table:to-table
   cl-df.table:transform
