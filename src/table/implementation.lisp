@@ -284,6 +284,104 @@
       new-columns)))
 
 
+(defmethod transformation ((frame standard-table)
+                           &key
+                             (in-place *transform-in-place*)
+                             (start 0))
+  (when (zerop (~> frame read-columns length))
+    (error "Can't transform frame without a columns.")) ; proper error needed
+  (let* ((columns (read-columns frame))
+         (transform (lambda (column)
+                      (lret ((result (cl-ds:replica column (not in-place))))
+                        (cl-ds.dicts.srrb:transactional-insert-tail!
+                         result
+                         (cl-ds.common.abstract:read-ownership-tag column)))))
+         (marker-column (cl-df.column:make-sparse-material-column
+                         :element-type 'boolean))
+         (marker-iterator (make-iterator (vector marker-column)))
+         (iterator (make-iterator columns :transformation transform))
+         (row (make 'setfable-table-row :iterator iterator)))
+    (cl-df.column:move-iterator iterator start)
+    (cl-df.column:move-iterator marker-iterator start)
+    (make-standard-transformation
+     :marker-iterator marker-iterator
+     :marker-column marker-column
+     :iterator iterator
+     :column-count (length columns)
+     :table frame
+     :row row
+     :in-place in-place
+     :start start
+     :columns columns)))
+
+
+(defun transform-row-impl (transformation function)
+  (declare (type standard-transformation transformation)
+           (type function function)
+           (optimize (speed 3) (safety 0)))
+  (cl-ds.utils:with-slots-for (transformation standard-transformation)
+    (let* ((*transform-control*
+            (lambda (operation)
+              (cond ((eq operation :drop)
+                     (iterate
+                       (declare (type fixnum i))
+                       (for i from 0 below column-count)
+                       (setf (cl-df.column:iterator-at iterator i) :null))
+                     (setf (cl-df.column:iterator-at marker-iterator 0) t
+                           dropped t))
+                    ((eq operation :nullify)
+                     (iterate
+                       (declare (type fixnum i))
+                       (for i from 0 below column-count)
+                       (setf (cl-df.column:iterator-at iterator i) :null)))
+                    (t (funcall *transform-control* operation))))))
+      (funcall function)
+      (incf count)
+      (cl-df.column:move-iterator iterator 1)
+      (cl-df.column:move-iterator marker-iterator 1)
+      transformation)))
+
+
+(defmethod transform-row ((object standard-transformation)
+                          function)
+  (ensure-functionf function)
+  (cl-ds.utils:with-slots-for (object standard-transformation)
+    (with-table (table)
+      (cl-df.header:set-row row)
+      (transform-row-impl object function))))
+
+
+(defmethod transformation-result ((object standard-transformation))
+  (cl-ds.utils:with-slots-for (object standard-transformation)
+    (cl-df.column:finish-iterator iterator)
+    (let ((new-columns (cl-df.column:columns iterator))
+          (marker-iterator marker-iterator))
+      (assert (not (eq new-columns columns)))
+      (when dropped
+        (cl-df.column:finish-iterator marker-iterator)
+        (setf marker-iterator (make-iterator (vector marker-column)))
+        (iterate
+          (for i from 0 below (the fixnum (+ start count)))
+          (for value = (cl-df.column:iterator-at marker-iterator 0))
+          (setf (cl-df.column:iterator-at marker-iterator 0)
+                (if (eql :null value) t :null))
+          (cl-df.column:move-sparse-material-column-iterator
+           marker-iterator 1))
+        (cl-df.column:finish-iterator marker-iterator)
+        (let ((cleaned-columns (adjust-array new-columns
+                                             (1+ column-count))))
+          (setf (last-elt cleaned-columns) marker-column
+                new-columns (~> cleaned-columns
+                                remove-nulls-from-columns
+                                (adjust-array column-count)))))
+      (if in-place
+          (progn
+            (write-columns new-columns table)
+            table)
+          (cl-ds.utils:quasi-clone* table
+            :columns (ensure-replicas columns new-columns))))))
+
+
 (defmethod transform ((frame standard-table) function
                       &key
                         (in-place *transform-in-place*)
@@ -293,81 +391,26 @@
   (ensure-functionf function)
   (check-type start non-negative-fixnum)
   (check-type end (or null non-negative-fixnum))
-  (bind ((columns (read-columns frame))
-         (column-count (length columns)))
-    (when (zerop column-count)
-      (return-from transform frame))
-    (with-table (frame)
-      (bind ((transform (lambda (column)
-                          (lret ((result (cl-ds:replica column (not in-place))))
-                            (cl-ds.dicts.srrb:transactional-insert-tail!
-                             result
-                             (cl-ds.common.abstract:read-ownership-tag column)))))
-             (column-count (the fixnum (column-count frame)))
-             (iterator (make-iterator columns :transformation transform))
-             (row (make 'setfable-table-row :iterator iterator))
-             (marker-column (cl-df.column:make-sparse-material-column
-                             :element-type 'symbol))
-             (dropped nil)
-             (marker-iterator (make-iterator (vector marker-column)))
-             ((:flet move-iterators (&optional (count 1)))
-              (cl-df.column:move-iterator iterator count)
-              (cl-df.column:move-sparse-material-column-iterator marker-iterator count))
-             (done nil)
-             (count 0)
-             (*transform-control*
-              (lambda (operation)
-                (eswitch (operation :test 'eq)
-                  (:finish (setf done t))
-                  (:drop
-                   (iterate
-                     (declare (type fixnum i))
-                     (for i from 0 below column-count)
-                     (setf (cl-df.column:iterator-at iterator i) :null))
-                   (setf (cl-df.column:iterator-at marker-iterator 0) t
-                         dropped t))
-                  (:nullify
-                   (iterate
-                     (declare (type fixnum i))
-                     (for i from 0 below column-count)
-                     (setf (cl-df.column:iterator-at iterator i) :null)))))))
-        (cl-df.header:set-row row)
-        (move-iterators start)
-        (iterate
-          (declare (type fixnum i))
-          (for i from start)
-          (until (or done
-                     (and (not (null end))
-                          (>= i end))))
-          (funcall function)
-          (incf count)
-          (move-iterators))
-        (cl-df.column:finish-iterator iterator)
-        (let ((new-columns (cl-df.column:columns iterator)))
-          (assert (not (eq new-columns columns)))
-          (when dropped
-            (cl-df.column:finish-iterator marker-iterator)
-            (setf marker-iterator (make-iterator (vector marker-column)))
-            (iterate
-              (for i from 0 below (the fixnum (+ start count)))
-              (for value = (cl-df.column:iterator-at marker-iterator 0))
-              (setf (cl-df.column:iterator-at marker-iterator 0)
-                    (if (eql :null value) t :null))
-              (cl-df.column:move-sparse-material-column-iterator
-               marker-iterator 1))
-            (cl-df.column:finish-iterator marker-iterator)
-            (let ((cleaned-columns (adjust-array new-columns
-                                                 (1+ column-count))))
-              (setf (last-elt cleaned-columns) marker-column
-                    new-columns (~> cleaned-columns
-                                    remove-nulls-from-columns
-                                    (adjust-array column-count)))))
-          (if in-place
-              (progn
-                (write-columns new-columns frame)
-                frame)
-              (cl-ds.utils:quasi-clone* frame
-                :columns (ensure-replicas columns new-columns))))))))
+  (when (~> frame column-count zerop)
+    (return-from transform frame))
+  (with-table (frame)
+    (let* ((done nil)
+           (transformation (transformation frame :start start
+                                                 :in-place in-place))
+           (row (standard-transformation-row transformation))
+           (*transform-control*
+            (lambda (operation)
+              (cond ((eq operation :finish) (setf done t))
+                    (t (funcall *transform-control* operation))))))
+      (cl-df.header:set-row row)
+      (iterate
+        (declare (type fixnum i))
+        (for i from start)
+        (until (or done
+                   (and (not (null end))
+                        (>= i end))))
+        (transform-row-impl transformation function))
+      (transformation-result transformation))))
 
 
 (defmethod remove-nulls ((frame standard-table)

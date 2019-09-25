@@ -14,6 +14,34 @@
              :type vector)))
 
 
+(defstruct standard-transformation
+  (dropped nil :type boolean)
+  marker-column
+  marker-iterator
+  table
+  (in-place nil :type boolean)
+  (start 0 :type integer)
+  row
+  iterator
+  (columns #() :type simple-vector)
+  (column-count 0 :type fixnum)
+  (count 0 :type fixnum))
+
+
+(cl-ds.utils:define-list-of-slots standard-transformation ()
+  (column-count standard-transformation-column-count)
+  (dropped standard-transformation-dropped)
+  (marker-column standard-transformation-marker-column)
+  (marker-iterator standard-transformation-marker-iterator)
+  (table standard-transformation-table)
+  (in-place standard-transformation-in-place)
+  (start standard-transformation-start)
+  (row standard-transformation-row)
+  (iterator standard-transformation-iterator)
+  (columns standard-transformation-columns)
+  (count standard-transformation-count))
+
+
 (defmethod cl-ds.utils:cloning-information append ((table standard-table))
   '((:header header)
     (:columns read-columns)))

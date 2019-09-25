@@ -12,6 +12,9 @@
    #:column-type
    #:finish-transformation
    #:header
+   #:transformation
+   #:transform-row
+   #:transformation-result
    #:hselect
    #:hstack
    #:no-transformation

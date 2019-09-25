@@ -24,19 +24,22 @@
   cl-df.header:standard-header
   cl-df.header:with-header
   cl-df.table:at
-  cl-df.table:make-table
+  cl-df.table:column-count
+  cl-df.table:drop-row
+  cl-df.table:hselect
   cl-df.table:hstack
+  cl-df.table:make-table
   cl-df.table:nullify
   cl-df.table:remove-nulls
   cl-df.table:row-count
-  cl-df.table:column-count
   cl-df.table:selection
   cl-df.table:to-table
   cl-df.table:transform
+  cl-df.table:transform-row
+  cl-df.table:transformation
+  cl-df.table:transformation-result
   cl-df.table:vmask
   cl-df.table:vselect
-  cl-df.table:hselect
-  cl-df.table:drop-row
   cl-df.table:vstack
   cl-df.table:with-table
   cl-ds:replica)
