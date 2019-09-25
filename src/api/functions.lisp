@@ -16,8 +16,8 @@
                         class-of
                         (cl-df:make-header columns))))
     (hstack table
-            (make-table (class-of table)
-                        new-header))))
+            (cl-df.table:make-table (class-of table)
+                                    new-header))))
 
 
 (defun empty-table (&key (header (cl-df.header:header)))

@@ -29,7 +29,6 @@
   cl-df.table:drop-row
   cl-df.table:hselect
   cl-df.table:hstack
-  cl-df.table:make-table
   cl-df.table:nullify
   cl-df.table:remove-nulls
   cl-df.table:row-count
