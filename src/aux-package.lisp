@@ -145,7 +145,6 @@
   alexandria:non-positive-short-float
   alexandria:non-positive-short-float-p
   alexandria:non-positive-single-float-p
-  alexandria:ordinary-lambda-list-keywords
   alexandria:positive-double-float
   alexandria:positive-double-float-p
   alexandria:positive-fixnum
