@@ -240,7 +240,8 @@
          (new-size 0))
     (declare (type fixnum new-size old-size column-count))
     (when (zerop column-count)
-      (return-from vmask frame))
+      (return-from vmask
+        (if in-place frame (cl-ds.utils:quasi-clone* frame))))
     (with-table (frame)
       (let* ((transformation (transformation frame :in-place in-place))
              (row (standard-transformation-row transformation)))
@@ -280,8 +281,9 @@
                            &key
                              (in-place *transform-in-place*)
                              (start 0))
-  (when (zerop (~> frame read-columns length))
-    (error "Can't transform frame without a columns.")) ; proper error needed
+  (when (~> frame read-columns length zerop)
+    (error 'cl-ds:operation-not-allowed
+           :format-control "Can't transform frame without a columns."))
   (let* ((columns (read-columns frame))
          (transform (lambda (column)
                       (lret ((result (cl-ds:replica column (not in-place))))
@@ -384,7 +386,8 @@
   (check-type start non-negative-fixnum)
   (check-type end (or null non-negative-fixnum))
   (when (~> frame column-count zerop)
-    (return-from transform frame))
+    (return-from transform
+      (if in-place frame (cl-ds.utils:quasi-clone* frame))))
   (with-table (frame)
     (let* ((done nil)
            (transformation (transformation frame :start start
