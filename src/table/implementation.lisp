@@ -414,7 +414,13 @@
          (new-columns (remove-nulls-from-columns columns
                        (curry #'cl-ds:replica (not in-place)))))
     (when (eq columns new-columns)
-      (return-from remove-nulls frame))
+      (return-from remove-nulls
+        (if in-place
+            frame
+            (cl-ds.utils:quasi-clone* frame
+              :columns (map 'vector
+                            (lambda (x) (cl-ds:replica x t))
+                            columns)))))
     (if in-place
         (progn
           (write-columns new-columns frame)
