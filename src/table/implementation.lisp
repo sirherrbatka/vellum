@@ -241,36 +241,28 @@
     (declare (type fixnum new-size old-size column-count))
     (when (zerop column-count)
       (return-from vmask frame))
-    (cl-df.header:with-header ((header frame))
-      (let* ((transform (rcurry #'cl-ds:replica (not in-place)))
-             (iterator (make-iterator columns :transformation transform))
-             (new-columns (cl-df.column:columns iterator)))
-        (assert (not (eq new-columns columns)))
-        (cl-df.header:set-row (make 'table-row :iterator iterator))
+    (with-table (frame)
+      (let* ((transformation (transformation frame :in-place in-place))
+             (row (standard-transformation-row transformation)))
+        (cl-df.header:set-row row)
         (block out
           (cl-ds:traverse
            mask
            (lambda (accepted)
              (unless (< new-size old-size)
                (return-from out))
-             (when (not accepted)
-               (iterate
-                 (for column in-vector new-columns)
-                 (for column-index from 0 below column-count)
-                 (setf (cl-df.column:iterator-at iterator column-index)
-                       :null)))
-             (cl-df.column:move-iterator iterator 1)
+             (transform-row-impl transformation
+                                 (lambda (&rest all)
+                                   (declare (ignore all))
+                                   (unless accepted
+                                     (nullify))))
              (incf new-size))))
-        (cl-df.column:finish-iterator iterator)
-        (iterate
-          (for column in-vector new-columns)
-          (cl-df.column:truncate-to-length column new-size))
-        (if in-place
-            (progn
-              (write-columns new-columns frame)
-              frame)
-            (cl-ds.utils:quasi-clone* frame
-              :columns (ensure-replicas columns new-columns)))))))
+        (let* ((result (transformation-result transformation))
+               (new-columns (read-columns result)))
+          (iterate
+            (for column in-vector new-columns)
+            (cl-df.column:truncate-to-length column new-size))
+          result)))))
 
 
 (defun remove-nulls-from-columns (columns &optional (transform #'identity))
