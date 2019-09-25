@@ -20,6 +20,19 @@
                         new-header))))
 
 
+(defun empty-table (&key (header (cl-df.header:header)))
+  (make 'cl-df.table:standard-table
+        :header header
+        :columns (iterate
+                   (with count = (cl-df.header:column-count header))
+                   (with result = (make-array count))
+                   (for i from 0 below count)
+                   (setf (aref result i)
+                         (cl-df.column:make-sparse-material-column
+                          :element-type (cl-df.header:column-type header i)))
+                   (finally (return result)))))
+
+
 (defun print-table (table
                     &key
                       (output *standard-output*)
