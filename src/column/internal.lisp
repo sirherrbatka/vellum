@@ -594,6 +594,9 @@ This is simple, but not efficient because it may force creating node contents tw
 lower indexes). In practice however, this seems to have minimal impact on performance.
 |#
 (defun update-parents (state column)
+  (declare (optimize (speed 3) (safety 0))
+           (type fixnum column)
+           (type concatenation-state state))
   (with-concatenation-state (state)
     (iterate
       (declare (type fixnum mask))
@@ -619,6 +622,7 @@ lower indexes). In practice however, this seems to have minimal impact on perfor
                        array-element-type
                        (make-array (logcount mask) :element-type _))))
             (iterate
+              (declare (type fixnum i content-position))
               (with content-position = 0)
               (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
               (unless (ldb-test (byte 1 i) mask)
