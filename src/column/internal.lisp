@@ -264,7 +264,7 @@
 
 
 (-> node (concatenation-state fixnum fixnum)
-    cl-ds.common.rrb:sparse-rrb-node)
+    (or null cl-ds.common.rrb:sparse-rrb-node))
 (defun node (state column index)
   (declare (type concatenation-state state)
            (type fixnum index column))
@@ -387,8 +387,7 @@
                                real-from-mask))
            (new-to-mask (logior real-to-mask shifted-from-mask))
            (new-to-size (logcount new-to-mask)))
-      (declare (type list from-node to-node)
-               (type simple-vector from-content)
+      (declare (type simple-vector from-content)
                (type fixnum taken free-space real-from-size
                      real-from-mask real-to-mask new-to-mask new-to-size))
       (assert (= real-to-mask (logand real-to-mask to-mask)))
@@ -496,7 +495,6 @@
            (from-exists (not (null from-node)))
            (from-owned (cl-ds.common.abstract:acquire-ownership
                         from-node column-tag)))
-      (declare (type list from-node to-node))
       (unless from-exists
         (return-from move-children-in-column nil))
       (if to-exists
@@ -600,12 +598,12 @@ lower indexes). In practice however, this seems to have minimal impact on perfor
   (with-concatenation-state (state)
     (iterate
       (declare (type fixnum mask))
-      (with tag = (~> columns
-                      (aref column)
-                      cl-ds.common.abstract:read-ownership-tag))
+      (with column-object = (aref columns column))
+      (with tag = (cl-ds.common.abstract:read-ownership-tag column-object))
       (for (index changed) in-hashtable (aref changed-parents column))
       (assert changed)
       (for parent = (node parents column index))
+      (assert parent)
       (for mask = 0)
       (iterate
         (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
@@ -620,7 +618,8 @@ lower indexes). In practice however, this seems to have minimal impact on perfor
                   (~>> parent
                        cl-ds.common.rrb:sparse-rrb-node-content
                        array-element-type
-                       (make-array (logcount mask) :element-type _))))
+                       (make-array (logcount mask) :element-type _
+                                                   :initial-element nil))))
             (iterate
               (declare (type fixnum i content-position))
               (with content-position = 0)
@@ -739,7 +738,7 @@ lower indexes). In practice however, this seems to have minimal impact on perfor
         (for owned = (cl-ds.common.abstract:acquire-ownership node tag))
         (if owned
             (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask node) new-mask)
-            (let ((copy (cl-ds.common.rrb:deep-copy-sparse-rrb-node node)))
+            (let ((copy (cl-ds.common.rrb:deep-copy-sparse-rrb-node node 0 tag)))
               (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask copy) new-mask
                     (node state i index) copy)))))))
 

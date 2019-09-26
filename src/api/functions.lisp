@@ -34,7 +34,6 @@
                       (output *standard-output*)
                       (start 0)
                       (end 10))
-  (declare (optimize (debug 3)))
   (check-type table cl-df.table:fundamental-table)
   (check-type output stream)
   (check-type start non-negative-integer)
