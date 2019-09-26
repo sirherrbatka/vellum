@@ -67,7 +67,7 @@
   (~> frame header (cl-df.header:column-type column)))
 
 
-(defmethod vstack ((frame standard-table) more-frames)
+(defmethod hstack ((frame standard-table) more-frames)
   (let* ((new-columns
            (map 'vector
                 (lambda (column &aux (new (cl-ds:replica column t)))
@@ -102,7 +102,7 @@
     new-frame))
 
 
-(defmethod hstack ((frame standard-table) more-frames)
+(defmethod vstack ((frame standard-table) more-frames)
   (cl-ds:across more-frames
                 (lambda (x) (check-type x standard-table)))
   (let* ((more-frames (~>> (cl-ds.alg:accumulate more-frames
@@ -465,6 +465,11 @@
          (columns-count (length columns))
          (row-count (row-count container))
          (header (header container)))
+    (map nil
+         (lambda (x)
+           (~>> x cl-ds.common.abstract:read-ownership-tag
+                (cl-ds.dicts.srrb:transactional-insert-tail! x)))
+         columns)
     (if (zerop columns-count)
         (make 'cl-ds:empty-range)
         (make 'standard-table-range
