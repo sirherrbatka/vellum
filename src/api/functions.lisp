@@ -2,35 +2,21 @@
 
 
 (defun empty-column (header-class &rest row-parameters)
-  (let ((header (make-header header-class row-parameters)))
-    (make 'cl-df.table:standard-table
-          :header header
-          :columns (vector (cl-df.column:make-sparse-material-column
-                            :element-type (cl-df.header:column-type
-                                           header 0))))))
+  (~>> (make-header header-class row-parameters)
+       (cl-df.table:make-table 'cl-df.table:standard-table)))
 
 
 (defun new-columns (table &rest columns)
-  (let ((new-header (~> table
-                        cl-df.table:header
-                        class-of
-                        (cl-df:make-header columns))))
-    (hstack table
-            (cl-df.table:make-table (class-of table)
-                                    new-header))))
+  (~>> table
+       cl-df.table:header
+       class-of
+       (cl-df:make-header _ columns)
+       (cl-df.table:make-table (class-of table))
+       (hstack table)))
 
 
 (defun empty-table (&key (header (cl-df.header:header)))
-  (make 'cl-df.table:standard-table
-        :header header
-        :columns (iterate
-                   (with count = (cl-df.header:column-count header))
-                   (with result = (make-array count))
-                   (for i from 0 below count)
-                   (setf (aref result i)
-                         (cl-df.column:make-sparse-material-column
-                          :element-type (cl-df.header:column-type header i)))
-                   (finally (return result)))))
+  (cl-df.table:make-table 'cl-df.table:standard-table header))
 
 
 (defun print-table (table
@@ -71,7 +57,7 @@
                          (~> header
                              (cl-df.header:index-to-alias j)
                              symbol-name))
-                        (print j)))
+                        (format nil "~a" j)))
       (setf (aref strings 0 j) string)
       (setf (aref desired-sizes j) (length string)))
     (iterate
