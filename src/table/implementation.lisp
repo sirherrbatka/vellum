@@ -507,7 +507,7 @@
   (cl-ds:traverse table function))
 
 
-(defmethod cl-ds.alg.meta:apply-range-function ((range standard-table)
+(defmethod cl-ds.alg.meta:apply-range-function ((range fundamental-table)
                                                 function
                                                 &rest all)
   (with-table (range)
