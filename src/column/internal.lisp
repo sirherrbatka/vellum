@@ -160,6 +160,22 @@
     (finally (return-from outer max-index))))
 
 
+(defun find-max-index (nodes)
+  (iterate outer
+    (declare (type fixnum i length))
+    (with length = (length nodes))
+    (for i from 0 below length)
+    (for column = (aref nodes i))
+    (when (null column)
+      (next-iteration))
+    (iterate
+      (for (index n) in-hashtable column)
+      (when (null n)
+        (next-iteration))
+      (in outer (maximizing index into max-index)))
+    (finally (return-from outer max-index))))
+
+
 (defun gather-masks (nodes &optional (result (make-hash-table
                                               :size (* 32 (length nodes)))))
   (declare (type simple-array nodes))
@@ -219,7 +235,7 @@
 
 
 (defun concatenation-state (iterator columns nodes parents)
-  (bind (((:values masks max-index) (gather-masks nodes))
+  (bind ((max-index (find-max-index nodes))
          (result (make-concatenation-state
                   :changed-parents (map 'vector
                                         (lambda (x)
@@ -228,13 +244,9 @@
                                         columns)
                   :iterator iterator
                   :max-index max-index
-                  :masks masks
                   :nodes nodes
                   :columns columns
                   :parents parents)))
-    (iterate
-      (for (key value) in-hashtable (concatenation-state-masks result))
-      (assert (= (integer-length value) (logcount value))))
     result))
 
 
@@ -599,7 +611,6 @@ lower indexes). In practice however, this seems to have minimal impact on perfor
         (unless (null child)
           (setf mask (dpb 1 (byte 1 i) mask))))
       (setf mask (truncate-mask mask))
-      (logior-mask parents index mask)
       (if (zerop mask)
           (setf (node parents column index) nil)
           (let ((new-content
@@ -638,13 +649,15 @@ lower indexes). In practice however, this seems to have minimal impact on perfor
          ((:labels impl (d nodes parent-state))
           (declare (type simple-vector nodes))
           (let* ((current-state (concatenation-state iterator
-                                                    columns
-                                                    nodes
-                                                    parent-state)))
+                                                     columns
+                                                     nodes
+                                                     parent-state)))
+            (concatenate-masks current-state)
             (unless (eql d depth)
               (impl (the fixnum (1+ d))
                     (map 'vector #'children nodes)
                     current-state))
+            (concatenate-masks current-state)
             (shift-content current-state)
             (unless (null parent-state)
               (clear-changed-parents-masks current-state)
@@ -696,99 +709,31 @@ lower indexes). In practice however, this seems to have minimal impact on perfor
       (finally (return new-bitmask)))))
 
 
-(defun remove-nulls-in-trees (iterator)
-  (declare (optimize (speed 3) (debug 0) (safety 0)))
-  (bind ((columns (the vector
-                       (~>> iterator read-columns
-                            (remove-if #'null _ :key #'column-root))))
-         (depth (the fixnum
-                     (~> (extremum columns #'>
-                                   :key #'cl-ds.dicts.srrb:access-shift)
-                         cl-ds.dicts.srrb:access-shift)))
-         ((:flet change-parents (i nodes next-nodes))
-          (declare (type fixnum i)
-                   (simple-vector nodes next-nodes))
-          (iterate
-            (declare (type fixnum j))
-            (for j from 0 below (length nodes))
-            (for parent-node = (aref nodes j))
-            (when (null parent-node)
-              (next-iteration))
-            (for child-node = (aref next-nodes j))
-            (when (null child-node)
-              (next-iteration))
-            (for existing-child = (cl-ds.common.rrb:sparse-nref parent-node i))
-            (when (eq existing-child child-node)
-              (next-iteration))
-            (for column = (aref columns j))
-            (for tag = (cl-ds.common.abstract:read-ownership-tag column))
-            (for owned = (cl-ds.common.abstract:acquire-ownership parent-node tag))
-            (unless owned
-              (setf parent-node (cl-ds.common.rrb:deep-copy-sparse-rrb-node parent-node
-                                                                            0
-                                                                            tag)
-                    (aref nodes j) parent-node))
-            (setf (cl-ds.common.rrb:sparse-nref parent-node i) child-node)))
-         ((:flet missing-bitmask (node))
-          (if (null node)
-              (truncate-mask most-positive-fixnum)
-              (~> node
-                  cl-ds.common.rrb:sparse-rrb-node-bitmask
-                  lognot
-                  truncate-mask)))
-         ((:flet get-next-nodes (node i))
-          (if (and node
-                   (cl-ds.common.rrb:sparse-rrb-node-contains node i))
-              (cl-ds.common.rrb:sparse-nref node i)
-              nil))
-         ((:labels impl (d nodes))
-          (declare (type fixnum d)
-                   (type simple-vector nodes))
-          (iterate
-            (declare (type fixnum missing-mask i
-                           old-bitmask new-bitmask))
-            (with missing-mask = (reduce #'logand nodes
-                                         :key #'missing-bitmask))
-            (for i from 0 below (length nodes))
-            (for node = (aref nodes i))
-            (for node-exists = (not (null node)))
-            (unless node-exists (next-iteration))
-            (for old-bitmask = (if node-exists
-                                   (cl-ds.common.rrb:sparse-rrb-node-bitmask node)
-                                   0))
-            (for new-bitmask = (build-new-mask old-bitmask missing-mask))
-            (assert (or (zerop missing-mask)
-                        (not (zerop (logandc2 missing-mask old-bitmask)))))
-            (assert (eql (logcount new-bitmask)
-                         (logcount old-bitmask)))
-            (unless (eql new-bitmask old-bitmask)
-              (let* ((column (aref columns i))
-                     (tag (cl-ds.common.abstract:read-ownership-tag column))
-                     (owned (cl-ds.common.abstract:acquire-ownership node
-                                                                     tag)))
-                (unless owned
-                  (setf node (cl-ds.common.rrb:deep-copy-sparse-rrb-node node
-                                                                         0
-                                                                         tag)
-                        (aref nodes i) node))
-                (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask node)
-                      new-bitmask))))
-          (unless (eql d depth)
-            (iterate
-              (declare (type fixnum i))
-              (with next-nodes = (copy-array nodes))
-              (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-              (map-into next-nodes
-                        (lambda (node) (get-next-nodes node i))
-                        nodes)
-              (impl (1+ d) next-nodes)
-              (change-parents i nodes next-nodes))))
-         (roots (map 'vector #'column-root columns)))
-    (impl 0 roots)
+(defun concatenate-masks (state)
+  (with-concatenation-state (state)
+    (clrhash masks)
+    (gather-masks nodes masks)
     (iterate
-      (for root in-vector roots)
+      (for tree in-vector nodes)
       (for column in-vector columns)
-      (setf (cl-ds.dicts.srrb:access-tree column) root))))
+      (for i from 0)
+      (for tag = (cl-ds.common.abstract:read-ownership-tag column))
+      (iterate
+        (for (index node) in-hashtable tree)
+        (for mask = (mask state index))
+        (for old-mask = (cl-ds.common.rrb:sparse-rrb-node-bitmask node))
+        (for new-mask = (~>> mask
+                             lognot
+                             truncate-mask
+                             (build-new-mask old-mask)))
+        (when (= old-mask new-mask)
+          (next-iteration))
+        (for owned = (cl-ds.common.abstract:acquire-ownership node tag))
+        (if owned
+            (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask node) new-mask)
+            (let ((copy (cl-ds.common.rrb:deep-copy-sparse-rrb-node node)))
+              (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask copy) new-mask
+                    (node state i index) copy)))))))
 
 
 (defun move-stack (depth new-index stack)

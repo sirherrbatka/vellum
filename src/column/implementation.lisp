@@ -236,7 +236,6 @@
             (finally (setf (cl-ds.dicts.srrb:access-tree column) node)))))
     (cl-ds.utils:transform (read-transformation iterator) %columns)
     (map nil #'unify-shift %columns)
-    (remove-nulls-in-trees iterator)
     (concatenate-trees iterator)
     (trim-depth iterator)
     (iterate
