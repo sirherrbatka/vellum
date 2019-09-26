@@ -585,12 +585,6 @@
         (setf (mask parents index) 0)))))
 
 
-#|
-This code determines both masks in the concatenation-state AND changes parents.
-This is simple, but not efficient because it may force creating node contents twice
-(first here, according to changes in the children, and secondly when this level is shifted towards
-lower indexes). In practice however, this seems to have minimal impact on performance.
-|#
 (defun update-parents (state column)
   (declare (optimize (speed 3) (safety 0))
            (type fixnum column)
@@ -603,9 +597,9 @@ lower indexes). In practice however, this seems to have minimal impact on perfor
       (for (index changed) in-hashtable (aref changed-parents column))
       (assert changed)
       (for parent = (node parents column index))
-      (assert parent)
       (for mask = 0)
       (iterate
+        (declare (type fixnum i child-index))
         (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
         (for child-index = (child-index index i))
         (for child = (node state column child-index))
@@ -615,11 +609,8 @@ lower indexes). In practice however, this seems to have minimal impact on perfor
       (if (zerop mask)
           (setf (node parents column index) nil)
           (let ((new-content
-                  (~>> parent
-                       cl-ds.common.rrb:sparse-rrb-node-content
-                       array-element-type
-                       (make-array (logcount mask) :element-type _
-                                                   :initial-element nil))))
+                  (make-array (logcount mask) :element-type t
+                                              :initial-element nil)))
             (iterate
               (declare (type fixnum i content-position))
               (with content-position = 0)
@@ -631,11 +622,11 @@ lower indexes). In practice however, this seems to have minimal impact on perfor
               (assert child)
               (setf (aref new-content content-position) child)
               (incf content-position))
-            (if (cl-ds.common.abstract:acquire-ownership parent tag)
+            (if (and parent (cl-ds.common.abstract:acquire-ownership parent tag))
                 (setf (cl-ds.common.rrb:sparse-rrb-node-content parent)
                       new-content
                       (cl-ds.common.rrb:sparse-rrb-node-bitmask parent) mask)
-                (let ((new-node (make-node iterator column mask
+                (let ((new-node (make-node iterator column-object mask
                                            :content new-content)))
                   (setf (node parents column index) new-node))))))))
 
@@ -663,7 +654,6 @@ lower indexes). In practice however, this seems to have minimal impact on perfor
             (concatenate-masks current-state)
             (shift-content current-state)
             (unless (null parent-state)
-              (clear-changed-parents-masks current-state)
               (iterate
                 (declare (type fixnum i))
                 (for i from 0 below (length nodes))
