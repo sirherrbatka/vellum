@@ -608,9 +608,9 @@
       (setf mask (truncate-mask mask))
       (if (zerop mask)
           (setf (node parents column index) nil)
-          (let ((new-content
-                  (make-array (logcount mask) :element-type t
-                                              :initial-element nil)))
+          (let ((new-content (make-array (logcount mask)
+                                         :element-type t
+                                         :initial-element nil)))
             (iterate
               (declare (type fixnum i content-position))
               (with content-position = 0)
