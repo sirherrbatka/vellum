@@ -15,6 +15,16 @@
        (vstack table)))
 
 
+(defun sample (table chance-to-pick &key (in-place *transform-in-place*))
+  (check-type chance-to-pick (real 0 1))
+  (transform table
+             (lambda (&rest all)
+               (declare (ignore all))
+               (unless (< chance-to-pick (random 1.0d0))
+                 (drop-row)))
+             :in-place in-place))
+
+
 (defun empty-table (&key (header (cl-df.header:header)))
   (cl-df.table:make-table 'cl-df.table:standard-table header))
 

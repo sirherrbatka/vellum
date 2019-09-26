@@ -6,6 +6,7 @@
   (:nicknames #:cl-df.table)
   (:export
    #:*table*
+   #:*transform-in-place*
    #:at
    #:column-count
    #:column-name
