@@ -709,16 +709,20 @@ lower indexes). In practice however, this seems to have minimal impact on perfor
       (finally (return new-bitmask)))))
 
 
+(-> concatenate-masks (concatenation-state) t)
 (defun concatenate-masks (state)
+  (declare (optimize (speed 3)))
   (with-concatenation-state (state)
     (clrhash masks)
     (gather-masks nodes masks)
     (iterate
-      (for tree in-vector nodes)
-      (for column in-vector columns)
-      (for i from 0)
+      (declare (type fixnum i))
+      (for i from 0 below (length columns))
+      (for tree = (aref nodes i))
+      (for column = (aref columns i))
       (for tag = (cl-ds.common.abstract:read-ownership-tag column))
       (iterate
+        (declare (type fixnum old-mask new-mask))
         (for (index node) in-hashtable tree)
         (for mask = (mask state index))
         (for old-mask = (cl-ds.common.rrb:sparse-rrb-node-bitmask node))
