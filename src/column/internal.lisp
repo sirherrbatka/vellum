@@ -586,7 +586,7 @@
 
 
 (defun update-parents (state column)
-  (declare (optimize (speed 3) (safety 0))
+  (declare (optimize (speed 3) (safety 1))
            (type fixnum column)
            (type concatenation-state state))
   (with-concatenation-state (state)
