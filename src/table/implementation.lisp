@@ -1,10 +1,6 @@
 (in-package #:cl-df.table)
 
 
-(defun make-iterator (columns &key (transformation #'identity))
-  (cl-df.column:make-iterator columns :transformation transformation))
-
-
 (defmethod at ((frame standard-table) (column symbol) (row integer))
   (~> frame header
       (cl-df.header:alias-to-index column)
@@ -166,7 +162,7 @@
       (with iterator = (make-iterator new-columns))
       (for start in-vector starts)
       (for end in-vector ends)
-      (for source-iterator = (make-iterator columns))
+      (for source-iterator = (iterator frame t))
       (cl-df.column:move-iterator source-iterator start)
       (iterate
         (for i
@@ -214,24 +210,6 @@
         :columns new-columns))))
 
 
-(defun ensure-replicas (columns new-columns &optional (isolate t))
-  (iterate
-    (for i from 0 below (length new-columns))
-    (for new-column = (aref new-columns i))
-    (for column = (aref columns i))
-    (if (eq column new-column)
-        (setf (aref new-columns i)
-              (cl-ds:replica new-column isolate))
-        (progn
-          (assert
-           (not (eq (cl-ds.common.abstract:read-ownership-tag column)
-                    (cl-ds.common.abstract:read-ownership-tag new-column))))
-          (assert
-           (not (eq (cl-ds.dicts.srrb:access-tree column)
-                    (cl-ds.dicts.srrb:access-tree new-column)))))))
-  new-columns)
-
-
 (defmethod vmask ((frame standard-table) mask
                   &key (in-place *transform-in-place*))
   (bind ((columns (read-columns frame))
@@ -266,17 +244,6 @@
           result)))))
 
 
-(defun remove-nulls-from-columns (columns &optional (transform #'identity))
-  (bind ((column-count (length columns)))
-    (when (zerop column-count)
-      (return-from remove-nulls-from-columns columns))
-    (let* ((iterator (make-iterator columns :transformation transform))
-           (new-columns (cl-df.column:columns iterator)))
-      (assert (not (eq new-columns columns)))
-      (cl-df.column:remove-nulls iterator)
-      new-columns)))
-
-
 (defmethod transformation ((frame standard-table)
                            &key
                              (in-place *transform-in-place*)
@@ -285,15 +252,10 @@
     (error 'cl-ds:operation-not-allowed
            :format-control "Can't transform frame without a columns."))
   (let* ((columns (read-columns frame))
-         (transform (lambda (column)
-                      (lret ((result (cl-ds:replica column (not in-place))))
-                        (cl-ds.dicts.srrb:transactional-insert-tail!
-                         result
-                         (cl-ds.common.abstract:read-ownership-tag column)))))
          (marker-column (cl-df.column:make-sparse-material-column
                          :element-type 'boolean))
          (marker-iterator (make-iterator (vector marker-column)))
-         (iterator (make-iterator columns :transformation transform))
+         (iterator (iterator frame in-place))
          (row (make 'setfable-table-row :iterator iterator)))
     (cl-df.column:move-iterator iterator start)
     (cl-df.column:move-iterator marker-iterator start)
@@ -307,33 +269,6 @@
      :in-place in-place
      :start start
      :columns columns)))
-
-
-(defun transform-row-impl (transformation function)
-  (declare (type standard-transformation transformation)
-           (type function function)
-           (optimize (speed 3) (safety 0)))
-  (cl-ds.utils:with-slots-for (transformation standard-transformation)
-    (let* ((*transform-control*
-            (lambda (operation)
-              (cond ((eq operation :drop)
-                     (iterate
-                       (declare (type fixnum i))
-                       (for i from 0 below column-count)
-                       (setf (cl-df.column:iterator-at iterator i) :null))
-                     (setf (cl-df.column:iterator-at marker-iterator 0) t
-                           dropped t))
-                    ((eq operation :nullify)
-                     (iterate
-                       (declare (type fixnum i))
-                       (for i from 0 below column-count)
-                       (setf (cl-df.column:iterator-at iterator i) :null)))
-                    (t (funcall *transform-control* operation))))))
-      (funcall function)
-      (incf count)
-      (cl-df.column:move-iterator iterator 1)
-      (cl-df.column:move-iterator marker-iterator 1)
-      transformation)))
 
 
 (defmethod transform-row ((object standard-transformation)
@@ -460,20 +395,20 @@
         new-value))
 
 
+(defmethod iterator ((frame standard-table) in-place)
+  (~> frame read-columns
+      (make-iterator
+       :transformation (column-transformation-closure in-place))))
+
+
 (defmethod cl-ds:whole-range ((container standard-table))
   (let* ((columns (read-columns container))
-         (columns-count (length columns))
          (row-count (row-count container))
          (header (header container)))
-    (map nil
-         (lambda (x)
-           (~>> x cl-ds.common.abstract:read-ownership-tag
-                (cl-ds.dicts.srrb:transactional-insert-tail! x)))
-         columns)
-    (if (zerop columns-count)
+    (if (~> columns length zerop)
         (make 'cl-ds:empty-range)
         (make 'standard-table-range
-              :table-row (make 'table-row :iterator (make-iterator columns))
+              :table-row (make 'table-row :iterator (iterator container t))
               :row-count row-count
               :header header))))
 

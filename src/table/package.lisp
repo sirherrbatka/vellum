@@ -21,6 +21,7 @@
    #:fundamental-table
    #:standard-table
    #:standard-table-range
+   #:iterator
    #:drop-row
    #:nullify
    #:remove-nulls

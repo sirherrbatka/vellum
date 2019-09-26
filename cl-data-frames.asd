@@ -43,6 +43,7 @@
                              (:file "conditions")
                              (:file "functions")
                              (:file "to-table")
+                             (:file "internal")
                              (:file "implementation")
                              (:test-file "tests")))
                (:module "api"
