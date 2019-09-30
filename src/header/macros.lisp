@@ -42,4 +42,5 @@
 
 
 (defmacro brr (column)
-  `(body () (rr ,column)))
+  `(lambda (&rest all) (declare (ignore all))
+     (rr ',column)))
