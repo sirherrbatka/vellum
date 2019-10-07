@@ -733,14 +733,15 @@
                     (node state i index) copy)))))))
 
 
-(defun move-stack (depth new-index stack)
+(defun move-stack (depth new-index stack &aux (node (aref stack 0)))
   (declare (type fixnum depth new-index)
            (type simple-vector stack)
            (optimize (speed 3)))
+  (when (null node)
+    (return-from move-stack nil))
   (iterate outer
     (declare (type fixnum i offset size byte)
              (type boolean present))
-    (with node = (aref stack 0))
     (with size = (* depth cl-ds.common.rrb:+bit-count+))
     (for i from 1 to depth)
     (for byte
