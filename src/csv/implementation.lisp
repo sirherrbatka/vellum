@@ -63,11 +63,12 @@
                          (char-equal (char-upcase a)
                                      (char-upcase b)))
                        a b))))
-    (or (member string '("TRUE" "T" "1") :test #'same)
-        (null (or (iterate
-                    (for elt in '("FALSE" "F" "NIL" "0"))
-                    (finding elt such-that (same elt string)))
-                  (error "Can't construct boolean from string."))))))
+    (if (or (member string '("TRUE" "T" "1") :test #'same)
+            (null (or (iterate
+                        (for elt in '("FALSE" "F" "NIL" "0"))
+                        (finding elt such-that (same elt string)))
+                      (error "Can't construct boolean from string."))))
+         t nil)))
 
 
 (defun make-data-buffer (size)
