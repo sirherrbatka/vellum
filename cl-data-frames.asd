@@ -51,6 +51,9 @@
                              (:file "conditions")
                              (:file "generics")
                              (:file "functions")))
+               (:module "integration"
+                :components ((:file "package")
+                             (:file "cl-ds")))
                (:module "csv"
                 :components ((:file "package")
                              (:file "conditions")

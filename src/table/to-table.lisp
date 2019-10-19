@@ -10,10 +10,11 @@
           (key #'identity)
           (class 'standard-table))
 
-  (%iterator %columns %column-count %header)
+  (%iterator %class %columns %column-count %header)
 
-  ((&key &allow-other-keys)
+  ((&key class &allow-other-keys)
    (setf %header (cl-df.header:header)
+         %class class
          %column-count (cl-data-frames.header:column-count %header)
          %columns (make-array %column-count))
    (iterate
@@ -31,6 +32,6 @@
    (cl-df.column:move-iterator %iterator 1))
 
   ((cl-df.column:finish-iterator %iterator)
-   (make 'standard-table
+   (make %class
          :header %header
          :columns %columns)))
