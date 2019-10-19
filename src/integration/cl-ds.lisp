@@ -2,10 +2,11 @@
 
 
 (defun obtain-depth (range &optional (depth 1))
-  (if (typep range 'cl-ds.alg:group-by-result-range)
-      (obtain-depth (~> range cl-ds:peek-front cdr)
-                    (1+ depth))
-      depth))
+  (typecase range
+    (cl-ds.alg:group-by-result-range
+     (obtain-depth (~> range cl-ds:peek-front cdr)
+                   (1+ depth)))
+    (t depth)))
 
 
 (defmethod cl-df:to-table ((range cl-ds.alg:group-by-result-range)
