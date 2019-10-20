@@ -10,7 +10,8 @@
                 :prove        :cl-data-structures
                 :lparallel    :metabang-bind
                 :alexandria   :documentation-utils-extensions
-                :local-time)
+                :local-time   :postmodern
+                :cl-postgres  :s-sql)
   :defsystem-depends-on (:prove-asdf)
   :serial T
   :pathname "src"
@@ -53,7 +54,8 @@
                              (:file "functions")))
                (:module "integration"
                 :components ((:file "package")
-                             (:file "cl-ds")))
+                             (:file "cl-ds")
+                             (:file "postmodern")))
                (:module "csv"
                 :components ((:file "package")
                              (:file "conditions")
