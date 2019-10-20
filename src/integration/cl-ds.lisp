@@ -60,21 +60,19 @@
                              (key #'identity)
                              (header-class 'cl-df:standard-header)
                              (class 'cl-df.table:standard-table)
-                             (columns '()))
-  (bind ((column-definitions (gather-column-data range columns '()))
-         (column-count (length column-definitions))
+                             (columns '())
+                             (header (apply #'cl-df:make-header
+                                            header-class
+                                            (gather-column-data range columns '()))))
+  (bind ((column-count (cl-df.header:column-count header))
          (columns (make-array column-count))
          (columns-buffer (make-array column-count))
-         (header (apply #'cl-df:make-header
-                        header-class
-                        column-definitions))
          (iterator nil))
     (iterate
       (for i from 0 below column-count)
-      (for column-def in column-definitions)
       (setf (aref columns i)
             (cl-df.column:make-sparse-material-column
-             :element-type (or (getf column-def :type) t))))
+             :element-type (cl-df.header:column-type header i))))
     (setf iterator (cl-df.column:make-iterator columns))
     (fill-columns-buffer-impl
      range 0 columns-buffer

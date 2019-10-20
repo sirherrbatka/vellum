@@ -4,19 +4,20 @@
 (cl-ds.alg.meta:define-aggregation-function
     to-table to-table-function
 
-  (:range &key key class header-class columns)
+  (:range &key key class header-class columns header)
 
   (:range &key
           (key #'identity)
           (class 'standard-table)
           (header-class 'cl-df.header:standard-header)
-          columns)
+          (columns '())
+          (header (apply #'cl-df.header:make-header
+                         header-class columns)))
 
   (%iterator %class %columns %column-count %header)
 
-  ((&key class header-class columns &allow-other-keys)
-   (setf %header (apply #'cl-df.header:make-header
-                        header-class columns)
+  ((&key class header &allow-other-keys)
+   (setf %header header
          %class class
          %column-count (cl-data-frames.header:column-count %header)
          %columns (make-array %column-count))

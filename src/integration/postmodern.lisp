@@ -48,10 +48,11 @@
                              (key #'identity)
                              (class 'cl-df.table:standard-table)
                              (header-class 'cl-df.header:standard-header)
-                             columns)
-  (cl-df:with-header ((apply #'cl-df:make-header header-class columns))
-    (let* ((header (cl-df.header:header))
-           (column-count (cl-df.header:column-count header))
+                             (columns '())
+                             (header (apply #'cl-df.header:make-header
+                                            header-class columns)))
+  (cl-df:with-header (header)
+    (let* ((column-count (cl-df.header:column-count header))
            (columns (make-array column-count))
            (iterator nil))
       (iterate
