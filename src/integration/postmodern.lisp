@@ -10,7 +10,7 @@
 (defmethod cl-ds:traverse ((object postgres-query) function)
   (bind ((header (cl-df.header:header))
          (column-count (cl-df.header:column-count header))
-         (row (make-array column-count))
+         (row (make-array column-count :initial-element :null))
          ((:slots %query) object)
          (query (s-sql:sql-compile %query)))
     (cl-df.header:set-row row)
