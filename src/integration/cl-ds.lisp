@@ -33,7 +33,7 @@
   (funcall finish-callback))
 
 
-(defmethod gather-column-data ((range cl-ds.alg:hash-table-range)
+(defmethod gather-column-data ((range cl-ds.alg:group-by-result-range)
                                definitions result)
   (gather-column-data (~> range cl-ds:peek-front cdr)
                       (rest definitions)
