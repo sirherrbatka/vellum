@@ -36,6 +36,11 @@
   object)
 
 
+(defmethod cl-ds:clone ((object postgres-query))
+  (make 'postgres-query
+        :query (read-query object)))
+
+
 (defmethod cl-df:copy-from ((format (eql ':postmodern))
                             (input list)
                             &rest options)
