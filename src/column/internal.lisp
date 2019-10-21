@@ -917,7 +917,7 @@
 
 (defun reduce-stack (iterator index depth stack column)
   (declare (optimize (speed 3))
-           (type simple-vector stack)
+           (type (simple-array * (*)) stack)
            (type fixnum depth index))
   (iterate
     (declare (type fixnum i bits))
@@ -942,8 +942,8 @@
 (defun fill-buffer (depth buffer stack)
   (declare (type fixnum depth)
            (optimize (speed 3))
-           (type simple-vector stack)
-           (type (or simple-vector simple-bit-vector) buffer))
+           (type (simple-array * (*)) stack)
+           (type (simple-array * (*)) buffer))
   (let ((node (aref stack depth)))
     (when (null node)
       (return-from fill-buffer nil))
@@ -963,7 +963,7 @@
         (buffers (read-buffers iterator))
         (stacks (read-stacks iterator)))
     (declare (type (simple-array fixnum (*)) depths)
-             (type simple-vector buffers stacks)
+             (type (simple-array * (*)) buffers stacks)
              (type (simple-array boolean (*)) initialization-status))
     (map nil
          (lambda (d i b s)

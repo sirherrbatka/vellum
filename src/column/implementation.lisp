@@ -26,7 +26,7 @@
          (buffers %buffers)
          (offset (offset %index)))
     (declare (type simple-vector buffers))
-    (~> (the simple-vector (aref buffers column)) (aref offset))))
+    (~> (the (simple-array * (*)) (aref buffers column)) (aref offset))))
 
 
 (defmethod (setf iterator-at) (new-value
