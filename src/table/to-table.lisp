@@ -39,3 +39,19 @@
    (make %class
          :header %header
          :columns %columns)))
+
+
+(defmethod to-table ((range cl-df.header:frame-range-mixin)
+                     &key (key #'identity)
+                       (class 'cl-df.table:standard-table)
+                       (header-class 'cl-df.header:standard-header)
+                       (columns '())
+                       (header (apply #'cl-df.header:make-header
+                                      header-class
+                                      columns)))
+  (cl-df.header:with-header (header)
+    (call-next-method range :key key
+                            :class class
+                            :header-class header-class
+                            :columns columns
+                            :header header)))

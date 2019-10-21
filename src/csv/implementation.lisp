@@ -261,22 +261,20 @@
            :values (list quote escape separator)
            :parameters '(:quote :escape :separator)
            :format-control "Quote, escape and separator have to be distinct from each other."))
-  (let ((frame-header (cl-df.header:header)))
-    (with-open-file (stream input)
-      (when header
-        (read-line stream nil nil))
-      (cl-ds.fs:with-file-ranges ((result (make 'csv-range
-                                                :path input
-                                                :separator separator
-                                                :initial-position (file-position stream)
-                                                :escape escape
-                                                :quote quote
-                                                :check-predicates check-predicates
-                                                :skip-whitespace skip-whitespace)))
-        (cl-ds.fs:close-inner-stream result)
-        (make 'cl-df.header:forward-proxy-frame-range
-              :original-range (cl-ds:clone result)
-              :header frame-header)))))
+  (with-open-file (stream input)
+    (when header
+      (read-line stream nil nil))
+    (cl-ds.fs:with-file-ranges ((result (make 'csv-range
+                                              :path input
+                                              :separator separator
+                                              :initial-position (file-position stream)
+                                              :escape escape
+                                              :quote quote
+                                              :check-predicates check-predicates
+                                              :skip-whitespace skip-whitespace)))
+      (cl-ds.fs:close-inner-stream result)
+      (make 'cl-df.header:forward-proxy-frame-range
+            :original-range result))))
 
 
 (defmethod cl-df:copy-from ((format (eql ':csv))
@@ -301,8 +299,7 @@
            :values (list quote escape separator)
            :parameters '(:quote :escape :separator)
            :format-control "Quote, escape and separator have to be distinct from each other."))
-  (bind ((frame-header (cl-df.header:header))
-         (result (~> input
+  (bind ((result (~> input
                      (cl-ds.alg:on-each
                       (lambda (x)
                         (cl-ds.fs:with-file-ranges
@@ -319,8 +316,7 @@
                      (cl-ds.alg:without #'null)
                      cl-ds.alg:chain-traversable)))
     (make 'cl-df.header:forward-proxy-frame-range
-          :original-range (cl-ds:clone result)
-          :header frame-header)))
+          :original-range result)))
 
 
 (defun write-row (output header row)
