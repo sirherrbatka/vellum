@@ -369,6 +369,21 @@
 
 
 (defmethod cl-df:copy-to ((format (eql ':csv))
+                          (output pathname)
+                          input
+                          &rest options
+                          &key (header t)
+                            (if-exists :error)
+                            (if-does-not-exist :create))
+  (declare (ignore header))
+  (with-output-to-file (stream output
+                               :if-exists if-exists
+                               :if-does-not-exist if-does-not-exist)
+    (apply #'cl-df:copy-to format stream input options))
+  input)
+
+
+(defmethod cl-df:copy-to ((format (eql ':csv))
                           output
                           (input cl-ds:fundamental-forward-range)
                           &rest options
