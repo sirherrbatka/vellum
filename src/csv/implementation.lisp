@@ -355,6 +355,20 @@
 
 
 (defmethod cl-df:copy-to ((format (eql ':csv))
+                          (output stream)
+                          (input cl-df.table:standard-table)
+                          &rest options
+                          &key (header t))
+  (declare (ignore header))
+  (cl-df:with-table (input)
+    (apply #'cl-df:copy-to format
+           output
+           (cl-ds:whole-range input)
+           options))
+  input)
+
+
+(defmethod cl-df:copy-to ((format (eql ':csv))
                           output
                           (input cl-ds:fundamental-forward-range)
                           &rest options
@@ -373,6 +387,7 @@
   (declare (ignore header if-exists))
   (cl-df:with-table (input)
     (apply #'cl-df:copy-to format
+           output
            (cl-ds:whole-range input)
-           output options))
+           options))
   input)

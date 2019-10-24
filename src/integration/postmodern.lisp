@@ -29,7 +29,7 @@
 
 
 (defmethod cl-ds:across ((object postgres-query) function)
-  (cl-ds:traverse object))
+  (cl-ds:traverse object function))
 
 
 (defmethod cl-ds:reset! ((object postgres-query))
