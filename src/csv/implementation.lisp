@@ -253,14 +253,14 @@
   (check-type separator character)
   (check-type quote character)
   (check-type escape character)
-  (unless (~> (list quote escape separator)
+  (unless (~> (list quote separator)
               remove-duplicates
               length
-              (eql 3))
+              (eql 2))
     (error 'cl-ds:incompatible-arguments
-           :values (list quote escape separator)
-           :parameters '(:quote :escape :separator)
-           :format-control "Quote, escape and separator have to be distinct from each other."))
+           :values (list quote separator)
+           :parameters '(:quote :separator)
+           :format-control "Quote and separator have to be distinct from each other."))
   (with-open-file (stream input)
     (when header
       (read-line stream nil nil))
@@ -291,14 +291,14 @@
   (check-type separator character)
   (check-type quote character)
   (check-type escape character)
-  (unless (~> (list quote escape separator)
+  (unless (~> (list quote separator)
               remove-duplicates
               length
-              (eql 3))
+              (eql 2))
     (error 'cl-ds:incompatible-arguments
-           :values (list quote escape separator)
-           :parameters '(:quote :escape :separator)
-           :format-control "Quote, escape and separator have to be distinct from each other."))
+           :values (list quote separator)
+           :parameters '(:quote :separator)
+           :format-control "Quote and separator have to be distinct from each other."))
   (bind ((result (~> input
                      (cl-ds.alg:on-each
                       (lambda (x)
