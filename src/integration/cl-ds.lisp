@@ -55,15 +55,7 @@
   (nreverse (cons (first definitions) result)))
 
 
-(defmethod cl-df:to-table ((range cl-ds.alg:group-by-result-range)
-                           &key
-                             (key #'identity)
-                             (header-class 'cl-df:standard-header)
-                             (class 'cl-df.table:standard-table)
-                             (columns '())
-                             (header (apply #'cl-df:make-header
-                                            header-class
-                                            (gather-column-data range columns '()))))
+(defun common-to-table (range key class header)
   (bind ((column-count (cl-df.header:column-count header))
          (columns (make-array column-count))
          (columns-buffer (make-array column-count))
@@ -87,3 +79,27 @@
     (make class
           :header header
           :columns columns)))
+
+
+(defmethod cl-df:to-table ((range cl-ds.alg:group-by-result-range)
+                           &key
+                             (key #'identity)
+                             (header-class 'cl-df:standard-header)
+                             (class 'cl-df.table:standard-table)
+                             (columns '())
+                             (header (apply #'cl-df:make-header
+                                            header-class
+                                            (gather-column-data range columns '()))))
+  (common-to-table range key class header))
+
+
+(defmethod cl-df:to-table ((range cl-ds.alg:summary-result-range)
+                           &key
+                             (key #'identity)
+                             (header-class 'cl-df:standard-header)
+                             (class 'cl-df.table:standard-table)
+                             (columns '())
+                             (header (apply #'cl-df:make-header
+                                            header-class
+                                            (gather-column-data range columns '()))))
+  (common-to-table range key class header))
