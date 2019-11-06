@@ -49,9 +49,10 @@
 
 
 (defmethod row-count ((frame standard-table))
-  (iterate
-    (for column in-vector (read-columns frame))
-    (maximize (cl-df.column:column-size column))))
+  (or (iterate
+        (for column in-vector (read-columns frame))
+        (maximize (cl-df.column:column-size column)))
+      0))
 
 
 (defmethod column-name ((frame standard-table) (column integer))
