@@ -78,9 +78,7 @@
                     (when (null alias) (next-iteration))
                     (when (symbolp alias)
                       (setf alias (symbol-name alias)))
-                    (unless (stringp alias)
-                      (error 'invalid-alias
-                             :value alias))
+                    (check-type alias string)
                     (unless (null (shiftf (gethash alias result) i))
                       (error 'alias-duplicated
                              :format-arguments (list alias)
