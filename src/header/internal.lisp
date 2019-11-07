@@ -3,7 +3,7 @@
 
 (defun unique-aliases (headers)
   (iterate
-    (with result = (make-hash-table))
+    (with result = (make-hash-table :test 'equal))
     (for offset in (~>> (cl-ds.utils:scan #'+ headers :key #'column-count
                                                       :initial-value 0)
                         (cons 0)))

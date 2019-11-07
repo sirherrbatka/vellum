@@ -367,6 +367,13 @@
 
 (defmethod cl-df.header:row-at ((header cl-df.header:standard-header)
                                 (row table-row)
+                                (position string))
+  (cl-df.header:row-at header row (cl-df.header:alias-to-index header
+                                                               position)))
+
+
+(defmethod cl-df.header:row-at ((header cl-df.header:standard-header)
+                                (row table-row)
                                 (position symbol))
   (cl-df.header:row-at header row (cl-df.header:alias-to-index header
                                                                position)))

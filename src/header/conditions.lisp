@@ -32,6 +32,10 @@
   (:default-initargs :format-control "Can't convert ~a to type ~a."))
 
 
+(define-condition invalid-alias (cl-ds:invalid-value)
+  ())
+
+
 (define-condition alias-duplicated (cl-ds:operation-not-allowed)
   ((%alias :initarg :alias
            :reader alias))

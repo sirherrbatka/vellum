@@ -6,6 +6,7 @@
   (:nicknames #:cl-df.header)
   (:export
    #:alias-to-index
+   #:invalid-alias
    #:body
    #:brr
    #:column-count

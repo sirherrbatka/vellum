@@ -2,7 +2,7 @@
 
 
 (defmethod alias-to-index ((header standard-header)
-                           (alias symbol))
+                           (alias string))
   (let* ((aliases (read-column-aliases header))
          (index (gethash alias aliases)))
     (when (null index)
@@ -14,6 +14,11 @@
     index))
 
 
+(defmethod alias-to-index ((header standard-header)
+                           (alias symbol))
+  (alias-to-index header (symbol-name alias)))
+
+
 (defmethod column-signature ((header standard-header)
                              (alias symbol))
   (column-signature header (alias-to-index header alias)))
@@ -23,7 +28,7 @@
                                        &key &allow-other-keys)
   (bind (((:slots %type %predicate %alias) object))
     (check-type %type (or list symbol))
-    (check-type %alias symbol)
+    (check-type %alias (or symbol string))
     (ensure-functionf %predicate)))
 
 
@@ -65,11 +70,17 @@
                                  columns))
          (aliases (iterate
                     (with result = (make-hash-table
+                                    :test 'equal
                                     :size (length column-signatures)))
                     (for column in-vector column-signatures)
                     (for i from 0)
                     (for alias = (read-alias column))
                     (when (null alias) (next-iteration))
+                    (when (symbolp alias)
+                      (setf alias (symbol-name alias)))
+                    (unless (stringp alias)
+                      (error 'invalid-alias
+                             :value alias))
                     (unless (null (shiftf (gethash alias result) i))
                       (error 'alias-duplicated
                              :format-arguments (list alias)
@@ -260,7 +271,8 @@
   (bind ((selected (~> columns
                        (cl-ds.alg:on-each (curry #'column-signature header))
                        cl-ds.alg:to-vector))
-         (aliases (make-hash-table :size (length selected))))
+         (aliases (make-hash-table :size (length selected)
+                                   :test 'equal)))
     (declare (type vector selected))
     (iterate
       (for i from 0)
