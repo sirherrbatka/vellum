@@ -20,10 +20,13 @@
                        (lambda (&rest ignore)
                          (declare (ignore ignore))
                          (formatting-row (clim-stream)
-                           (iter:iterate
-                             (iter:for i from 0 below (cl-df:column-count data-frame))
-                             (formatting-cell (clim-stream)
-                               (print (cl-df:rr i) clim-stream)))))
+                           (surrounding-output-with-border
+                               (clim-stream :padding-top 0
+                                            :padding-bottom 0)
+                             (iter:iterate
+                               (iter:for i from 0 below (cl-df:column-count data-frame))
+                               (formatting-cell (clim-stream)
+                                 (print (cl-df:rr i) clim-stream))))))
                        :in-place t))))
 
 
