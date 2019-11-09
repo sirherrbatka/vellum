@@ -10,7 +10,7 @@
    #:empty-table
    #:sample
    #:new-columns
-   #:print-table
+   #:show
    #:empty-column
    #:copy-from))
 

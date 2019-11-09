@@ -1,4 +1,4 @@
-(in-package #:cl-df.int)
+(cl:in-package #:cl-df.int)
 
 
 (defclass postgres-query (cl-ds:traversable)

@@ -11,7 +11,8 @@
                 :lparallel    :metabang-bind
                 :alexandria   :documentation-utils-extensions
                 :local-time   :postmodern
-                :cl-postgres  :s-sql)
+                :cl-postgres  :s-sql
+                :mcclim       :clim)
   :defsystem-depends-on (:prove-asdf)
   :serial T
   :pathname "src"
@@ -55,7 +56,8 @@
                (:module "integration"
                 :components ((:file "package")
                              (:file "cl-ds")
-                             (:file "postmodern")))
+                             (:file "postmodern")
+                             (:file "clim")))
                (:module "csv"
                 :components ((:file "package")
                              (:file "conditions")
