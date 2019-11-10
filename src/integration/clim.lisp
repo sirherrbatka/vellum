@@ -28,6 +28,7 @@
 (define-application-frame table-view ()
   ((%dataframe :initarg :dataframe :reader dataframe))
   (:pane :application
+   :scroll-bars t
    :display-function (lambda (frame pane)
                        (show-data-frame pane (dataframe frame)))))
 
