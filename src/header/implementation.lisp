@@ -247,9 +247,25 @@
         new-value))
 
 
+(defmethod (setf row-at) (new-value
+                          (header standard-header)
+                          (row vector)
+                          (column string))
+  (declare (type (array t (*)) row))
+  (setf (row-at header row (alias-to-index header column))
+        new-value))
+
+
 (defmethod row-at ((header standard-header)
                    (row vector)
                    (column symbol))
+  (~>> (alias-to-index header column)
+       (row-at header row)))
+
+
+(defmethod row-at ((header standard-header)
+                   (row vector)
+                   (column string))
   (~>> (alias-to-index header column)
        (row-at header row)))
 
