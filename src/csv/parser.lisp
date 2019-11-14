@@ -84,6 +84,13 @@
     (setf in-field-index 0)))
 
 
+(defun validate-field-number (frame)
+  (declare (type csv-parsing-state-frame frame)
+           (optimize (debug 3) (safety 3)))
+  (cl-ds.utils:with-slots-for (frame csv-parsing-state-frame)
+    (< field-index (length fields))))
+
+
 (defun validate-end (frame)
   (declare (type csv-parsing-state-frame frame)
            (optimize (debug 3) (safety 3)))
@@ -141,13 +148,14 @@
       (field-char
        (if (null char)
            (validate-end frame)
-           (or (and (eql char quote)
-                    (invoke quote-char frame))
-               (and (eql char escape)
-                    (invoke escape-char frame))
-               (and (eql separator char)
-                    (invoke separator-char frame))
-               (invoke ordinary-char frame))))
+           (and (validate-field-number frame)
+                (or (and (eql char quote)
+                         (invoke quote-char frame))
+                    (and (eql char escape)
+                         (invoke escape-char frame))
+                    (and (eql separator char)
+                         (invoke separator-char frame))
+                    (invoke ordinary-char frame)))))
     (quote-char
      (skip-char frame)
      (invoke ordinary-char frame))
