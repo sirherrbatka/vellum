@@ -8,5 +8,4 @@
    #:csv-range
    #:csv-format-error
    #:to-stream
-   #:from-string
-   #:wrong-number-of-columns-in-the-csv-file))
+   #:from-string))
