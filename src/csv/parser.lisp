@@ -7,7 +7,8 @@
   (field-index 0 :type cl-ds.utils:index)
   (in-field-index 0 :type cl-ds.utils:index)
   (line "" :type simple-string)
-  (fields #() :type simple-vector))
+  (fields #() :type simple-vector)
+  (in-quote nil :type boolean))
 
 
 (cl-ds.utils:define-list-of-slots csv-parsing-state-frame ()
@@ -15,6 +16,7 @@
   (field-index csv-parsing-state-frame-field-index)
   (in-field-index csv-parsing-state-frame-in-field-index)
   (line csv-parsing-state-frame-line)
+  (in-quote csv-parsing-state-frame-in-quote)
   (fields csv-parsing-state-frame-fields))
 
 
