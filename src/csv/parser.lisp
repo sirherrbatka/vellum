@@ -95,7 +95,8 @@
   (declare (type csv-parsing-state-frame frame)
            (optimize (debug 3) (safety 3)))
   (cl-ds.utils:with-slots-for (frame csv-parsing-state-frame)
-    (= (the fixnum (1+ field-index)) (length fields))))
+    (and (= (the fixnum (1+ field-index)) (length fields))
+         (not in-quote))))
 
 
 (defmacro invoke (frame-function old-frame)
@@ -122,15 +123,20 @@
          (declare (dynamic-extent ,frame))
          (labels (,@(iterate
                       (for (function-name . function-body) in cases)
-                      (collect `(,function-name
-                                 (,frame)
-                                 (declare (type csv-parsing-state-frame ,frame))
-                                 ,@function-body)))
+                      (collect
+                          `(,function-name
+                            (,frame)
+                            (declare (type csv-parsing-state-frame ,frame))
+                            (cl-ds.utils:with-slots-for
+                                (,frame csv-parsing-state-frame)
+                              ,@function-body))))
                   (,(first function-names) (,frame)
                     (declare (type csv-parsing-state-frame ,frame))
-                    (let ((,char-name (frame-char ,frame)))
-                      (declare (type (or null character) ,char-name))
-                      ,@(rest main-case))))
+                    (cl-ds.utils:with-slots-for
+                        (,frame csv-parsing-state-frame)
+                      (let ((,char-name (frame-char ,frame)))
+                        (declare (type (or null character) ,char-name))
+                        ,@(rest main-case)))))
            (unless (,(first function-names) ,frame)
              (error 'csv-format-error
                     :path ,path
@@ -158,6 +164,7 @@
                     (invoke ordinary-char frame)))))
     (quote-char
      (skip-char frame)
+     (setf in-quote (not in-quote))
      (invoke ordinary-char frame))
     (ordinary-char
      (put-char frame)
