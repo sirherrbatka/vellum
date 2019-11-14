@@ -157,8 +157,10 @@
            (and (validate-field-number frame)
                 (if (char= quote escape char)
                     (or (if in-quote
-                            (invoke escape-char frame)
-                            (invoke quote-char frame))
+                            (or (invoke escape-char frame)
+                                (invoke quote-char frame))
+                            (or (invoke quote-char frame)
+                                (invoke escape-char frame)))
                         (invoke ordinary-char frame))
                     (or (and (eql char quote)
                              (invoke quote-char frame))
