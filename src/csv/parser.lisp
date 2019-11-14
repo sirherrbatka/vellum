@@ -98,48 +98,46 @@
              (frame-rollback ,old-frame ,!new-frame)))))))
 
 
-(defmacro do-line ((line path fields char-name)
+(defmacro do-line ((line path fields char-name frame)
                    main-case
                    &body cases)
-  (with-gensyms (!frame)
-    (let* ((function-names (mapcar #'first (cons main-case cases)))
-           (generated-function-names (mapcar (compose #'gensym #'symbol-name)
-                                             (cons 'validate-end function-names)))
-           (function-macrolets (mapcar (lambda (generated-name function-name)
-                                         `(,function-name () (invoke ,generated-name ,!frame)))
-                                       generated-function-names
-                                       function-names))
-           (frame-function-macrolets (mapcar (lambda (frame-function local-name)
-                                               `(,local-name () (,frame-function ,!frame)))
-                                             '(frame-skip-char frame-next-field frame-put-char)
-                                             '(skip-char next-field put-char))))
-      (once-only (line)
-        `(macrolet (,@function-macrolets
-                    ,@frame-function-macrolets)
-           (let* ((,!frame (make-csv-parsing-state-frame
-                            :line ,line
-                            :fields (cl-ds.utils:transform (lambda (x)
-                                                             (setf (fill-pointer x) 0)
-                                                             x)
-                                                           ,fields))))
-             (declare (dynamic-extent ,!frame))
-             (labels (,@(iterate
-                          (for generated-function-name in (rest generated-function-names))
-                          (for (function-name . function-body) in cases)
-                          (collect `(,generated-function-name
-                                     (,!frame)
-                                     (declare (type csv-parsing-state-frame ,!frame))
-                                     ,@function-body)))
-                      (,(first generated-function-names) (,!frame)
-                        (declare (type csv-parsing-state-frame ,!frame))
-                        (let ((,char-name (frame-char ,!frame)))
-                          ,@(rest main-case))))
-               (unless (,(first generated-function-names) ,!frame)
-                 (error 'csv-format-error
-                        :path ,path
-                        :format-control "Can't parse line ~a in the input file."
-                        :format-arguments (list ,line)))
-               )))))))
+  (let* ((function-names (mapcar #'first (cons main-case cases)))
+         (generated-function-names (mapcar (compose #'gensym #'symbol-name)
+                                           (cons 'validate-end function-names)))
+         (function-macrolets (mapcar (lambda (generated-name function-name)
+                                       `(,function-name () (invoke ,generated-name ,frame)))
+                                     generated-function-names
+                                     function-names))
+         (frame-function-macrolets (mapcar (lambda (frame-function local-name)
+                                             `(,local-name () (,frame-function ,frame)))
+                                           '(frame-skip-char frame-next-field frame-put-char)
+                                           '(skip-char next-field put-char))))
+    (once-only (line)
+      `(macrolet (,@function-macrolets
+                  ,@frame-function-macrolets)
+         (let* ((,frame (make-csv-parsing-state-frame
+                         :line ,line
+                         :fields (cl-ds.utils:transform (lambda (x)
+                                                          (setf (fill-pointer x) 0)
+                                                          x)
+                                                        ,fields))))
+           (declare (dynamic-extent ,frame))
+           (labels (,@(iterate
+                        (for generated-function-name in (rest generated-function-names))
+                        (for (function-name . function-body) in cases)
+                        (collect `(,generated-function-name
+                                   (,frame)
+                                   (declare (type csv-parsing-state-frame ,frame))
+                                   ,@function-body)))
+                    (,(first generated-function-names) (,frame)
+                      (declare (type csv-parsing-state-frame ,frame))
+                      (let ((,char-name (frame-char ,frame)))
+                        ,@(rest main-case))))
+             (unless (,(first generated-function-names) ,frame)
+               (error 'csv-format-error
+                      :path ,path
+                      :format-control "Can't parse line ~a in the input file."
+                      :format-arguments (list ,line)))))))))
 
 
 ;; (do-line (stream new-field char)
