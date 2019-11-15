@@ -170,13 +170,13 @@
     (quote-char
      (skip-char frame)
      (setf in-quote (not in-quote))
-     (invoke ordinary-char frame))
+     (field-char frame))
     (ordinary-char
      (put-char frame)
      (field-char frame))
     (escape-char
      (skip-char frame)
-     (invoke ordinary-char frame))
+     (ordinary-char frame))
     (separator-char
      (next-field frame)
      (skip-char frame)

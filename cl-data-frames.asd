@@ -65,4 +65,5 @@
                              (:file "generics")
                              (:file "recursive-descent-parser")
                              (:file "parser")
-                             (:file "implementation")))))
+                             (:file "implementation")
+                             (:test-file "parser-tests")))))
