@@ -175,12 +175,13 @@
   (unless (~> range cl-ds.fs:access-reached-end)
     (let* ((stream (cl-ds.fs:ensure-stream range))
            (separator (read-separator range))
-           (skip-whitespace (read-skip-whitespace range))
            (quote (read-quote range))
            (column-count (~> (cl-df.header:header)
                              cl-df.header:column-count))
            (buffer (make-data-buffer column-count))
            (buffer2 (make-array column-count :initial-element :null))
+           (header (cl-df:header))
+           (check-predicates (read-check-predicates range))
            (path (cl-ds.fs:read-path range))
            (escape-char (read-escape range)))
       (cl-df.header:set-row buffer2)
@@ -188,13 +189,18 @@
            (iterate
              (for line = (read-line stream nil nil))
              (while line)
-             (for status = (parse-csv-line separator escape-char
-                                           quote
-                                           line
-                                           buffer
-                                           path))
-             (funcall function
-                      (build-strings-from-vector range line buffer buffer2))
+             (parse-csv-line separator escape-char
+                             quote line
+                             buffer path
+                             (lambda (field index)
+                               (let* ((trim (trim-whitespace field))
+                                      (type (cl-df.header:column-type header index))
+                                      (value (from-string range type trim)))
+                                 (when (or (not check-predicates)
+                                           (funcall (cl-df.header:column-predicate
+                                                     header index)
+                                                    value))
+                                   (setf (aref buffer2 index) value)))))
              (iterate
                (for b in-vector buffer)
                (setf (fill-pointer b) 0))
@@ -206,40 +212,7 @@
 
 
 (defmethod cl-ds:across ((range csv-range) function)
-  (unless (~> range cl-ds.fs:access-reached-end)
-    (unwind-protect
-         (let* ((separator (read-separator range))
-                (skip-whitespace (read-skip-whitespace range))
-                (quote (read-quote range))
-                (column-count (~> (cl-df.header:header)
-                                  cl-df.header:column-count))
-                (buffer (make-data-buffer column-count))
-                (buffer2 (make-array column-count :initial-element :null))
-                (position (cl-ds.fs:access-current-position range))
-                (path (cl-ds.fs:read-path range))
-                (escape-char (read-escape range)))
-           (with-open-file (stream (cl-ds.fs:read-path range))
-             (unless (file-position stream position)
-               (error 'cl-ds:file-releated-error
-                      :format-control "Can't set position in the stream."
-                      :path (cl-ds.fs:read-path range)))
-             (cl-df.header:set-row buffer2)
-             (iterate
-               (for line = (read-line stream nil nil))
-               (while line)
-               (for status = (parse-csv-line separator escape-char
-                                             quote
-                                             line
-                                             buffer
-                                             path))
-               (iterate
-                 (for b in-vector buffer)
-                 (setf (fill-pointer b) 0))
-               (funcall function
-                        (build-strings-from-vector range line buffer buffer2))
-               (setf (cl-ds.fs:access-current-position range)
-                     (file-position stream)))))
-      (cl-ds.fs:close-stream range))) ; this is not strictly required, but it is handy.
+  (~> range cl-ds:clone (cl-ds:traverse function))
   range)
 
 

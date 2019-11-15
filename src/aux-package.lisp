@@ -255,6 +255,7 @@
   serapeum:def
   serapeum:round-to
   serapeum:assure
+  serapeum:trim-whitespace
 
   metabang.bind:bind
 
