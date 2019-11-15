@@ -187,15 +187,17 @@
       (unwind-protect
            (iterate
              (for line = (read-line stream nil nil))
+             (while line)
              (for status = (parse-csv-line separator escape-char
-                                           skip-whitespace
                                            quote
                                            line
                                            buffer
                                            path))
-             (while status)
              (funcall function
                       (build-strings-from-vector range line buffer buffer2))
+             (iterate
+               (for b in-vector buffer)
+               (setf (fill-pointer b) 0))
              (setf (cl-ds.fs:access-current-position range)
                    (file-position stream)))
         (setf (cl-ds.fs:access-current-position range) (file-position stream))
@@ -224,13 +226,15 @@
              (cl-df.header:set-row buffer2)
              (iterate
                (for line = (read-line stream nil nil))
+               (while line)
                (for status = (parse-csv-line separator escape-char
-                                             skip-whitespace
                                              quote
                                              line
                                              buffer
                                              path))
-               (while status)
+               (iterate
+                 (for b in-vector buffer)
+                 (setf (fill-pointer b) 0))
                (funcall function
                         (build-strings-from-vector range line buffer buffer2))
                (setf (cl-ds.fs:access-current-position range)

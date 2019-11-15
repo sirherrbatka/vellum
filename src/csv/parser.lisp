@@ -24,7 +24,9 @@
   (declare (type csv-parsing-state-frame old-frame new-frame))
   (cl-ds.utils:with-slots-for (old-frame csv-parsing-state-frame)
     (iterate
-      (for i from (1+ field-index) to (csv-parsing-state-frame-field-index new-frame))
+      (for i from (1+ field-index)
+           to (min (csv-parsing-state-frame-field-index new-frame)
+                   (1- (length fields))))
       (setf (fill-pointer (svref fields i)) 0))
     (setf (fill-pointer (svref fields field-index)) in-field-index)))
 
@@ -82,6 +84,15 @@
   (cl-ds.utils:with-slots-for (frame csv-parsing-state-frame)
     (incf field-index)
     (setf in-field-index 0)))
+
+
+(defun validate-field (frame field-predicate)
+  (declare (type csv-parsing-state-frame frame)
+           (optimize (debug 3) (safety 3)))
+  (cl-ds.utils:with-slots-for (frame csv-parsing-state-frame)
+    (funcall field-predicate
+             (aref fields field-index)
+             field-index)))
 
 
 (defun validate-field-number (frame)
@@ -144,8 +155,12 @@
                     :format-arguments (list ,line))))))))
 
 
+(def constantly-t (constantly t))
+
+
 (defun parse-csv-line (separator escape quote
-                       line output path)
+                       line output path
+                       &optional (field-predicate constantly-t))
   (declare (type simple-vector output)
            (type character escape quote separator)
            (type simple-string line)
@@ -178,9 +193,12 @@
      (skip-char frame)
      (ordinary-char frame))
     (separator-char
-     (next-field frame)
-     (skip-char frame)
-     (field-char frame)))
+     (if (validate-field frame field-predicate)
+         (progn
+           (next-field frame)
+           (skip-char frame)
+           (field-char frame))
+         nil)))
   output)
 
 
