@@ -197,9 +197,9 @@
                                       (type (cl-df.header:column-type header index))
                                       (value (from-string range type trim)))
                                  (cond ((or (not check-predicates)
-                                             (funcall (cl-df.header:column-predicate
-                                                       header index)
-                                                      value))
+                                            (funcall (cl-df.header:column-predicate
+                                                      header index)
+                                                     value))
                                         (setf (aref buffer2 index) value)
                                         t)
                                        ((eq :null value)
