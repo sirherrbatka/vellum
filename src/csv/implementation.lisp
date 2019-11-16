@@ -196,11 +196,16 @@
                                (let* ((trim (trim-whitespace field))
                                       (type (cl-df.header:column-type header index))
                                       (value (from-string range type trim)))
-                                 (when (or (not check-predicates)
-                                           (funcall (cl-df.header:column-predicate
-                                                     header index)
-                                                    value))
-                                   (setf (aref buffer2 index) value)))))
+                                 (cond ((or (not check-predicates)
+                                             (funcall (cl-df.header:column-predicate
+                                                       header index)
+                                                      value))
+                                        (setf (aref buffer2 index) value)
+                                        t)
+                                       ((eq :null value)
+                                        (setf (aref buffer2 index) :null)
+                                        t)
+                                       (t nil)))))
              (iterate
                (for b in-vector buffer)
                (setf (fill-pointer b) 0))

@@ -1,6 +1,6 @@
 (in-package #:cl-df.csv)
 
-(prove:plan 3)
+(prove:plan 4)
 
 (let ((output (map-into (make-array 3)
                         (curry #'make-array 0
@@ -30,7 +30,16 @@
                   "N/A")
   (prove:ok (vector= output #("test,1" "test2" "test3")
                      :test #'string=))
-
-  )
+  (cl-ds.utils:transform fill-pointer-to-zero output)
+  (parse-csv-line #\, #\\ #\"
+                  "test,1,test2,test3"
+                  output
+                  "N/A"
+                  (lambda (field index)
+                    (if (= index 1)
+                        (string= "1" field)
+                        t)))
+  (prove:ok (vector= output #("test" "1" "test2,test3")
+                     :test #'string=)))
 
 (prove:finalize)

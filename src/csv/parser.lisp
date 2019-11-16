@@ -28,7 +28,8 @@
            to (min (csv-parsing-state-frame-field-index new-frame)
                    (1- (length fields))))
       (setf (fill-pointer (svref fields i)) 0))
-    (setf (fill-pointer (svref fields field-index)) in-field-index)))
+    (when (< field-index (length fields))
+      (setf (fill-pointer (svref fields field-index)) in-field-index))))
 
 
 (declaim (inline new-frame))
@@ -39,7 +40,7 @@
     (make-csv-parsing-state-frame
      :line-index line-index
      :field-index field-index
-     :in-field-index field-index
+     :in-field-index in-field-index
      :line line
      :in-quote in-quote
      :fields fields)))
@@ -187,19 +188,19 @@
     (quote-char
      (skip-char frame)
      (setf in-quote (not in-quote))
-     (field-char frame))
+     (invoke field-char frame))
     (ordinary-char
      (put-char frame)
-     (field-char frame))
+     (invoke field-char frame))
     (escape-char
      (skip-char frame)
-     (ordinary-char frame))
+     (invoke ordinary-char frame))
     (separator-char
      (if (validate-field frame field-predicate)
          (progn
            (next-field frame)
            (skip-char frame)
-           (field-char frame))
+           (invoke field-char frame))
          nil)))
   output)
 
