@@ -193,17 +193,16 @@
                              quote line
                              buffer path
                              (lambda (field index)
-                               (let* ((trim (trim-whitespace field))
+                               (bind ((trim (trim-whitespace field))
                                       (type (cl-df.header:column-type header index))
-                                      (value (from-string range type trim)))
-                                 (cond ((or (not check-predicates)
+                                      ((:values value failed)
+                                       (ignore-errors (from-string range type trim))))
+                                 (cond (failed nil)
+                                       ((or (not check-predicates)
                                             (funcall (cl-df.header:column-predicate
                                                       header index)
                                                      value))
                                         (setf (aref buffer2 index) value)
-                                        t)
-                                       ((eq :null value)
-                                        (setf (aref buffer2 index) :null)
                                         t)
                                        (t nil)))))
              (iterate
