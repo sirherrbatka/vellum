@@ -180,7 +180,9 @@
                              (or (invoke ordinary-char frame)
                                  (invoke escape-char frame))))
                     (and (eql separator char)
-                         (invoke separator-char frame))
+                         (if in-quote
+                             (invoke ordinary-char frame)
+                             (invoke separator-char frame)))
                     (invoke ordinary-char frame)))))
     (quote-char
      (skip-char frame)
