@@ -119,30 +119,42 @@
   (when (cl-ds.fs:access-reached-end range)
     (return-from cl-ds:peek-front (values nil nil)))
   (let* ((stream (cl-ds.fs:ensure-stream range))
-         (file-position (file-position stream))
          (separator (read-separator range))
-         (skip-whitespace (read-skip-whitespace range))
          (quote (read-quote range))
-         (buffer (~> (cl-df.header:header)
-                     cl-df.header:column-count
-                     make-data-buffer))
+         (header (cl-df:header))
+         (file-position (file-position stream))
+         (column-count (cl-df.header:column-count header))
+         (buffer (make-data-buffer column-count))
+         (check-predicates (read-check-predicates range))
+         (result (make-array column-count :initial-element :null))
          (path (cl-ds.fs:read-path range))
          (escape-char (read-escape range))
-         (line (read-line stream nil nil))
-         (status (parse-csv-line separator escape-char
-                               skip-whitespace
-                               quote
-                               line
-                               buffer
-                               path)))
+         (line (read-line stream nil nil)))
     (unless (file-position stream file-position)
       (error 'cl-ds:file-releated-error
              :format-control "Can't set position in the stream."
              :path path))
-    (if (null status)
-        (values nil nil)
-        (values (build-strings-from-vector range line buffer)
-                t))))
+    (when (null line)
+      (return-from cl-ds:peek-front (values nil nil)))
+    (parse-csv-line separator escape-char
+                    quote
+                    line
+                    buffer
+                    path
+                    (lambda (field index)
+                      (bind ((trim (trim-whitespace field))
+                             (type (cl-df.header:column-type header index))
+                             ((:values value failed)
+                              (ignore-errors (from-string range type trim))))
+                        (cond (failed nil)
+                              ((or (not check-predicates)
+                                   (funcall (cl-df.header:column-predicate
+                                             header index)
+                                            value))
+                               (setf (aref result index) value)
+                               t)
+                              (t nil)))))
+    (values result t)))
 
 
 (defmethod cl-ds:consume-front ((range csv-range))
@@ -150,25 +162,37 @@
     (return-from cl-ds:consume-front (values nil nil)))
   (let* ((stream (cl-ds.fs:ensure-stream range))
          (separator (read-separator range))
-         (skip-whitespace (read-skip-whitespace range))
          (quote (read-quote range))
-         (buffer (~> (cl-df.header:header)
-                     cl-df.header:column-count
-                     make-data-buffer))
+         (header (cl-df:header))
+         (column-count (cl-df.header:column-count header))
+         (buffer (make-data-buffer column-count))
+         (check-predicates (read-check-predicates range))
+         (result (make-array column-count :initial-element :null))
          (path (cl-ds.fs:read-path range))
          (escape-char (read-escape range))
-         (line (read-line stream nil nil))
-         (status (parse-csv-line separator escape-char
-                                 skip-whitespace
-                                 quote
-                                 line
-                                 buffer
-                                 path)))
+         (line (read-line stream nil nil)))
     (call-next-method range)
-    (if (null status)
-        (values nil nil)
-        (values (build-strings-from-vector range line buffer)
-                t))))
+    (when (null line)
+      (return-from cl-ds:consume-front (values nil nil)))
+    (parse-csv-line separator escape-char
+                    quote
+                    line
+                    buffer
+                    path
+                    (lambda (field index)
+                      (bind ((trim (trim-whitespace field))
+                             (type (cl-df.header:column-type header index))
+                             ((:values value failed)
+                              (ignore-errors (from-string range type trim))))
+                        (cond (failed nil)
+                              ((or (not check-predicates)
+                                   (funcall (cl-df.header:column-predicate
+                                             header index)
+                                            value))
+                               (setf (aref result index) value)
+                               t)
+                              (t nil)))))
+    (values result t)))
 
 
 (defmethod cl-ds:traverse ((range csv-range) function)
