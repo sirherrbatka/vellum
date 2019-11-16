@@ -11,9 +11,7 @@
    (%quote :initarg :quote
            :reader read-quote)
    (%escape :initarg :escape
-            :reader read-escape)
-   (%skip-whitespace :initarg :skip-whitespace
-                     :reader read-skip-whitespace))
+            :reader read-escape))
   (:default-initargs :initial-position 0))
 
 
@@ -86,7 +84,6 @@
         :quote (read-quote range)
         :check-predicates (read-check-predicates range)
         :escape (read-escape range)
-        :skip-whitespace (read-skip-whitespace range)
         :reached-end (cl-ds.fs:access-reached-end range)
         :initial-position (cl-ds.fs:access-current-position range)))
 
@@ -252,8 +249,7 @@
                               (header t)
                               (quote #\")
                               (escape #\\)
-                              (check-predicates t)
-                              (skip-whitespace t))
+                              (check-predicates t))
   (declare (ignore options))
   (check-type separator character)
   (check-type quote character)
@@ -275,8 +271,7 @@
                                               :initial-position (file-position stream)
                                               :escape escape
                                               :quote quote
-                                              :check-predicates check-predicates
-                                              :skip-whitespace skip-whitespace)))
+                                              :check-predicates check-predicates)))
       (cl-ds.fs:close-inner-stream result)
       (make 'cl-df.header:forward-proxy-frame-range
             :original-range result))))
@@ -290,8 +285,7 @@
                               (header t)
                               (quote #\")
                               (escape #\\)
-                              (check-predicates t)
-                              (skip-whitespace t))
+                              (check-predicates t))
   (declare (ignore options))
   (check-type separator character)
   (check-type quote character)
@@ -313,8 +307,7 @@
                                           :separator separator
                                           :escape escape
                                           :quote quote
-                                          :check-predicates check-predicates
-                                          :skip-whitespace skip-whitespace)))
+                                          :check-predicates check-predicates)))
                           (when header
                             (cl-ds:consume-front inner))
                           inner)))
