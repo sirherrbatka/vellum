@@ -226,6 +226,7 @@
                                         (setf (aref buffer2 index) value)
                                         t)
                                        (t nil)))))
+             (funcall function buffer2)
              (iterate
                (for b in-vector buffer)
                (setf (fill-pointer b) 0))
