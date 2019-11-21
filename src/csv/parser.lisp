@@ -215,13 +215,15 @@
   (do-line (line path output char frame)
       (field-char
        (unless (null char)
+         (invoke ordinary-char frame)
+         (when (eql separator char)
+           (if in-quote
+               (invoke ordinary-char frame)
+               (invoke separator-char frame)))
          (when (eql char quote)
            (invoke quote-char frame))
          (when (eql char escape)
-           (invoke escape-char frame))
-         (when (eql separator char)
-           (invoke separator-char frame))
-         (invoke ordinary-char frame))
+           (invoke escape-char frame)))
        frame)
     (quote-char
      (skip-char frame)
