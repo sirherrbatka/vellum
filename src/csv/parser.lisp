@@ -47,7 +47,7 @@
 (declaim (inline new-frame))
 (defun new-frame (old-frame function)
   (declare (type csv-parsing-state-frame old-frame)
-           (optimize (debug 3) (safety 3)))
+           (optimize (speed 3) (safety 0)))
   (cl-ds.utils:with-slots-for (old-frame csv-parsing-state-frame)
     (make-csv-parsing-state-frame
      :callback function
@@ -62,7 +62,7 @@
 
 (defun frame-char (frame)
   (declare (type csv-parsing-state-frame frame)
-           (optimize (debug 3) (safety 3)))
+           (optimize (speed 3) (safety 0)))
   (cl-ds.utils:with-slots-for (frame csv-parsing-state-frame)
     (if (< line-index (length line))
         (aref line line-index)
@@ -79,7 +79,7 @@
 
 (defun put-char (frame)
   (declare (type csv-parsing-state-frame frame)
-           (optimize (debug 3) (safety 3)))
+           (optimize (speed 3) (safety 0)))
   (cl-ds.utils:with-slots-for (frame csv-parsing-state-frame)
     (vector-push-extend (frame-char frame) (aref fields field-index))
     (incf line-index)
@@ -88,14 +88,14 @@
 
 (defun skip-char (frame)
   (declare (type csv-parsing-state-frame frame)
-           (optimize (debug 3) (safety 3)))
+           (optimize (speed 3) (safety 0)))
   (cl-ds.utils:with-slots-for (frame csv-parsing-state-frame)
     (incf line-index)))
 
 
 (defun next-field (frame)
   (declare (type csv-parsing-state-frame frame)
-           (optimize (debug 3) (safety 3)))
+           (optimize (speed 3) (safety 0)))
   (cl-ds.utils:with-slots-for (frame csv-parsing-state-frame)
     (incf field-index)
     (setf in-field-index 0)))
@@ -103,7 +103,7 @@
 
 (defun validate-field (frame field-predicate)
   (declare (type csv-parsing-state-frame frame)
-           (optimize (debug 3) (safety 3)))
+           (optimize (speed 3) (safety 0)))
   (cl-ds.utils:with-slots-for (frame csv-parsing-state-frame)
     (funcall field-predicate
              (aref fields field-index)
@@ -112,14 +112,14 @@
 
 (defun validate-field-number (frame)
   (declare (type csv-parsing-state-frame frame)
-           (optimize (debug 3) (safety 3)))
+           (optimize (speed 3) (safety 0)))
   (cl-ds.utils:with-slots-for (frame csv-parsing-state-frame)
     (< field-index (length fields))))
 
 
 (defun validate-end (frame)
   (declare (type csv-parsing-state-frame frame)
-           (optimize (debug 3) (safety 3)))
+           (optimize (speed 3) (safety 0)))
   (cl-ds.utils:with-slots-for (frame csv-parsing-state-frame)
     (and (= (the fixnum (1+ field-index)) (length fields))
          (not in-quote))))
@@ -211,7 +211,7 @@
   (declare (type simple-vector output)
            (type character escape quote separator)
            (type string line)
-           (optimize (speed 0) (safety 3) (debug 3)))
+           (optimize (speed 3) (safety 0) (debug 0)))
   (do-line (line path output char frame)
       (field-char
        (unless (null char)
@@ -241,7 +241,3 @@
        (next-field frame)
        (invoke field-char frame))))
   output)
-
-
-(defun make-line-parser (separator quote escape-char skip-whitespace)
-  (curry #'parse-csv-line separator escape-char quote))
