@@ -34,7 +34,7 @@
 
 
 (defmethod from-string (range (type (eql 'integer)) string)
-  (parse-integer string))
+  (nth-value 0 (parse-integer string)))
 
 
 (defmethod from-string (range (type (eql t)) string)
@@ -112,6 +112,21 @@
   output)
 
 
+(defun read-line-buffered (stream
+                           &optional (output (make-array 0
+                                                         :element-type 'character
+                                                         :fill-pointer 0
+                                                         :adjustable t)))
+  (iterate
+    (for char = (read-char stream nil nil))
+    (when (null char)
+      (leave nil))
+    (until (or (eql char #\return)
+               (eql char #\newline)))
+    (vector-push-extend char output)
+    (finally (return output))))
+
+
 (defmethod cl-ds:peek-front ((range csv-range))
   (when (cl-ds.fs:access-reached-end range)
     (return-from cl-ds:peek-front (values nil nil)))
@@ -126,7 +141,7 @@
          (result (make-array column-count :initial-element :null))
          (path (cl-ds.fs:read-path range))
          (escape-char (read-escape range))
-         (line (read-line stream nil nil)))
+         (line (read-line-buffered stream)))
     (unless (file-position stream file-position)
       (error 'cl-ds:file-releated-error
              :format-control "Can't set position in the stream."
@@ -167,7 +182,7 @@
          (result (make-array column-count :initial-element :null))
          (path (cl-ds.fs:read-path range))
          (escape-char (read-escape range))
-         (line (read-line stream nil nil)))
+         (line (read-line-buffered stream)))
     (call-next-method range)
     (when (null line)
       (return-from cl-ds:consume-front (values nil nil)))
@@ -193,6 +208,7 @@
 
 
 (defmethod cl-ds:traverse ((range csv-range) function)
+  (declare (optimize (speed 3)))
   (unless (~> range cl-ds.fs:access-reached-end)
     (let* ((stream (cl-ds.fs:ensure-stream range))
            (separator (read-separator range))
@@ -204,11 +220,15 @@
            (header (cl-df:header))
            (check-predicates (read-check-predicates range))
            (path (cl-ds.fs:read-path range))
+           (line-buffer (make-array 0
+                                    :element-type 'character
+                                    :fill-pointer 0
+                                    :adjustable t))
            (escape-char (read-escape range)))
       (cl-df.header:set-row buffer2)
       (unwind-protect
            (iterate
-             (for line = (read-line stream nil nil))
+             (for line = (read-line-buffered stream line-buffer))
              (while line)
              (parse-csv-line separator escape-char
                              quote line
@@ -218,6 +238,8 @@
                                       (type (cl-df.header:column-type header index))
                                       ((:values value failed)
                                        (ignore-errors (from-string range type trim))))
+                                 (when failed
+                                   (break))
                                  (cond (failed nil)
                                        ((or (not check-predicates)
                                             (funcall (cl-df.header:column-predicate
@@ -231,7 +253,9 @@
                (for b in-vector buffer)
                (setf (fill-pointer b) 0))
              (setf (cl-ds.fs:access-current-position range)
-                   (file-position stream)))
+                   (file-position stream)
+                   (fill-pointer line-buffer) 0)
+             (while (peek-char t stream nil nil)))
         (setf (cl-ds.fs:access-current-position range) (file-position stream))
         (cl-ds.fs:close-stream range))))
   range)

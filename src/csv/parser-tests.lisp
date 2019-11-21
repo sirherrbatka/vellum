@@ -10,10 +10,12 @@
       (fill-pointer-to-zero (lambda (x)
                               (setf (fill-pointer x) 0)
                               x)))
+
   (parse-csv-line #\, #\\ #\"
                   "test1,test2,test3"
                   output
                   "N/A")
+
   (prove:ok (vector= output #("test1" "test2" "test3")
                      :test #'string=))
   (cl-ds.utils:transform fill-pointer-to-zero output)
@@ -21,15 +23,19 @@
                   "\"test1\",test2,test3"
                   output
                   "N/A")
+
   (prove:ok (vector= output #("test1" "test2" "test3")
                      :test #'string=))
   (cl-ds.utils:transform fill-pointer-to-zero output)
+
   (parse-csv-line #\, #\\ #\"
                   "\"test,1\",test2,test3"
                   output
                   "N/A")
+
   (prove:ok (vector= output #("test,1" "test2" "test3")
                      :test #'string=))
+
   (cl-ds.utils:transform fill-pointer-to-zero output)
   (parse-csv-line #\, #\\ #\"
                   "test,1,test2,test3"

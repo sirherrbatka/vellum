@@ -3,47 +3,61 @@
 
 (declaim (inline make-csv-parsing-state-frame))
 (defstruct csv-parsing-state-frame
+  (callback #'identity :type function)
+  previous-frame
   (line-index 0 :type cl-ds.utils:index)
   (field-index 0 :type cl-ds.utils:index)
   (in-field-index 0 :type cl-ds.utils:index)
-  (line "" :type simple-string)
+  (line "" :type string)
   (fields #() :type simple-vector)
-  (in-quote nil :type boolean))
+  (in-quote nil :type boolean)
+  (next-frames '() :type list))
 
 
 (cl-ds.utils:define-list-of-slots csv-parsing-state-frame ()
+  (previous-frame csv-parsing-state-frame-previous-frame)
   (line-index csv-parsing-state-frame-line-index)
   (field-index csv-parsing-state-frame-field-index)
   (in-field-index csv-parsing-state-frame-in-field-index)
   (line csv-parsing-state-frame-line)
+  (fields csv-parsing-state-frame-fields)
   (in-quote csv-parsing-state-frame-in-quote)
-  (fields csv-parsing-state-frame-fields))
+  (next-frames csv-parsing-state-frame-next-frames)
+  (callback csv-parsing-state-frame-callback))
 
 
-(defun rollback (old-frame new-frame)
-  (declare (type csv-parsing-state-frame old-frame new-frame))
-  (cl-ds.utils:with-slots-for (old-frame csv-parsing-state-frame)
-    (iterate
-      (for i from (1+ field-index)
-           to (min (csv-parsing-state-frame-field-index new-frame)
-                   (1- (length fields))))
-      (setf (fill-pointer (svref fields i)) 0))
-    (when (< field-index (length fields))
-      (setf (fill-pointer (svref fields field-index)) in-field-index))))
+(defun rollback (frame)
+  (let ((new-frame frame)
+        (old-frame (csv-parsing-state-frame-previous-frame frame)))
+    (declare (type csv-parsing-state-frame new-frame)
+             (type (or null csv-parsing-state-frame) old-frame))
+    (when (null old-frame)
+      (return-from rollback nil))
+    (cl-ds.utils:with-slots-for (old-frame csv-parsing-state-frame)
+      (iterate
+        (for i from (1+ field-index)
+             to (min (csv-parsing-state-frame-field-index new-frame)
+                     (1- (length fields))))
+        (setf (fill-pointer (svref fields i)) 0))
+      (when (< field-index (length fields))
+        (setf (fill-pointer (svref fields field-index)) in-field-index)))
+    old-frame))
 
 
 (declaim (inline new-frame))
-(defun new-frame (old-frame)
+(defun new-frame (old-frame function)
   (declare (type csv-parsing-state-frame old-frame)
            (optimize (debug 3) (safety 3)))
   (cl-ds.utils:with-slots-for (old-frame csv-parsing-state-frame)
     (make-csv-parsing-state-frame
+     :callback function
+     :previous-frame old-frame
      :line-index line-index
      :field-index field-index
      :in-field-index in-field-index
      :line line
-     :in-quote in-quote
-     :fields fields)))
+     :fields fields
+     :in-quote in-quote)))
 
 
 (defun frame-char (frame)
@@ -112,48 +126,80 @@
 
 
 (defmacro invoke (frame-function old-frame)
-  (with-gensyms (!new-frame !result)
-    (once-only (old-frame)
-      `(let ((,!new-frame (new-frame ,old-frame)))
-         (declare (dynamic-extent ,!new-frame))
-         (lret ((,!result (,frame-function ,!new-frame)))
-           (unless ,!result
-             (rollback ,old-frame ,!new-frame)))))))
+  (once-only (old-frame)
+    `(progn (push (new-frame ,old-frame (function ,frame-function))
+                  (csv-parsing-state-frame-next-frames ,old-frame))
+            ,old-frame)))
+
+
+(defun evalute-frame (frame)
+  (if (null frame)
+      nil
+      (cl-ds.utils:with-slots-for (frame csv-parsing-state-frame)
+        (funcall callback frame)
+        frame)))
+
+
+(defun unfold-frame (old-frame)
+  (cl-ds.utils:with-slots-for (old-frame csv-parsing-state-frame)
+    (if (endp next-frames)
+        (progn (rollback old-frame)
+               previous-frame)
+        (bind (((first . rest) next-frames))
+          (setf next-frames rest)
+          (evalute-frame first)))))
+
+
+(defun line-parsed-p (frame)
+  (if (null (frame-char frame))
+      (validate-end frame)
+      nil))
 
 
 (defmacro do-line ((line path fields char-name frame)
                    main-case
                    &body cases)
   (let* ((function-names (mapcar #'first (cons main-case cases))))
-    (once-only (line)
-      `(let* ((,frame (make-csv-parsing-state-frame
-                       :line ,line
-                       :fields (cl-ds.utils:transform (lambda (x)
-                                                        (setf (fill-pointer x) 0)
-                                                        x)
-                                                      ,fields))))
-         (declare (dynamic-extent ,frame))
-         (labels (,@(iterate
-                      (for (function-name . function-body) in cases)
-                      (collect
-                          `(,function-name
-                            (,frame)
-                            (declare (type csv-parsing-state-frame ,frame))
-                            (cl-ds.utils:with-slots-for
-                                (,frame csv-parsing-state-frame)
-                              ,@function-body))))
-                  (,(first function-names) (,frame)
-                    (declare (type csv-parsing-state-frame ,frame))
-                    (cl-ds.utils:with-slots-for
-                        (,frame csv-parsing-state-frame)
-                      (let ((,char-name (frame-char ,frame)))
-                        (declare (type (or null character) ,char-name))
-                        ,@(rest main-case)))))
-           (unless (,(first function-names) ,frame)
-             (error 'csv-format-error
-                    :path ,path
-                    :format-control "Can't parse line ~a in the input file."
-                    :format-arguments (list ,line))))))))
+    (with-gensyms (!frame)
+      (once-only (line)
+        `(let* ((,frame (make-csv-parsing-state-frame
+                         :line ,line
+                         :fields (cl-ds.utils:transform
+                                  (lambda (x) (setf (fill-pointer x) 0) x)
+                                  ,fields))))
+           (declare (dynamic-extent ,frame))
+           (labels (,@(iterate
+                        (for (function-name . function-body) in cases)
+                        (collect
+                            `(,function-name
+                              (,frame)
+                              (declare (type csv-parsing-state-frame ,frame))
+                              (cl-ds.utils:with-slots-for (,frame csv-parsing-state-frame)
+                                ,@function-body))))
+                    (,(first function-names) (,frame)
+                      (declare (type csv-parsing-state-frame ,frame))
+                      (cl-ds.utils:with-slots-for
+                          (,frame csv-parsing-state-frame)
+                        (let ((,char-name (frame-char ,frame)))
+                          (declare (type (or null character) ,char-name))
+                          ,@(rest main-case)))))
+             (setf (csv-parsing-state-frame-callback ,frame)
+                   (function ,(first function-names)))
+             (evalute-frame ,frame)
+             (iterate
+               (for ,!frame = (unfold-frame ,frame))
+               (while ,!frame)
+               (cond ((not (validate-field-number ,!frame))
+                      (setf ,frame (rollback ,!frame))
+                      (next-iteration))
+                     ((line-parsed-p ,!frame)
+                      (leave t))
+                     (t (setf ,frame ,!frame)))
+               (finally
+                (error 'csv-format-error
+                       :path ,path
+                       :format-control "Can't parse line ~a in the input file."
+                       :format-arguments (list ,line))))))))))
 
 
 (def constantly-t (constantly t))
@@ -164,27 +210,19 @@
                        &optional (field-predicate constantly-t))
   (declare (type simple-vector output)
            (type character escape quote separator)
-           (type simple-string line)
-           (optimize (debug 3) (safety 3)))
+           (type string line)
+           (optimize (speed 0) (safety 3) (debug 3)))
   (do-line (line path output char frame)
       (field-char
-       (if (null char)
-           (validate-end frame)
-           (and (validate-field-number frame)
-                (or (and (eql char quote)
-                         (invoke quote-char frame))
-                    (and (eql char escape)
-                         (if (and in-quote
-                                  (not (char= escape quote)))
-                             (or (invoke escape-char frame)
-                                 (invoke ordinary-char frame))
-                             (or (invoke ordinary-char frame)
-                                 (invoke escape-char frame))))
-                    (and (eql separator char)
-                         (if in-quote
-                             (invoke ordinary-char frame)
-                             (invoke separator-char frame)))
-                    (invoke ordinary-char frame)))))
+       (unless (null char)
+         (when (eql char quote)
+           (invoke quote-char frame))
+         (when (eql char escape)
+           (invoke escape-char frame))
+         (when (eql separator char)
+           (invoke separator-char frame))
+         (invoke ordinary-char frame))
+       frame)
     (quote-char
      (skip-char frame)
      (setf in-quote (not in-quote))
@@ -194,14 +232,12 @@
      (invoke field-char frame))
     (escape-char
      (skip-char frame)
-     (invoke ordinary-char frame))
+     (ordinary-char frame))
     (separator-char
-     (if (validate-field frame field-predicate)
-         (progn
-           (next-field frame)
-           (skip-char frame)
-           (invoke field-char frame))
-         nil)))
+     (when (validate-field frame field-predicate)
+       (skip-char frame)
+       (next-field frame)
+       (invoke field-char frame))))
   output)
 
 
