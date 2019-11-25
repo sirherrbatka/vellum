@@ -1,7 +1,7 @@
 (cl:in-package #:cl-df.csv)
 
 
-(declaim (inline make-csv-parsing-state-frame))
+(declaim (notinline make-csv-parsing-state-frame))
 (defstruct csv-parsing-state-frame
   (callback #'identity :type function)
   previous-frame
@@ -44,7 +44,7 @@
     old-frame))
 
 
-(declaim (inline new-frame))
+(declaim (notinline new-frame))
 (defun new-frame (old-frame function)
   (declare (type csv-parsing-state-frame old-frame)
            (optimize (speed 3) (safety 0)))
