@@ -214,16 +214,18 @@
            (optimize (speed 3) (safety 0) (debug 0)))
   (do-line (line path output char frame)
       (field-char
-       (unless (null char)
-         (invoke ordinary-char frame)
-         (when (eql separator char)
-           (if in-quote
-               (invoke ordinary-char frame)
-               (invoke separator-char frame)))
-         (when (eql char quote)
-           (invoke quote-char frame))
-         (when (eql char escape)
-           (invoke escape-char frame)))
+       (if (null char)
+           (validate-field frame field-predicate)
+           (progn
+             (invoke ordinary-char frame)
+             (when (eql separator char)
+               (if in-quote
+                   (invoke ordinary-char frame)
+                   (invoke separator-char frame)))
+             (when (eql char quote)
+               (invoke quote-char frame))
+             (when (eql char escape)
+               (invoke escape-char frame))))
        frame)
     (quote-char
      (skip-char frame)
