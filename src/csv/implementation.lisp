@@ -238,8 +238,6 @@
                                       (type (cl-df.header:column-type header index))
                                       ((:values value failed)
                                        (ignore-errors (from-string range type trim))))
-                                 (when failed
-                                   (break))
                                  (cond (failed nil)
                                        ((or (not check-predicates)
                                             (funcall (cl-df.header:column-predicate
