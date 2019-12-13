@@ -37,6 +37,10 @@
   (nth-value 0 (parse-integer string)))
 
 
+(defmethod from-string (range (type (eql 'number)) string)
+  (parse-number string))
+
+
 (defmethod from-string (range (type (eql t)) string)
   (take (length string) string))
 
