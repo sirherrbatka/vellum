@@ -4,15 +4,16 @@
   (:use #:cl #:cl-data-frames.aux-package)
   (:nicknames #:cl-df)
   (:export
-   #:row-cant-be-created
-   #:file-input-row-cant-be-created
+   #:copy-from
    #:copy-to
-   #:empty-table
-   #:sample
-   #:new-columns
-   #:show
    #:empty-column
-   #:copy-from))
+   #:empty-table
+   #:file-input-row-cant-be-created
+   #:new-columns
+   #:order-by
+   #:row-cant-be-created
+   #:sample
+   #:show))
 
 (in-package :cl-data-frames)
 
