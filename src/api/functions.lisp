@@ -27,3 +27,8 @@
 
 (defun empty-table (&key (header (cl-df.header:header)))
   (cl-df.table:make-table 'cl-df.table:standard-table header))
+
+
+(defun order-by (table columns comparator)
+  (cl-df:with-header ((cl-df.table:header table))
+    cl-ds.utils:todo))
