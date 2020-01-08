@@ -55,30 +55,33 @@
   (nreverse (cons (first definitions) result)))
 
 
-(defun common-to-table (range key class header)
+(defun common-to-table (range key class header body)
   (bind ((column-count (cl-df.header:column-count header))
          (columns (make-array column-count))
-         (columns-buffer (make-array column-count))
-         (iterator nil))
+         (columns-buffer (make-array column-count)))
     (iterate
       (for i from 0 below column-count)
       (setf (aref columns i)
             (cl-df.column:make-sparse-material-column
              :element-type (cl-df.header:column-type header i))))
-    (setf iterator (cl-df.column:make-iterator columns))
-    (fill-columns-buffer-impl
-     range 0 columns-buffer
-     (lambda ()
-       (iterate
-         (for i from 0 below column-count)
-         (setf (cl-df.column:iterator-at iterator i)
-               (aref columns-buffer i))
-         (finally (cl-df.column:move-iterator iterator 1))))
-     key)
-    (cl-df.column:finish-iterator iterator)
-    (make class
-          :header header
-          :columns columns)))
+    (let* ((iterator (cl-df.column:make-iterator columns))
+           (cl-df.header:*row* (make 'cl-df.table:setfable-table-row
+                                     :iterator iterator)))
+      (fill-columns-buffer-impl
+       range 0 columns-buffer
+       (lambda ()
+         (iterate
+           (for i from 0 below column-count)
+           (setf (cl-df.column:iterator-at iterator i)
+                 (aref columns-buffer i))
+           (unless (null body)
+             (funcall body cl-df.header:*row*))
+           (finally (cl-df.column:move-iterator iterator 1))))
+       key)
+      (cl-df.column:finish-iterator iterator)
+      (make class
+            :header header
+            :columns columns))))
 
 
 (defmethod cl-df:to-table ((range cl-ds.alg:group-by-result-range)
@@ -87,10 +90,11 @@
                              (header-class 'cl-df:standard-header)
                              (class 'cl-df.table:standard-table)
                              (columns '())
+                             (body nil)
                              (header (apply #'cl-df:make-header
                                             header-class
                                             (gather-column-data range columns '()))))
-  (common-to-table range key class header))
+  (common-to-table range key class header body))
 
 
 (defmethod cl-df:to-table ((range cl-ds.alg:summary-result-range)
@@ -99,7 +103,8 @@
                              (header-class 'cl-df:standard-header)
                              (class 'cl-df.table:standard-table)
                              (columns '())
+                             (body nil)
                              (header (apply #'cl-df:make-header
                                             header-class
                                             (gather-column-data range columns '()))))
-  (common-to-table range key class header))
+  (common-to-table range key class header body))

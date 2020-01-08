@@ -11,6 +11,8 @@
    #:brr
    #:column-count
    #:column-type
+   #:*row*
+   #:*header*
    #:column-predicate
    #:predicate-failed
    #:concatenate-headers

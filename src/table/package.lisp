@@ -22,6 +22,7 @@
    #:fundamental-table
    #:standard-table
    #:standard-table-range
+   #:setfable-table-row
    #:iterator
    #:drop-row
    #:nullify

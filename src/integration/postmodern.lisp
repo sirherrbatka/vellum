@@ -54,26 +54,30 @@
                              (class 'cl-df.table:standard-table)
                              (header-class 'cl-df.header:standard-header)
                              (columns '())
+                             (body nil)
                              (header (apply #'cl-df.header:make-header
                                             header-class columns)))
   (cl-df:with-header (header)
     (let* ((column-count (cl-df.header:column-count header))
-           (columns (make-array column-count))
-           (iterator nil))
+           (columns (make-array column-count)))
       (iterate
         (for i from 0 below column-count)
         (setf (aref columns i)
               (cl-df.column:make-sparse-material-column
                :element-type (cl-df.header:column-type header i))))
-      (setf iterator (cl-df.column:make-iterator columns))
-      (cl-ds:traverse object
-                      (lambda (content)
-                        (iterate
-                          (for i from 0 below column-count)
-                          (setf (cl-df.column:iterator-at iterator i)
-                                (funcall key (aref content i)))
-                          (finally (cl-df.column:move-iterator iterator 1)))))
-      (cl-df.column:finish-iterator iterator)
-      (make class
-            :header header
-            :columns columns))))
+      (let* ((iterator (cl-df.column:make-iterator columns))
+             (cl-df.header:*row* (make 'cl-df.table:setfable-table-row
+                                       :iterator iterator)))
+        (cl-ds:traverse object
+                        (lambda (content)
+                          (iterate
+                            (for i from 0 below column-count)
+                            (setf (cl-df.column:iterator-at iterator i)
+                                  (funcall key (aref content i)))
+                            (unless (null body)
+                              (funcall body cl-df.header:*row*))
+                            (finally (cl-df.column:move-iterator iterator 1)))))
+        (cl-df.column:finish-iterator iterator)
+        (make class
+              :header header
+              :columns columns)))))
