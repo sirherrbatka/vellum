@@ -29,6 +29,31 @@
   (cl-df.table:make-table 'cl-df.table:standard-table header))
 
 
-(defun order-by (table columns comparator)
-  (cl-df:with-header ((cl-df.table:header table))
-    cl-ds.utils:todo))
+(defun order-by (table column comparator &rest columns-comparators)
+  (let* ((content (make-array (row-count table)))
+         (header (cl-df.table:header table))
+         (comparators (~>> (batches columns-comparators 2)
+                           (mapcar #'second)
+                           (cons comparator)
+                           nreverse))
+         (indexes (~>> (batches columns-comparators 2)
+                       (mapcar #'first)
+                       (cons column)
+                       (mapcar (lambda (x)
+                                 (cl-df.header:alias-to-index header x)))
+                       nreverse))
+         (i 0))
+    (transform table
+               (lambda (&rest all)
+                 (declare (ignore all))
+                 (setf (aref content i)
+                       (cl-ds.alg:to-vector (cl-df.header:row)))
+                 (incf i))
+               :in-place nil)
+    (iterate
+      (for index in indexes)
+      (for comparator in comparators)
+      (setf content
+            (stable-sort content comparator
+                         :key (lambda (v) (aref v index)))))
+    (to-table content :header header)))
