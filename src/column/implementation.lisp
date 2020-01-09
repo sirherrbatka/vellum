@@ -309,9 +309,8 @@
             (declare (type fixnum level-1))
             (cl-ds.utils:cases ((zerop level-1))
               (iterate
-                (declare (type fixnum i next-index byte-position difference))
-                (with difference = (- shift level))
-                (with byte-position = (* 5 difference))
+                (declare (type fixnum i next-index byte-position))
+                (with byte-position = (* 5 level))
                 (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
                 (for next-index = (dpb i (byte 5 byte-position) index))
                 (if (cl-ds.common.rrb:sparse-rrb-node-contains subtree i)
