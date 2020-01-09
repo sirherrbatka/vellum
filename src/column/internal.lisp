@@ -951,8 +951,9 @@
       (declare (type fixnum i))
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
       (for present = (cl-ds.common.rrb:sparse-rrb-node-contains node i))
-      (when present
-        (setf (aref buffer i) (cl-ds.common.rrb:sparse-nref node i))))
+      (setf (aref buffer i) (if present
+                                (cl-ds.common.rrb:sparse-nref node i)
+                                :null)))
     node))
 
 
@@ -1120,6 +1121,12 @@
             more)))
 
 
+(defmethod cl-ds:across ((range sparse-material-column-range)
+                         function)
+  (ensure-functionf function)
+  )
+
+
 (defmethod cl-ds:drop-front ((range sparse-material-column-range)
                              count)
   (check-type count non-negative-fixnum)
@@ -1152,7 +1159,7 @@
 
 (defun move-sparse-material-column-iterator (iterator times)
   (declare (type sparse-material-column-iterator iterator)
-           (optimize (speed 3)))
+           (optimize (speed 3) (safety 0)))
   (check-type times non-negative-fixnum)
   (bind (((:slots %index %stacks %buffers %depth) iterator)
          (index %index)
