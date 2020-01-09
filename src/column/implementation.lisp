@@ -323,8 +323,8 @@
                     (map-nulls level-1 next-index)))))))
     (if (zerop shift)
         (map-leaf root 0)
-        (map-subtree root shift 0)))
-  container)
+        (map-subtree root shift 0))
+    (map-tail)))
 
 
 (defmethod cl-ds:traverse ((container sparse-material-column)
