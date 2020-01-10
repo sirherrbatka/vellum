@@ -973,8 +973,10 @@
       (declare (type fixnum i))
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
       (for present = (cl-ds.common.rrb:sparse-rrb-node-contains node i))
-      (when present
-        (setf (aref buffer i) (cl-ds.common.rrb:sparse-nref node i))))
+      (setf (aref buffer i)
+            (if present
+                (cl-ds.common.rrb:sparse-nref node i)
+                :null)))
     node))
 
 
