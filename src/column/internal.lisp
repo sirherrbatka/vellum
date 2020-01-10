@@ -32,10 +32,10 @@
   (logand index cl-ds.common.rrb:+tail-mask+))
 
 
+(-> pad-stack (sparse-material-column-iterator fixnum fixnum fixnum iterator-stack fixnum)
+    t)
 (defun pad-stack (iterator depth index new-depth stack column)
-  (declare (type iterator-stack stack)
-           (type fixnum new-depth index depth)
-           (optimize (speed 3) (safety 0)))
+  (declare (optimize (speed 3) (safety 0) (compilation-speed 0) (space 0) (debug 0)))
   (iterate
     (declare (type fixnum j byte offset depth-difference))
     (with depth-difference = (- new-depth depth))
@@ -58,9 +58,9 @@
   (aref stack 0))
 
 
+(-> pad-stacks (sparse-material-column-iterator fixnum) t)
 (defun pad-stacks (iterator new-depth)
-  (declare (type fixnum new-depth)
-           (optimize (speed 3) (safety 0)))
+  (declare (optimize (speed 3) (safety 0) (compilation-speed 0) (space 0) (debug 0)))
   (iterate
     (declare (type fixnum index i length)
              (type (simple-array fixnum (*)) depths)
@@ -80,12 +80,10 @@
     (maxf (aref depths i) new-depth)))
 
 
+(-> ensure-column-initialization (sparse-material-column-iterator fixnum) t)
 (defun ensure-column-initialization (iterator column)
-  (declare (optimize (speed 3) (safety 0)))
-  (bind (((:slots %initialization-status %columns
-                  %stacks %buffers %depths %touched)
-          iterator)
-         (status %initialization-status)
+  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0)))
+  (bind ((status (read-initialization-status iterator))
          (length (length status)))
     (declare (type (simple-array boolean (*)) status)
              (type fixnum length column))
@@ -97,13 +95,11 @@
              :format-control "There is no such column."))
     (unless (aref status column)
       (setf (aref status column) t)
-      (let ((columns %columns)
-            (stacks %stacks)
-            (buffers %buffers)
-            (depths %depths)
-            (touched %touched))
-        (declare (type simple-vector columns stacks buffers touched)
-                 (type (simple-array fixnum (*)) depths))
+      (let ((columns (read-columns iterator))
+            (stacks (read-stacks iterator))
+            (buffers (read-buffers iterator))
+            (depths (read-depths iterator))
+            (touched (read-touched iterator)))
         (initialize-iterator-column
          (access-index iterator)
          (aref columns column)
@@ -113,27 +109,38 @@
          (aref touched column))))))
 
 
+(declaim (notinline initialize-iterator-column))
+(-> initialize-iterator-column (fixnum t iterator-stack iterator-buffer fixnum boolean)
+    t)
 (defun initialize-iterator-column (index column stack buffer shift touched)
-  (declare (type iterator-stack stack)
-           (type iterator-buffer buffer)
-           (type fixnum shift)
-           (type boolean touched)
-           (optimize (speed 3) (safety 0)))
-  (unless touched
-    (loop :for i :from 0 :below (length stack)
-          :do (setf (aref stack i) nil))
-    (setf (aref stack 0) (column-root column)))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
+  (let ((column-root (column-root column)))
+    (unless touched
+      (loop :for i :from 0 :below (length stack)
+            :do (setf (aref stack i) nil))
+      (setf (aref stack 0) column-root)))
   (move-stack shift index stack)
   (fill-buffer shift buffer stack))
 
 
+(-> initialize-iterator-columns (sparse-material-column-iterator) t)
 (defun initialize-iterator-columns (iterator)
-  (map nil (curry #'initialize-iterator-column (access-index iterator))
-       (read-columns iterator)
-       (read-stacks iterator)
-       (read-buffers iterator)
-       (read-depths iterator)
-       (read-touched iterator)))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
+  (iterate
+    (declare (type fixnum i))
+    (with index = (access-index iterator))
+    (with stacks = (read-stacks iterator))
+    (with columns = (read-columns iterator))
+    (with buffers = (read-buffers iterator))
+    (with depths = (read-depths iterator))
+    (with touched = (read-touched iterator))
+    (for i from 0 below (length stacks))
+    (initialize-iterator-column index
+                                (aref columns i)
+                                (aref stacks i)
+                                (aref buffers i)
+                                (aref depths i)
+                                (aref touched i))))
 
 
 (defun index-promoted (old-index new-index)
@@ -931,10 +938,9 @@
                        child))))))
 
 
+(-> reduce-stack (sparse-material-column-iterator fixnum fixnum iterator-stack fixnum) t)
 (defun reduce-stack (iterator index depth stack column)
-  (declare (optimize (speed 3) (saefty 0))
-           (type iterator-stack stack)
-           (type fixnum depth index))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (iterate
     (declare (type fixnum i bits))
     (with tag = (cl-ds.common.abstract:read-ownership-tag column))
@@ -954,9 +960,11 @@
   (first-elt stack))
 
 
+(declaim (inline fill-buffer))
+(-> fill-buffer (fixnum iterator-buffer iterator-stack) t)
 (defun fill-buffer (depth buffer stack)
   (declare (type fixnum depth)
-           (optimize (speed 3) (safety 0))
+           (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0))
            (type iterator-stack stack)
            (type iterator-buffer buffer))
   (let ((node (aref stack depth)))
@@ -966,49 +974,46 @@
       (declare (type fixnum i))
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
       (for present = (cl-ds.common.rrb:sparse-rrb-node-contains node i))
-      (setf (aref buffer i) (if present
-                                (cl-ds.common.rrb:sparse-nref node i)
-                                :null)))
+      (when present
+        (setf (aref buffer i) (cl-ds.common.rrb:sparse-nref node i))))
     node))
 
 
+(declaim (notinline fill-buffers))
+(-> fill-buffers (sparse-material-column-iterator) t)
 (defun fill-buffers (iterator)
-  (declare (optimize (speed 3) (safety 0)))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (let ((depths (read-depths iterator))
         (initialization-status (read-initialization-status iterator))
         (buffers (read-buffers iterator))
         (stacks (read-stacks iterator)))
-    (declare (type (simple-array fixnum (*)) depths)
-             (type (simple-array * (*)) buffers stacks)
-             (type (simple-array boolean (*)) initialization-status))
-    (map nil
-         (lambda (d i b s)
-           (when i
-             (fill-buffer d b s)))
-         depths
-         initialization-status
-         buffers
-         stacks)))
+    (iterate
+      (declare (type fixnum i))
+      (for i from 0 below (length stacks))
+      (when (aref initialization-status i)
+        (fill-buffer (aref depths i) (aref buffers i) (aref stacks i))))))
 
 
+(declaim (notinline reduce-stacks))
+(-> reduce-stacks (sparse-material-column-iterator) t)
 (defun reduce-stacks (iterator)
-  (declare (optimize (speed 3) (safety 0)))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (let ((initialization-status (read-initialization-status iterator))
         (depths (read-depths iterator))
         (stacks (read-stacks iterator))
         (index (access-index iterator))
         (columns (read-columns iterator)))
-    (declare (type simple-vector stacks columns)
-             (type (simple-array fixnum (*)) depths)
-             (type (simple-array boolean (*)) initialization-status))
-    (map nil
-         (lambda (i d s c)
-           (when i (reduce-stack iterator index d s c)))
-         initialization-status depths stacks columns)))
+    (iterate
+      (declare (type fixnum i))
+      (for i from 0 below (length stacks))
+      (when (aref initialization-status i)
+        (reduce-stack iterator index (aref depths i) (aref stacks i) (aref columns i))))))
 
 
+(declaim (notinline clear-changes))
+(-> clear-changes (sparse-material-column-iterator) t)
 (defun clear-changes (iterator)
-  (declare (optimize (speed 3) (safety 0)))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (iterate
     (declare (type simple-vector changes)
              (type fixnum i length)
@@ -1020,15 +1025,20 @@
     (for change = (aref changes i))
     (for initialized = (aref initialization-status i))
     (when initialized
-      (fill (the simple-vector change) nil))))
+      (iterate
+        (declare (type iterator-buffer ch)
+                 (type fixnum i))
+        (with ch = change)
+        (for i from 0 below (length ch))
+        (setf (aref ch i) nil)))))
 
 
+(declaim (notinline clear-buffers))
+(-> clear-buffers (sparse-material-column-iterator) t)
 (defun clear-buffers (iterator)
-  (declare (optimize (speed 3) (safety 0)))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (iterate
-    (declare (type fixnum length i)
-             (type (simple-array boolean (*)) initialization-status)
-             (type iterator-buffer buffers))
+    (declare (type fixnum length i))
     (with buffers = (read-buffers iterator))
     (with initialization-status = (read-initialization-status iterator))
     (with length = (length buffers))
@@ -1036,7 +1046,12 @@
     (for buffer = (aref buffers i))
     (for initialized = (aref initialization-status i))
     (when initialized
-      (fill (the simple-vector buffer) :null))))
+      (iterate
+        (declare (type iterator-buffer bu)
+                 (type fixnum i))
+        (with bu = buffer)
+        (for i from 0 below (length bu))
+        (setf (aref bu i) :null)))))
 
 
 (defun sparse-material-column-at (column index)

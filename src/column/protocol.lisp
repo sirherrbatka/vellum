@@ -11,10 +11,7 @@
 ;; (defgeneric clear-change-observers (column))
 ;; (defgeneric run-change-observers (column index new-value))
 (defgeneric make-iterator (columns &key &allow-other-keys))
-
 (defgeneric augment-iterator (iterator column))
 (defgeneric finish-iterator (iterator))
 (defgeneric remove-nulls (iterator))
 (defgeneric truncate-to-length (column length))
-(defgeneric index (iterator))
-(defgeneric columns (iterator))

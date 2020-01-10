@@ -5,10 +5,6 @@
   (cl-ds:type-specialization column))
 
 
-(defmethod column-type ((column fundamental-iterator))
-  t)
-
-
 (defmethod column-at ((column sparse-material-column) index)
   (sparse-material-column-at column index))
 
@@ -17,39 +13,37 @@
   (setf (sparse-material-column-at column index) new-value))
 
 
+(-> iterator-at (sparse-material-column-iterator integer) t)
+(declaim (inline iterator-at))
 (defun iterator-at (iterator column)
-  (declare (optimize (speed 3)))
-  (check-type column integer)
-  (check-type iterator sparse-material-column-iterator)
+  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (ensure-column-initialization iterator column)
-  (bind (((:slots %columns %index %buffers) iterator)
-         (buffers %buffers)
-         (offset (offset %index)))
+  (bind ((buffers (read-buffers iterator))
+         (offset (offset (index iterator))))
     (declare (type simple-vector buffers))
-    (~> (the (simple-array * (*)) (aref buffers column)) (aref offset))))
+    (~> (the iterator-buffer (aref buffers column)) (aref offset))))
 
 
 (defun (setf iterator-at) (new-value iterator column)
   (check-type column integer)
   (check-type iterator sparse-material-column-iterator)
   (ensure-column-initialization iterator column)
-  (bind (((:slots %changes %touched %bitmasks
-                  %columns %index %buffers %transformation)
-          iterator)
-         (buffers %buffers)
-         (offset (offset %index))
+  (bind ((buffers (read-buffers iterator))
+         (index (index iterator))
+         (offset (offset index))
          (buffer (aref buffers column))
          (old-value (aref buffer offset)))
     (declare (type simple-vector buffers))
     (setf (aref buffer offset) new-value)
     (unless (eql new-value old-value)
-      (let ((columns %columns)
-            (changes %changes)
-            (touched %touched))
+      (let ((columns (read-columns iterator))
+            (transformation (read-transformation iterator))
+            (changes (read-changes iterator))
+            (touched (read-touched iterator)))
         (declare (type simple-vector columns changes)
                  (type (simple-array boolean (*)) touched))
         (unless (aref touched column)
-          (setf #1=(aref columns column) (funcall %transformation #1#)))
+          (setf #1=(aref columns column) (funcall transformation #1#)))
         (setf (~> (aref changes column) (aref offset)) t
               (aref touched column) t)))
     new-value))
@@ -61,12 +55,10 @@
              (read-columns iterator)
              :key #'column-size)))
 
+(-> move-iterator (sparse-material-column-iterator non-negative-fixnum) t)
 (defun move-iterator (iterator times)
-  (declare (optimize (speed 3) (safety 0)))
-  (check-type times non-negative-fixnum)
-  (check-type iterator sparse-material-column-iterator)
-  (bind (((:slots %index %stacks %buffers %depth) iterator)
-         (index %index)
+  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
+  (bind ((index (access-index iterator))
          (new-index (+ index times))
          (new-depth (~> new-index
                         integer-length
@@ -76,7 +68,7 @@
     (declare (type fixnum index new-index new-depth)
              (type boolean promoted))
     (unless promoted
-      (setf %index new-index)
+      (setf (access-index iterator) new-index)
       (return-from move-iterator nil))
     (let* ((initialization-status (read-initialization-status iterator))
            (depths (read-depths iterator))
@@ -84,7 +76,6 @@
            (columns (read-columns iterator))
            (changes (read-changes iterator))
            (buffers (read-buffers iterator))
-           (index %index)
            (length (length depths)))
       (declare (type simple-vector stacks columns changes buffers)
                (type fixnum length)
@@ -132,7 +123,7 @@
               (fill-buffer (aref depths i)
                            (aref buffers i)
                            (aref stacks i)))))
-      (setf %index new-index))
+      (setf (access-index iterator) new-index))
     nil))
 
 (defun into-vector-copy (element vector)
@@ -150,24 +141,26 @@
    column (cl-ds.common.abstract:read-ownership-tag column))
   (let ((max-shift cl-ds.common.rrb:+maximal-shift+)
         (max-children-count cl-ds.common.rrb:+maximum-children-count+))
-    (cl-ds.utils:quasi-clone* iterator
-      :touched (~>> iterator read-touched (into-vector-copy nil))
-      :initialization-status (~>> iterator
-                                  read-initialization-status
-                                  (into-vector-copy nil))
-      :columns (~>> iterator read-columns (into-vector-copy column))
-      :changes (~>> iterator read-changes
-                    (into-vector-copy (make-array max-children-count
-                                                  :element-type 'boolean
-                                                  :initial-element nil)))
-      :stacks (~>> iterator read-stacks
-                   (into-vector-copy (make-array max-shift
+    (make-sparse-material-column-iterator
+     :index (index iterator)
+     :initial-index (index iterator)
+     :touched (~>> iterator read-touched (into-vector-copy nil))
+     :initialization-status (~>> iterator
+                                 read-initialization-status
+                                 (into-vector-copy nil))
+     :columns (~>> iterator read-columns (into-vector-copy column))
+     :changes (~>> iterator read-changes
+                   (into-vector-copy (make-array max-children-count
+                                                 :element-type 'boolean
                                                  :initial-element nil)))
-      :buffers (~>> iterator read-buffers
-                    (into-vector-copy (make-array max-children-count
-                                                  :initial-element :null)))
-      :depths (~>> iterator read-depths
-                   (into-vector-copy (cl-ds.dicts.srrb:access-shift column))))))
+     :stacks (~>> iterator read-stacks
+                  (into-vector-copy (make-array max-shift
+                                                :initial-element nil)))
+     :buffers (~>> iterator read-buffers
+                   (into-vector-copy (make-array max-children-count
+                                                 :initial-element :null)))
+     :depths (~>> iterator read-depths
+                  (into-vector-copy (cl-ds.dicts.srrb:access-shift column))))))
 
 
 (defmethod make-iterator (columns &key (transformation #'identity))
@@ -193,15 +186,15 @@
                                    :initial-element :null)))
          (depths (map-into (make-array length :element-type 'fixnum)
                            #'cl-ds.dicts.srrb:access-shift columns)))
-    (make 'sparse-material-column-iterator
-          :initialization-status initialization-status
-          :stacks stacks
-          :columns columns
-          :changes changes
-          :buffers buffers
-          :touched touched
-          :transformation transformation
-          :depths depths)))
+    (make-sparse-material-column-iterator
+     :initialization-status initialization-status
+     :stacks stacks
+     :columns columns
+     :changes changes
+     :buffers buffers
+     :touched touched
+     :transformation transformation
+     :depths depths)))
 
 
 (defmethod finish-iterator ((iterator sparse-material-column-iterator))
@@ -287,8 +280,8 @@
 
 
 (defmethod remove-nulls ((iterator sparse-material-column-iterator))
-  (bind (((:slots %index %columns %stacks %buffers %depth) iterator)
-         (depth (~> (extremum %columns #'>
+  (bind ((columns (read-column iterator))
+         (depth (~> (extremum columns #'>
                               :key #'cl-ds.dicts.srrb:access-shift)
                     cl-ds.dicts.srrb:access-shift))
          ((:flet unify-shift (column))
@@ -299,12 +292,12 @@
                  then (make-node iterator column 1
                                  :content (vector node)))
             (finally (setf (cl-ds.dicts.srrb:access-tree column) node)))))
-    (cl-ds.utils:transform (read-transformation iterator) %columns)
-    (map nil #'unify-shift %columns)
+    (cl-ds.utils:transform (read-transformation iterator) columns)
+    (map nil #'unify-shift columns)
     (concatenate-trees iterator)
     (trim-depth iterator)
     (iterate
-      (for column in-vector %columns)
+      (for column in-vector columns)
       (setf (cl-ds.dicts.srrb:access-tree-size column)
             (cl-ds.common.rrb:sparse-rrb-tree-size
              (cl-ds.dicts.srrb:access-tree column)
@@ -434,14 +427,16 @@
 
 
 (defmethod cl-ds:clone ((iterator sparse-material-column-iterator))
-  (cl-ds.utils:quasi-clone* iterator
-    :stacks (~>> iterator read-stacks (map 'vector #'copy-array))
-    :depths (~> iterator read-depths copy-array)
-    :buffers (~> iterator read-buffers copy-array)
-    :changes (~> iterator read-changes copy-array)
-    :touched (~> iterator read-touched copy-array)
-    :initialization-status (~> iterator read-initialization-status
-                               copy-array)))
+  (make-sparse-material-column-iterator
+   :index (index iterator)
+   :initial-index (index iterator)
+   :stacks (~>> iterator read-stacks (map 'vector #'copy-array))
+   :depths (~> iterator read-depths copy-array)
+   :buffers (~> iterator read-buffers copy-array)
+   :changes (~> iterator read-changes copy-array)
+   :touched (~> iterator read-touched copy-array)
+   :initialization-status (~> iterator read-initialization-status
+                              copy-array)))
 
 
 (defmethod cl-ds:reset! ((iterator sparse-material-column-iterator))

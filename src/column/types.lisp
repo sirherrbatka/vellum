@@ -34,64 +34,69 @@
   `(simple-vector ,cl-ds.common.rrb:+maximum-children-count+))
 
 
-(defclass sparse-material-column-iterator ()
-  ((%initialization-status :initarg :initialization-status
-                           :type (vector boolean)
-                           :initform (make-array 0 :element-type 'boolean
-                                                   :adjustable t
-                                                   :fill-pointer 0)
-                           :reader read-initialization-status)
-   (%transformation :initarg :transformation
-                    :reader read-transformation)
-   (%columns :initarg :columns
-             :type vector
-             :initform #()
-             :accessor access-columns
-             :reader columns
-             :reader read-columns)
-   (%stacks :initarg :stacks
-            :type vector
-            :initform #()
-            :accessor access-stacks
-            :reader read-stacks)
-   (%depths :initarg :depths
-            :type (vector fixnum)
-            :initform (make-array 0 :element-type 'fixnum)
-            :accessor access-depths
-            :reader read-depths)
-   (%index :initarg :index
-           :accessor access-index
-           :reader index
-           :type fixnum
-           :initform 0)
-   (%initial-index :initarg :inder
-                   :reader read-initial-index
-                   :type fixnum
-                   :initform 0)
-   (%touched :initarg :touched
-             :reader read-touched
-             :type vector
-             :initform (make-array 0 :element-type 'boolean))
-   (%buffers :initarg :buffers
-             :type vector
-             :initform #()
-             :accessor access-buffers
-             :reader read-buffers)
-   (%changes :initarg :changes
-             :initform #()
-             :type vector
-             :accessor access-changes
-             :reader read-changes)))
+(defstruct sparse-material-column-iterator
+  (initialization-status (make-array 0 :element-type 'boolean)
+   :type (simple-array boolean (*)))
+  transformation
+  (columns #() :type simple-vector)
+  (stacks #() :type simple-vector)
+  (depths (make-array 0 :element-type 'fixnum)
+   :type (simple-array fixnum (*)))
+  (index 0 :type fixnum)
+  (initial-index 0 :type fixnum)
+  (touched (make-array 0 :element-type 'boolean) :type (simple-array boolean (*)))
+  (buffers #() :type simple-vector)
+  (changes #() :type simple-vector))
 
+(declaim (inline read-transformation))
+(declaim (inline read-initialization-status))
+(declaim (inline index))
+(declaim (inline read-columns))
+(declaim (inline read-stacks))
+(declaim (inline read-depths))
+(declaim (inline read-initial-index))
+(declaim (inline read-touched))
+(declaim (inline read-buffers))
+(declaim (inline read-changes))
+(declaim (inline access-index))
+(declaim (inline (setf access-index)))
+(declaim (inline columns))
 
-(defmethod cl-ds.utils:cloning-information append
-    ((iterator sparse-material-column-iterator))
-  '((:columns read-columns)
-    (:stacks read-stacks)
-    (:depths read-depths)
-    (:index access-index)
-    (:transformation read-transformation)
-    (:buffers read-buffers)
-    (:touched read-touched)
-    (:initialization-status read-initialization-status)
-    (:changes read-changes)))
+(defun read-initialization-status (iterator)
+  (sparse-material-column-iterator-initialization-status iterator))
+
+(defun read-transformation (iterator)
+  (sparse-material-column-iterator-transformation iterator))
+
+(defun index (iterator)
+  (sparse-material-column-iterator-index iterator))
+
+(defun read-columns (iterator)
+  (sparse-material-column-iterator-columns iterator))
+
+(defun read-stacks (iterator)
+  (sparse-material-column-iterator-stacks iterator))
+
+(defun read-depths (iterator)
+  (sparse-material-column-iterator-depths iterator))
+
+(defun read-initial-index (iterator)
+  (sparse-material-column-iterator-initial-index iterator))
+
+(defun read-touched (iterator)
+  (sparse-material-column-iterator-touched iterator))
+
+(defun read-buffers (iterator)
+  (sparse-material-column-iterator-buffers iterator))
+
+(defun read-changes (iterator)
+  (sparse-material-column-iterator-changes iterator))
+
+(defun access-index (iterator)
+  (sparse-material-column-iterator-index iterator))
+
+(defun (setf access-index) (new-value iterator)
+  (setf (sparse-material-column-iterator-index iterator) new-value))
+
+(defun columns (iterator)
+  (sparse-material-column-iterator-columns iterator))
