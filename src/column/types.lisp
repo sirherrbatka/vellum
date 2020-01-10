@@ -22,6 +22,18 @@
         :element-type element-type))
 
 
+(deftype iterator-change ()
+  `(simple-array boolean (,cl-ds.common.rrb:+maximum-children-count+)))
+
+
+(deftype iterator-stack ()
+  `(simple-vector ,cl-ds.common.rrb:+maximal-shift+))
+
+
+(deftype iterator-buffer ()
+  `(simple-vector ,cl-ds.common.rrb:+maximum-children-count+))
+
+
 (defclass sparse-material-column-iterator ()
   ((%initialization-status :initarg :initialization-status
                            :type (vector boolean)
@@ -83,15 +95,3 @@
     (:touched read-touched)
     (:initialization-status read-initialization-status)
     (:changes read-changes)))
-
-
-(deftype iterator-change ()
-  `(simple-array boolean (,cl-ds.common.rrb:+maximum-children-count+)))
-
-
-(deftype iterator-stack ()
-  `(simple-vector ,cl-ds.common.rrb:+maximal-shift+))
-
-
-(deftype iterator-buffer ()
-  `(simple-vector ,cl-ds.common.rrb:+maximum-children-count+))
