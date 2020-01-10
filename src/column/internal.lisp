@@ -86,7 +86,7 @@
   (bind ((status (read-initialization-status iterator))
          (length (length status)))
     (declare (type (simple-array boolean (*)) status)
-             (type fixnum length column))
+             (type fixnum length))
     (unless (< -1 column length)
       (error 'no-such-column
              :bounds `(0 ,length)
@@ -285,11 +285,11 @@
      ,@body))
 
 
-(-> node (concatenation-state fixnum fixnum)
+(-> node (concatenation-state t fixnum)
     (or null cl-ds.common.rrb:sparse-rrb-node))
 (defun node (state column index)
   (declare (type concatenation-state state)
-           (type fixnum index column))
+           (type fixnum index))
   (with-concatenation-state (state)
     (gethash index (aref nodes column))))
 
@@ -608,7 +608,6 @@
 
 (defun update-parents (state column)
   (declare (optimize (speed 3) (safety 1))
-           (type fixnum column)
            (type concatenation-state state))
   (with-concatenation-state (state)
     (iterate
