@@ -12,9 +12,6 @@
 ;; (defgeneric run-change-observers (column index new-value))
 (defgeneric make-iterator (columns &key &allow-other-keys))
 
-(defgeneric iterator-at (iterator column))
-(defgeneric (setf iterator-at) (new-value iterator column))
-(defgeneric move-iterator (iterator times))
 (defgeneric augment-iterator (iterator column))
 (defgeneric finish-iterator (iterator))
 (defgeneric remove-nulls (iterator))

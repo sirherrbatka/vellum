@@ -5,29 +5,6 @@
   ())
 
 
-;; (defclass fundamental-observer ()
-;;   ())
-
-
-(defclass fundamental-iterator ()
-  ())
-
-
-(defclass fundamental-pure-iterator (fundamental-iterator)
-  ())
-
-
-(defclass complex-iterator (fundamental-iterator)
-  ((%subiterator-types :initarg :subiterator-types
-                       :type hash-table
-                       :initform (make-hash-table :test 'eql)
-                       :reader read-subiterator-types)
-   (%subiterators :initarg :subiterators
-                  :type vector
-                  :initform (vect)
-                  :reader read-subiterators)))
-
-
 (defclass sparse-material-column
     (cl-ds.dicts.srrb:transactional-sparse-rrb-vector
      fundamental-column)
@@ -45,7 +22,7 @@
         :element-type element-type))
 
 
-(defclass sparse-material-column-iterator (fundamental-pure-iterator)
+(defclass sparse-material-column-iterator ()
   ((%initialization-status :initarg :initialization-status
                            :type (vector boolean)
                            :initform (make-array 0 :element-type 'boolean
@@ -106,3 +83,15 @@
     (:touched read-touched)
     (:initialization-status read-initialization-status)
     (:changes read-changes)))
+
+
+(deftype iterator-change ()
+  `(simple-array boolean (,cl-ds.common.rrb:+maximum-children-count+)))
+
+
+(deftype iterator-stack ()
+  `(simple-vector ,cl-ds.common.rrb:+maximal-shift+))
+
+
+(deftype iterator-buffer ()
+  `(simple-vector ,cl-ds.common.rrb:+maximum-children-count+))

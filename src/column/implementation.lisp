@@ -17,10 +17,10 @@
   (setf (sparse-material-column-at column index) new-value))
 
 
-(defmethod iterator-at ((iterator sparse-material-column-iterator)
-                        column)
+(defun iterator-at (iterator column)
   (declare (optimize (speed 3)))
   (check-type column integer)
+  (check-type iterator sparse-material-column-iterator)
   (ensure-column-initialization iterator column)
   (bind (((:slots %columns %index %buffers) iterator)
          (buffers %buffers)
@@ -29,10 +29,9 @@
     (~> (the (simple-array * (*)) (aref buffers column)) (aref offset))))
 
 
-(defmethod (setf iterator-at) (new-value
-                               (iterator sparse-material-column-iterator)
-                               column)
+(defun (setf iterator-at) (new-value iterator column)
   (check-type column integer)
+  (check-type iterator sparse-material-column-iterator)
   (ensure-column-initialization iterator column)
   (bind (((:slots %changes %touched %bitmasks
                   %columns %index %buffers %transformation)
@@ -62,12 +61,79 @@
              (read-columns iterator)
              :key #'column-size)))
 
-
-(defmethod move-iterator
-    ((iterator sparse-material-column-iterator)
-     times)
-  (move-sparse-material-column-iterator iterator times))
-
+(defun move-iterator (iterator times)
+  (declare (optimize (speed 3) (safety 0)))
+  (check-type times non-negative-fixnum)
+  (check-type iterator sparse-material-column-iterator)
+  (bind (((:slots %index %stacks %buffers %depth) iterator)
+         (index %index)
+         (new-index (+ index times))
+         (new-depth (~> new-index
+                        integer-length
+                        (ceiling cl-ds.common.rrb:+bit-count+)
+                        1-))
+         (promoted (index-promoted index new-index)))
+    (declare (type fixnum index new-index new-depth)
+             (type boolean promoted))
+    (unless promoted
+      (setf %index new-index)
+      (return-from move-iterator nil))
+    (let* ((initialization-status (read-initialization-status iterator))
+           (depths (read-depths iterator))
+           (stacks (read-stacks iterator))
+           (columns (read-columns iterator))
+           (changes (read-changes iterator))
+           (buffers (read-buffers iterator))
+           (index %index)
+           (length (length depths)))
+      (declare (type simple-vector stacks columns changes buffers)
+               (type fixnum length)
+               (type (simple-array fixnum (*)) depths)
+               (type (simple-array boolean (*)) initialization-status))
+      (iterate
+        (declare (type fixnum i))
+        (for i from 0 below length)
+        (unless (aref initialization-status i)
+          (next-iteration))
+        (for not-changed = (every #'null (aref changes i)))
+        (unless not-changed
+          (change-leaf iterator
+                       (aref depths i)
+                       (aref stacks i)
+                       (aref columns i)
+                       (aref changes i)
+                       (aref buffers i))
+          (iterate
+            (declare (type iterator-change change)
+                     (type fixnum i))
+            (with change = (aref changes i))
+            (for i from 0 below (length change))
+            (setf (aref change i) nil))
+          (iterate
+            (declare (type iterator-buffer buffer)
+                     (type fixnum i))
+            (with buffer = (aref buffers i))
+            (for i from 0 below (length buffer))
+            (setf (aref buffer i) :null))
+          (reduce-stack iterator index
+                        (aref depths i)
+                        (aref stacks i)
+                        (aref columns i)))
+        (when (< (aref depths i) new-depth)
+          (pad-stack iterator (aref depths i) index new-depth
+                     (aref stacks i) (aref columns i))
+          (maxf (aref depths i) new-depth))
+        (if not-changed
+            (setf (aref initialization-status i) nil)
+            (progn
+              (move-stack (aref depths i)
+                          new-index
+                          (aref stacks i))
+              (fill-buffer (aref depths i)
+                           (aref buffers i)
+                           (aref stacks i)))))
+      (setf %index new-index))
+    nil))
 
 (defun into-vector-copy (element vector)
   (lret ((result (map-into (make-array
@@ -136,7 +202,6 @@
           :touched touched
           :transformation transformation
           :depths depths)))
-
 
 
 (defmethod finish-iterator ((iterator sparse-material-column-iterator))

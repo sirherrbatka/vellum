@@ -11,14 +11,11 @@
    #:column-at
    #:column-size
    #:column-type
-   #:complex-iterator
    #:finish-iterator
    #:truncate-to-length
    #:remove-nulls
    #:index
    #:fundamental-column
-   #:fundamental-iterator
-   #:fundamental-pure-iterator
    #:iterator-at
    #:make-iterator
    #:make-sparse-material-column
