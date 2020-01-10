@@ -32,7 +32,7 @@
                  ,(cond ((stringp column)
                          `(cl-df.header:alias-to-index
                            ,!header
-                           ',column))
+                           ,column))
                         ((symbolp column)
                          `(cl-df.header:alias-to-index
                            ,!header
@@ -68,5 +68,18 @@
 
 
 (defmacro brr (column)
-  `(lambda (&rest all) (declare (ignore all))
-     (rr ',column)))
+  (with-gensyms (!header !index !current-header)
+    `(let ((,!header nil)
+           (,!index nil))
+       (lambda (&rest all) (declare (ignore all))
+         (let ((,!current-header (cl-df.header:header)))
+           (unless (eq ,!current-header ,!header)
+             (setf ,!header ,!current-header
+                   ,!index ,(cond ((stringp column)
+                                   `(cl-df.header:alias-to-index ,!header
+                                                                 ,column))
+                                  ((symbolp column)
+                                   `(cl-df.header:alias-to-index ,!header
+                                                                 ,(symbol-name column)))
+                                  (t column))))
+           (rr ,!index))))))

@@ -504,11 +504,19 @@
   range)
 
 
-(defmethod cl-ds:traverse ((table standard-table) function)
-  (with-table (table)
-    (cl-ds:traverse (cl-ds:whole-range table)
-                    function))
-  table)
+(defmethod cl-ds:traverse ((frame standard-table) function)
+  (when (~> frame column-count zerop)
+    (return-from cl-ds:traverse frame))
+  (with-table (frame)
+    (let* ((iterator (iterator frame t))
+           (row (make-instance 'table-row :iterator iterator)))
+      (cl-df.header:set-row row)
+      (iterate
+        (declare (type fixnum i))
+        (for i from 0 below (row-count frame))
+        (funcall function row)
+        (cl-df.column:move-iterator iterator 1)
+        (finally (return frame))))))
 
 
 (defmethod cl-ds:across ((table standard-table) function)
@@ -516,12 +524,18 @@
 
 
 (defmethod cl-ds.alg.meta:apply-range-function ((range fundamental-table)
-                                                function
+                                                (function cl-ds.alg.meta:layer-function)
                                                 &rest all)
-  (with-table (range)
-    (apply #'cl-ds.alg.meta:apply-range-function
-           (cl-ds:whole-range range)
-           function all)))
+  (apply #'cl-ds.alg.meta:apply-layer
+         (cl-ds:whole-range range)
+         function all))
+
+
+(defmethod cl-ds.alg.meta:apply-range-function ((range fundamental-table)
+                                                (function cl-ds.alg.meta:aggregation-function)
+                                                &rest all)
+  (apply #'cl-ds.alg.meta:apply-aggregation-function
+         range function all))
 
 
 (defmethod cl-ds:traverse ((selection selection)
