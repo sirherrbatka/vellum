@@ -756,8 +756,8 @@
 
 (defun move-stack (depth new-index stack &aux (node (aref stack 0)))
   (declare (type fixnum depth new-index)
-           (type simple-vector stack)
-           (optimize (speed 3)))
+           (type iterator-stack stack)
+           (optimize (speed 3) (safety 0)))
   (when (null node)
     (return-from move-stack nil))
   (iterate outer
@@ -779,7 +779,7 @@
       (leave))
     (setf node (cl-ds.common.rrb:sparse-nref node offset)
           (aref stack i) node))
-  (first-elt stack))
+  (aref stack 0))
 
 
 (defun move-stacks (iterator new-index new-depth)
@@ -796,7 +796,7 @@
     (with initialization-status = (read-initialization-status iterator))
     (with length = (length stacks))
     (for i from 0 below length)
-    (for stack = (aref stacks i))
+    (for stack = (the iterator-stack (aref stacks i)))
     (for depth = (aref depths i))
     (for initialized = (aref initialization-status i))
     (when initialized
