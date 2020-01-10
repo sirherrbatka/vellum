@@ -68,11 +68,12 @@
 
 
 (defmacro brr (column)
-  (with-gensyms (!header !index !current-header)
+  (with-gensyms (!header !index !current-header !row)
     `(let ((,!header nil)
            (,!index nil))
        (lambda (&rest all) (declare (ignore all))
-         (let ((,!current-header (cl-df.header:header)))
+         (let ((,!current-header (cl-df.header:header))
+               (,!row (cl-df.header:row)))
            (unless (eq ,!current-header ,!header)
              (setf ,!header ,!current-header
                    ,!index ,(cond ((stringp column)
@@ -82,4 +83,4 @@
                                    `(cl-df.header:alias-to-index ,!header
                                                                  ,(symbol-name column)))
                                   (t column))))
-           (rr ,!index))))))
+           (row-at ,!header ,!row ,!index))))))
