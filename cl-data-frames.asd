@@ -1,4 +1,4 @@
-(in-package #:cl-user)
+(cl:in-package #:cl-user)
 
 
 (asdf:defsystem cl-data-frames
@@ -6,14 +6,13 @@
   :version "0.0.0"
   :license "BSD simplified"
   :author "Marek Kochanowicz"
-  :depends-on ( :iterate      :serapeum
-                :prove        :cl-data-structures
-                :lparallel    :metabang-bind
-                :alexandria   :documentation-utils-extensions
-                :local-time   :postmodern
-                :cl-postgres  :s-sql
-                :mcclim       :clim)
-  :defsystem-depends-on (:prove-asdf)
+  :depends-on ( :iterate       :serapeum
+                :lparallel     :cl-data-structures
+                :metabang-bind :alexandria
+                :local-time    :postmodern
+                :cl-postgres   :s-sql
+                :mcclim        :clim
+                :documentation-utils-extensions)
   :serial T
   :pathname "src"
   :components ((:file "aux-package")
@@ -24,8 +23,7 @@
                              (:file "conditions")
                              (:file "docstring")
                              (:file "internal")
-                             (:file "implementation")
-                             (:test-file "tests")))
+                             (:file "implementation")))
                (:module "header"
                 :components ((:file "package")
                              (:file "variables")
@@ -46,8 +44,7 @@
                              (:file "functions")
                              (:file "to-table")
                              (:file "internal")
-                             (:file "implementation")
-                             (:test-file "tests")))
+                             (:file "implementation")))
                (:module "api"
                 :components ((:file "package")
                              (:file "conditions")
@@ -64,5 +61,4 @@
                              (:file "common")
                              (:file "generics")
                              (:file "parser")
-                             (:file "implementation")
-                             (:test-file "parser-tests")))))
+                             (:file "implementation")))))
