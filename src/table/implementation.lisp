@@ -525,17 +525,14 @@
 
 (defmethod cl-ds.alg.meta:apply-range-function ((range fundamental-table)
                                                 (function cl-ds.alg.meta:layer-function)
-                                                &rest all)
-  (apply #'cl-ds.alg.meta:apply-layer
-         (cl-ds:whole-range range)
-         function all))
+                                                all)
+  (cl-ds.alg.meta:apply-layer (cl-ds:whole-range range) function all))
 
 
 (defmethod cl-ds.alg.meta:apply-range-function ((range fundamental-table)
                                                 (function cl-ds.alg.meta:aggregation-function)
-                                                &rest all)
-  (apply #'cl-ds.alg.meta:apply-aggregation-function
-         range function all))
+                                                all)
+  (cl-ds.alg.meta:apply-aggregation-function range function all))
 
 
 (defmethod cl-ds:traverse ((selection selection)

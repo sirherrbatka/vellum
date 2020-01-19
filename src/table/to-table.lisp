@@ -17,8 +17,7 @@
 
     (%iterator %row %body %class %columns %column-count %header)
 
-    ((&key class header body &allow-other-keys)
-     (setf %header header
+    ((setf %header header
            %class class
            %body body
            %column-count (cl-data-frames.header:column-count %header)
