@@ -55,7 +55,7 @@
            (type function function)
            (optimize (speed 3) (safety 0)))
   (cl-ds.utils:with-slots-for (transformation standard-transformation)
-    (let* ((prev-control *transform-control*)
+    (let* ((prev-control (ensure-function *transform-control*))
            (*transform-control*
              (lambda (operation)
                (cond ((eq operation :drop)
