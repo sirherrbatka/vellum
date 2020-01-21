@@ -330,9 +330,9 @@
                                                  :in-place in-place))
            (row (standard-transformation-row transformation))
            (*transform-control*
-            (lambda (operation)
-              (cond ((eq operation :finish) (setf done t))
-                    (t (funcall *transform-control* operation))))))
+             (lambda (operation)
+               (cond ((eq operation :finish) (setf done t))
+                     (t (funcall *transform-control* operation))))))
       (cl-df.header:set-row row)
       (iterate
         (declare (type fixnum i))

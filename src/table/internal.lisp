@@ -55,9 +55,10 @@
            (type function function)
            (optimize (speed 3) (safety 0)))
   (cl-ds.utils:with-slots-for (transformation standard-transformation)
-    (let* ((*transform-control*
-            (lambda (operation)
-              (cond ((eq operation :drop)
+    (let* ((prev-control *transform-control*)
+           (*transform-control*
+             (lambda (operation)
+               (cond ((eq operation :drop)
                      (iterate
                        (declare (type fixnum i))
                        (for i from 0 below column-count)
@@ -69,7 +70,7 @@
                        (declare (type fixnum i))
                        (for i from 0 below column-count)
                        (setf (cl-df.column:iterator-at iterator i) :null)))
-                    (t (funcall *transform-control* operation))))))
+                    (t (funcall prev-control operation))))))
       (funcall function)
       (incf count)
       (cl-df.column:move-iterator iterator 1)

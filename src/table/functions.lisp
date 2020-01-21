@@ -14,20 +14,13 @@
     (make 'selection :starts starts :ends ends)))
 
 
-(declaim (inline transform-control))
-(defun transform-control ()
-  (when (null *transform-control*)
-    (error 'no-transformation))
-  *transform-control*)
-
-
 (defun finish-transformation ()
-  (funcall (transform-control) :finish))
+  (funcall *transform-control* :finish))
 
 
 (defun nullify ()
-  (funcall (transform-control) :nullify))
+  (funcall *transform-control* :nullify))
 
 
 (defun drop-row ()
-  (funcall (transform-control) :drop))
+  (funcall *transform-control* :drop))
