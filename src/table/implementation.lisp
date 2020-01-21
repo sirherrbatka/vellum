@@ -551,7 +551,7 @@
 
 (defmethod make-table ((class (eql 'standard-table))
                        &optional (header (cl-df.header:header)))
-  (check-type header cl-df.header:fundamental-header)
+  (check-type header cl-df.header:standard-header)
   (make 'standard-table
         :header header
         :columns (iterate
