@@ -26,6 +26,7 @@
   cl-df.header:skip-row
   cl-df.header:standard-header
   cl-df.header:with-header
+  cl-df.header:column-type
   cl-df.header:header
   cl-df.table:at
   cl-df.table:column-count
