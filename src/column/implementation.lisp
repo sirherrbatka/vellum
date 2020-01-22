@@ -32,7 +32,10 @@
          (index (index iterator))
          (offset (offset index))
          (buffer (aref buffers column))
-         (expected-type (cl-ds:type-specialization column))
+         (expected-type (~> iterator
+                            sparse-material-column-iterator-columns
+                            (aref column)
+                            cl-ds:type-specialization))
          (old-value (aref buffer offset)))
     (declare (type simple-vector buffers))
     (unless (typep new-value expected-type)
