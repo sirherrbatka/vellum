@@ -17,8 +17,7 @@
 
 
 (defun make-iterator (columns &key (transformation #'identity))
-  (cl-df.column:make-iterator
-   columns :transformation transformation))
+  (cl-df.column:make-iterator columns :transformation transformation))
 
 
 (defun ensure-replicas (columns new-columns &optional (isolate t))

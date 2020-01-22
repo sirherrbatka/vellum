@@ -443,6 +443,7 @@
    :index (index iterator)
    :initial-index (index iterator)
    :stacks (~>> iterator read-stacks (map 'vector #'copy-array))
+   :columns (read-columns iterator)
    :depths (~> iterator read-depths copy-array)
    :buffers (~> iterator read-buffers copy-array)
    :changes (~> iterator read-changes copy-array)
