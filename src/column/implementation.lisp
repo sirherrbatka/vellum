@@ -266,8 +266,10 @@
   (check-type position non-negative-integer)
   (when (eql value :null)
     (error 'setting-to-null
+           :column position
            :value value
-           :format-control "Setting content of the column to :null is not allowed. Use ERASE! instead."))
+           :format-control "Setting content of the column (column ~a) to :null is not allowed. Use ERASE! instead."
+           :format-arguments position))
   (bind (((:values result status) (call-next-method)))
     (values result status)))
 

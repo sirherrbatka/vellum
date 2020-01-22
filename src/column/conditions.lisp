@@ -31,4 +31,5 @@
 
 (define-condition setting-to-null (column-error
                                    cl-ds:invalid-value)
-  ())
+  ((%column :initarg :column
+            :reader column-type-error-column)))
