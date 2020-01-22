@@ -5,6 +5,16 @@
   ())
 
 
+(define-condition column-type-error (type-error)
+  ((%column :initarg :column
+            :reader column-type-error-column))
+  (:report (lambda (e stream)
+             (format stream "Expected type ~a for value ~a in the ~a column."
+                     (type-error-expected-type e)
+                     (type-error-datum e)
+                     (column-type-error-column e)))))
+
+
 (define-condition iterator-error (program-error)
   ())
 

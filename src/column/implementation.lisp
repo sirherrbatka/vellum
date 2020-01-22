@@ -32,8 +32,14 @@
          (index (index iterator))
          (offset (offset index))
          (buffer (aref buffers column))
+         (expected-type (cl-ds:type-specialization column))
          (old-value (aref buffer offset)))
     (declare (type simple-vector buffers))
+    (unless (typep new-value expected-type)
+      (error 'column-type-error
+             :expected-type expected-type
+             :column column
+             :datum new-value))
     (setf (aref buffer offset) new-value)
     (unless (eql new-value old-value)
       (let ((columns (read-columns iterator))

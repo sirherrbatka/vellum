@@ -11,6 +11,7 @@
    #:column-at
    #:column-size
    #:column-type
+   #:column-type-error
    #:finish-iterator
    #:truncate-to-length
    #:remove-nulls
