@@ -25,12 +25,13 @@
 
 
 (defun (setf iterator-at) (new-value iterator column)
+  (declare (optimize (speed 3)))
   (check-type column integer)
   (check-type iterator sparse-material-column-iterator)
   (ensure-column-initialization iterator column)
   (bind ((buffers (read-buffers iterator))
-         (index (index iterator))
-         (offset (offset index))
+         (index (the fixnum (index iterator)))
+         (offset (the fixnum (offset index)))
          (buffer (aref buffers column))
          (expected-type (~> iterator
                             sparse-material-column-iterator-columns
@@ -46,7 +47,7 @@
     (setf (aref buffer offset) new-value)
     (unless (eql new-value old-value)
       (let ((columns (read-columns iterator))
-            (transformation (read-transformation iterator))
+            (transformation (ensure-function (read-transformation iterator)))
             (changes (read-changes iterator))
             (touched (read-touched iterator)))
         (declare (type simple-vector columns changes)
