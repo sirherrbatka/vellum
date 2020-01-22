@@ -10,6 +10,7 @@
                               :element-type (or type (column-type column))))
                     (tag (cl-ds.common.abstract:read-ownership-tag column)))
   (declare (ignore iterator))
+  (assert (<= (length content) cl-ds.common.rrb:+maximum-children-count+))
   (cl-ds.common.rrb:make-sparse-rrb-node
    :ownership-tag tag
    :content content
@@ -32,10 +33,13 @@
   (logand index cl-ds.common.rrb:+tail-mask+))
 
 
-(-> pad-stack (sparse-material-column-iterator fixnum fixnum fixnum iterator-stack fixnum)
+(-> pad-stack (sparse-material-column-iterator
+               fixnum fixnum fixnum iterator-stack
+               sparse-material-column)
     t)
 (defun pad-stack (iterator depth index new-depth stack column)
-  (declare (optimize (speed 3) (safety 0) (compilation-speed 0) (space 0) (debug 0)))
+  (declare (optimize (speed 3) (safety 1) (debug 1)
+                     (compilation-speed 0) (space 0)))
   (iterate
     (declare (type fixnum j byte offset depth-difference))
     (with depth-difference = (- new-depth depth))
@@ -852,7 +856,7 @@
                                   :element-type (column-type column)))
          (bitmask 0))
     (declare (type fixnum bitmask)
-             (type simple-vector new-content))
+             (type (simple-array * (*)) new-content))
     (iterate
       (declare (type fixnum index i))
       (with index = 0)
@@ -937,7 +941,7 @@
                        child))))))
 
 
-(-> reduce-stack (sparse-material-column-iterator fixnum fixnum iterator-stack fixnum) t)
+(-> reduce-stack (sparse-material-column-iterator fixnum fixnum iterator-stack sparse-material-column) t)
 (defun reduce-stack (iterator index depth stack column)
   (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (iterate
