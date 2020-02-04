@@ -339,7 +339,7 @@
                             (cl-ds:consume-front inner))
                           inner)))
                      (cl-ds.alg:without #'null)
-                     cl-ds.alg:chain-traversable)))
+                     (cl-ds.alg:multiplex :function #'identity))))
     (make 'cl-df.header:forward-proxy-frame-range
           :original-range result)))
 
