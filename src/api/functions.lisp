@@ -174,19 +174,19 @@
           (cond ((emptyp (aref input 0))
                  (cl-ds:whole-range '()))
                 ((some #'emptyp input)
-                 (let ((result (make-array first-length)))
+                 (iterate
+                   (with result = (make-array first-length))
+                   (for i from 0 below first-length)
+                   (for data = (make-array length))
                    (iterate
-                     (for i from 0 below first-length)
-                     (for data = (make-array length))
-                     (iterate
-                       (for j from 1 below length)
-                       (setf (aref data j) (make-array (aref lengths j)
-                                                       :initial-element :null)))
-                     (setf (aref data 0) (~> input
-                                             (aref 0)
-                                             (aref i)))
-                     (setf (aref result i) data))
-                   (cl-ds:whole-range result)))
+                     (for j from 1 below length)
+                     (setf (aref data j) (make-array (aref lengths j)
+                                                     :initial-element :null)))
+                   (setf (aref data 0) (~> input
+                                           (aref 0)
+                                           (aref i)))
+                   (setf (aref result i) data)
+                   (finally (return (cl-ds:whole-range result)))))
                 (t (cartesian-product input)))))
     (hash-join-implementation frame-specs header class test
                               #'join-product)))
