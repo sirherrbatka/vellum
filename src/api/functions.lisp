@@ -129,7 +129,8 @@
                            (unless (null key)
                              (let ((data
                                      (ensure (gethash key hash-table)
-                                       (map-into (make-array frames-count) #'vect)))
+                                       (map-into (make-array frames-count)
+                                                 #'vect)))
                                    (row-data (make-array column-count)))
                                (iterate
                                  (for i from 0 below column-count)
