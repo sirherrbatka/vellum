@@ -68,9 +68,7 @@
             (for transformed-specs =
                  (mapcar (lambda (x)
                            (let* ((alias (getf x :alias))
-                                  (new-alias (concatenate 'string
-                                                          (symbol-name alias)
-                                                          alias)))
+                                  (new-alias (format nil "~a-~a" alias alias)))
                              (list :alias new-alias
                                    :predicate (getf x :predicate)
                                    :type (getf x :type))))
@@ -101,19 +99,8 @@
     (finally (return (cl-ds:whole-range result)))))
 
 
-(~> (vector (vector 1 2 3) (vector 'a 'b 'c))
-    cartesian-product
-    cl-ds.alg:to-vector
-    print)
 
-
-(defmethod join ((algorithm (eql :hash)) (method (eql :inner)) (frame-specs list)
-                 &key
-                   (class 'cl-df.table:standard-table)
-                   (header-class 'cl-df.header:standard-header)
-                   (columns (collect-column-specs frame-specs))
-                   (header (apply #'cl-df.header:make-header header-class columns))
-                   (test 'eql))
+(defun hash-join-implementation (frame-specs header class test function)
   (let ((frames-count (length frame-specs))
         (hash-table (make-hash-table :test test))
         (fresh-table (cl-df.table:make-table class header)))
@@ -137,28 +124,67 @@
                                  (setf (aref row-data i) (cl-df:rr i row)))
                                (vector-push-extend row-data (aref data i))))))
                        :in-place t))
-    (let ((vector-content (~> hash-table
-                              hash-table-count
-                              make-array)))
-      (iterate
-        (for i from 0)
-        (for (key value) in-hashtable hash-table)
-        (setf (aref vector-content i) value))
-      (let ((range (cl-ds.alg:multiplex
-                    vector-content :function #'cartesian-product)))
-        (cl-df:transform fresh-table
-                         (lambda (&rest all)
-                           (declare (ignore all))
-                           (let ((row-data (cl-ds:consume-front range)))
-                             (if (null row-data)
-                                 (cl-df:finish-transformation)
-                                 (iterate
-                                   (with k = 0)
-                                   (for i from 0 below (length row-data))
-                                   (for sub = (aref row-data i))
-                                   (iterate
-                                     (for j from 0 below (length sub))
-                                     (setf (cl-df:rr k) (aref sub j))
-                                     (incf k))))))
-                         :in-place t
-                         :end nil)))))
+  (let ((range (~> hash-table
+                   cl-ds.alg:make-hash-table-range
+                   (cl-ds.alg:multiplex :function function
+                                        :key #'cdr))))
+    (cl-df:transform fresh-table
+                     (lambda (&rest all)
+                       (declare (ignore all))
+                       (let ((row-data (cl-ds:consume-front range)))
+                         (if (null row-data)
+                             (cl-df:finish-transformation)
+                             (iterate
+                               (with k = 0)
+                               (for i from 0 below (length row-data))
+                               (for sub = (aref row-data i))
+                               (iterate
+                                 (for j from 0 below (length sub))
+                                 (setf (cl-df:rr k) (aref sub j))
+                                 (incf k))))))
+                     :in-place t
+                     :end nil))))
+
+
+(defmethod join ((algorithm (eql :hash)) (method (eql :inner)) (frame-specs list)
+                 &key
+                   (class 'cl-df.table:standard-table)
+                   (header-class 'cl-df.header:standard-header)
+                   (columns (collect-column-specs frame-specs))
+                   (header (apply #'cl-df.header:make-header header-class columns))
+                   (test 'eql))
+  (hash-join-implementation frame-specs header class test #'cartesian-product))
+
+
+(defmethod join ((algorithm (eql :hash)) (method (eql :left)) (frame-specs list)
+                 &key
+                   (class 'cl-df.table:standard-table)
+                   (header-class 'cl-df.header:standard-header)
+                   (columns (collect-column-specs frame-specs))
+                   (header (apply #'cl-df.header:make-header header-class columns))
+                   (test 'eql))
+  (bind ((lengths (map 'vector
+                      (compose #'cl-df:column-count #'second)
+                      frame-specs))
+         (length (length frame-specs))
+         (first-length (aref lengths 0))
+         ((:flet join-product (input))
+          (cond ((emptyp (aref input 0))
+                 (cl-ds:whole-range '()))
+                ((some #'emptyp input)
+                 (let ((result (make-array first-length)))
+                   (iterate
+                     (for i from 0 below first-length)
+                     (for data = (make-array length))
+                     (iterate
+                       (for j from 1 below length)
+                       (setf (aref data j) (make-array (aref lengths j)
+                                                       :initial-element :null)))
+                     (setf (aref data 0) (~> input
+                                             (aref 0)
+                                             (aref i)))
+                     (setf (aref result i) data))
+                   (cl-ds:whole-range result)))
+                (t (cartesian-product input)))))
+    (hash-join-implementation frame-specs header class test
+                              #'join-product)))
