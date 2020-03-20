@@ -160,7 +160,8 @@
                    (class 'cl-df.table:standard-table)
                    (header-class 'cl-df.header:standard-header)
                    (columns (collect-column-specs frame-specs))
-                   (header (apply #'cl-df.header:make-header header-class columns))
+                   (header (apply #'cl-df.header:make-header
+                                  header-class columns))
                    (test 'eql))
   (bind ((lengths (map 'vector
                       (compose #'cl-df:column-count #'second)
