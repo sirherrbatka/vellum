@@ -114,7 +114,6 @@
                    (columns (collect-column-specs frame-specs))
                    (header (apply #'cl-df.header:make-header header-class columns))
                    (test 'eql))
-  (declare (optimize (debug 3)))
   (let ((frames-count (length frame-specs))
         (hash-table (make-hash-table :test test))
         (fresh-table (cl-df.table:make-table class header)))
