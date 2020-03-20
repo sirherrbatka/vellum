@@ -153,7 +153,8 @@
                    (header (apply #'cl-df.header:make-header
                                   header-class columns))
                    (test 'eql))
-  (hash-join-implementation frame-specs header class test #'cartesian-product))
+  (hash-join-implementation frame-specs header class test
+                            #'cartesian-product))
 
 
 (defmethod join ((algorithm (eql :hash)) (method (eql :left)) (frame-specs list)
