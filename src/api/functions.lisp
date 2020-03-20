@@ -99,7 +99,6 @@
     (finally (return (cl-ds:whole-range result)))))
 
 
-
 (defun hash-join-implementation (frame-specs header class test function)
   (let ((frames-count (length frame-specs))
         (hash-table (make-hash-table :test test))
