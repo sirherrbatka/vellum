@@ -8,6 +8,7 @@
    #:copy-to
    #:empty-column
    #:empty-table
+   #:join
    #:file-input-row-cant-be-created
    #:new-columns
    #:order-by
@@ -32,6 +33,7 @@
   cl-df.table:column-count
   cl-df.table:drop-row
   cl-df.table:hselect
+  cl-df.table:finish-transformation
   cl-df.table:hstack
   cl-df.table:*transform-in-place*
   cl-df.table:nullify

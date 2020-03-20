@@ -300,3 +300,11 @@
     (make (class-of header)
           :column-signatures selected
           :column-aliases aliases)))
+
+
+(defmethod column-specs ((header standard-header))
+  (iterate
+    (for signature in-vector (read-column-signatures header))
+    (collect (list :alias (read-alias signature)
+                   :predicate (read-predicate signature)
+                   :type (read-type signature)))))

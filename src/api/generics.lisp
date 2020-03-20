@@ -71,3 +71,7 @@
         (for j from 0 below column-count)
         (print-with-padding i j))
       (terpri output))))
+
+
+(defgeneric join (algorithm method frame-specs &key header class header-class columns
+                  &allow-other-keys))

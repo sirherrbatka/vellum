@@ -57,3 +57,108 @@
             (stable-sort content comparator
                          :key (lambda (v) (aref v index)))))
     (to-table content :header header)))
+
+
+(defun collect-column-specs (frame-specs)
+  (bind ((raw-column-specs
+          (iterate
+            (for (label frame column) in frame-specs)
+            (for header = (cl-df.table:header frame))
+            (for column-specs = (cl-df.header:column-specs header))
+            (for transformed-specs =
+                 (mapcar (lambda (x)
+                           (let* ((alias (getf x :alias))
+                                  (new-alias (concatenate 'string
+                                                          (symbol-name alias)
+                                                          alias)))
+                             (list :alias new-alias
+                                   :predicate (getf x :predicate)
+                                   :type (getf x :type))))
+                         column-specs))
+            (adjoining transformed-specs))))
+    raw-column-specs))
+
+
+(defun cartesian-product (vector)
+  (iterate
+    (with length = (length vector))
+    (with lengths = (map 'vector #'length vector))
+    (with total-size = (reduce #'* vector :key #'length))
+    (with result = (make-array total-size))
+    (with indexes = (make-array (length vector)
+                                :initial-element 0))
+    (for i from 0 below total-size)
+    (setf (aref result i) (map 'vector #'aref vector indexes))
+    (iterate
+      (for i from 0 below length)
+      (for index = (1+ (aref indexes i)))
+      (for l = (aref lengths i))
+      (if (= index l)
+          (setf (aref indexes i) 0)
+          (progn
+            (setf (aref indexes i) index)
+            (leave))))
+    (finally (return (cl-ds:whole-range result)))))
+
+
+(~> (vector (vector 1 2 3) (vector 'a 'b 'c))
+    cartesian-product
+    cl-ds.alg:to-vector
+    print)
+
+
+(defmethod join ((algorithm (eql :hash)) (method (eql :inner)) (frame-specs list)
+                 &key
+                   (class 'cl-df.table:standard-table)
+                   (header-class 'cl-df.header:standard-header)
+                   (columns (collect-column-specs frame-specs))
+                   (header (apply #'cl-df.header:make-header header-class columns))
+                   (test 'eql))
+  (declare (optimize (debug 3)))
+  (let ((frames-count (length frame-specs))
+        (hash-table (make-hash-table :test test))
+        (fresh-table (cl-df.table:make-table class header)))
+    (iterate
+      (for i from 0)
+      (for (label frame column) in frame-specs)
+      (for column-count = (cl-df:column-count frame))
+      (cl-df:transform frame
+                       (lambda (&rest all)
+                         (declare (ignore all))
+                         (let* ((row (cl-df.header:row))
+                                (key (cl-df:rr column row)))
+                           (unless (null key)
+                             (let ((data
+                                     (ensure (gethash key hash-table)
+                                       (map-into (make-array frames-count) #'vect)))
+                                   (row-data (make-array column-count)))
+                               (iterate
+                                 (for i from 0 below column-count)
+                                 (setf (aref row-data i) (cl-df:rr i row)))
+                               (vector-push-extend row-data (aref data i))))))
+                       :in-place t))
+    (let ((vector-content (~> hash-table
+                              hash-table-count
+                              make-array)))
+      (iterate
+        (for i from 0)
+        (for (key value) in-hashtable hash-table)
+        (setf (aref vector-content i) value))
+      (let ((range (cl-ds.alg:multiplex
+                    vector-content :function #'cartesian-product)))
+        (cl-df:transform fresh-table
+                         (lambda (&rest all)
+                           (declare (ignore all))
+                           (let ((row-data (cl-ds:consume-front range)))
+                             (if (null row-data)
+                                 (cl-df:finish-transformation)
+                                 (iterate
+                                   (with k = 0)
+                                   (for i from 0 below (length row-data))
+                                   (for sub = (aref row-data i))
+                                   (iterate
+                                     (for j from 0 below (length sub))
+                                     (setf (cl-df:rr k) (aref sub j))
+                                     (incf k))))))
+                         :in-place t
+                         :end nil)))))

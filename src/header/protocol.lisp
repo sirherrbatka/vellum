@@ -28,3 +28,5 @@
 (defgeneric concatenate-headers (header &rest more-headers))
 
 (defgeneric select-columns (header columns))
+
+(defgeneric column-specs (header))

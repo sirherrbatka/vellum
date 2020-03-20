@@ -268,16 +268,7 @@
   range)
 
 
-(defmethod cl-df:copy-from ((format (eql ':csv))
-                            (input pathname)
-                            &rest options
-                            &key
-                              (separator #\,)
-                              (header t)
-                              (quote #\")
-                              (escape #\\)
-                              (check-predicates t))
-  (declare (ignore options))
+(defun copy-from-shared (input &key separator header quote escape check-predicates)
   (check-type separator character)
   (check-type quote character)
   (check-type escape character)
@@ -302,6 +293,40 @@
       (cl-ds.fs:close-inner-stream result)
       (make 'cl-df.header:forward-proxy-frame-range
             :original-range result))))
+
+
+(defmethod cl-df:copy-from ((format (eql ':csv))
+                            (input string)
+                            &rest options
+                            &key
+                              (separator #\,)
+                              (header t)
+                              (quote #\")
+                              (escape #\\)
+                              (check-predicates t))
+  (declare (ignore options))
+  (copy-from-shared input :separator separator
+                          :header header
+                          :quote quote
+                          :escape escape
+                          :check-predicates check-predicates))
+
+
+(defmethod cl-df:copy-from ((format (eql ':csv))
+                            (input pathname)
+                            &rest options
+                            &key
+                              (separator #\,)
+                              (header t)
+                              (quote #\")
+                              (escape #\\)
+                              (check-predicates t))
+  (declare (ignore options))
+  (copy-from-shared input :separator separator
+                          :header header
+                          :quote quote
+                          :escape escape
+                          :check-predicates check-predicates))
 
 
 (defmethod cl-df:copy-from ((format (eql ':csv))

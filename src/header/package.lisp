@@ -21,6 +21,7 @@
    #:decorate
    #:forward-proxy-frame-range
    #:frame-range-mixin
+   #:column-specs
    #:fundamental-header
    #:header
    #:index-to-alias
