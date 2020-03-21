@@ -75,3 +75,10 @@
 
 (defgeneric join (algorithm method frame-specs &key header class header-class columns
                   &allow-other-keys))
+
+
+(defmethod join :before (algorithm method (frame-specs list) &key &allow-other-keys)
+  (when (emptyp frame-specs)
+    (error 'cl-ds:invalid-value
+           :value frame-specs
+           :format-control "Empty frame-specs list, nothing to join.")))

@@ -153,7 +153,8 @@
                    (header (apply #'cl-df.header:make-header
                                   header-class columns))
                    (test 'eql))
-  (hash-join-implementation frame-specs header class test
+  (hash-join-implementation frame-specs header
+                            class test
                             #'cartesian-product))
 
 
@@ -166,8 +167,8 @@
                                   header-class columns))
                    (test 'eql))
   (bind ((lengths (map 'vector
-                      (compose #'cl-df:column-count #'second)
-                      frame-specs))
+                       (compose #'cl-df:column-count #'second)
+                       frame-specs))
          (length (length frame-specs))
          ((:flet join-product (input))
           (cond ((emptyp (aref input 0))
@@ -186,5 +187,6 @@
                          (aref result i) data)
                    (finally (return (cl-ds:whole-range result)))))
                 (t (cartesian-product input)))))
-    (hash-join-implementation frame-specs header class test
+    (hash-join-implementation frame-specs header
+                              class test
                               #'join-product)))
