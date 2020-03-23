@@ -295,8 +295,7 @@
           (for value = (cl-df.column:iterator-at marker-iterator 0))
           (setf (cl-df.column:iterator-at marker-iterator 0)
                 (if (eql :null value) t :null))
-          (cl-df.column:move-sparse-material-column-iterator
-           marker-iterator 1))
+          (cl-df.column:move-iterator marker-iterator 1))
         (cl-df.column:finish-iterator marker-iterator)
         (let ((cleaned-columns (adjust-array new-columns
                                              (1+ column-count))))

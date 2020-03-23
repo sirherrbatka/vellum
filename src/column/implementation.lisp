@@ -39,7 +39,8 @@
                             cl-ds:type-specialization))
          (old-value (aref buffer offset)))
     (declare (type simple-vector buffers))
-    (unless (typep new-value expected-type)
+    (unless (or (eq :null new-value)
+                (typep new-value expected-type))
       (error 'column-type-error
              :expected-type expected-type
              :column column
@@ -292,7 +293,7 @@
 
 
 (defmethod remove-nulls ((iterator sparse-material-column-iterator))
-  (bind ((columns (read-column iterator))
+  (bind ((columns (read-columns iterator))
          (depth (~> (extremum columns #'>
                               :key #'cl-ds.dicts.srrb:access-shift)
                     cl-ds.dicts.srrb:access-shift))

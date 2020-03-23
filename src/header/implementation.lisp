@@ -293,6 +293,8 @@
       (for s in-vector selected)
       (for alias = (read-alias s))
       (when (null alias) (next-iteration))
+      (when (symbolp alias)
+        (setf alias (symbol-name alias)))
       (unless (null (shiftf (gethash alias aliases) i))
         (error 'alias-duplicated
                :format-arguments (list alias)
