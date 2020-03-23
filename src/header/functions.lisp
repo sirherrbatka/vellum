@@ -45,3 +45,12 @@
 (declaim (inline (setf rr)))
 (defun (setf rr) (new-value index &optional (row (row)))
   (setf (row-at (header) row index) new-value))
+
+
+(defun current-row-as-vector (&optional (header (header)) (row (row)))
+  (iterate
+    (with column-count = (column-count header))
+    (with result = (make-array column-count))
+    (for i from 0 below column-count)
+    (setf (aref result i) (rr i row))
+    (finally (return result))))

@@ -46,10 +46,9 @@
     (transform table
                (lambda (&rest all)
                  (declare (ignore all))
-                 (setf (aref content i)
-                       (cl-ds.alg:to-vector (cl-df.header:row)))
+                 (setf (aref content i) (cl-df.header:current-row-as-vector))
                  (incf i))
-               :in-place nil)
+               :in-place t)
     (iterate
       (for index in indexes)
       (for comparator in comparators)

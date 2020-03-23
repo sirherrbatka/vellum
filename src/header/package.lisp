@@ -22,6 +22,7 @@
    #:forward-proxy-frame-range
    #:frame-range-mixin
    #:column-specs
+   #:current-row-as-vector
    #:fundamental-header
    #:header
    #:index-to-alias
