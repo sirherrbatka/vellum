@@ -40,7 +40,13 @@
                        (mapcar #'first)
                        (cons column)
                        (mapcar (lambda (x)
-                                 (cl-df.header:alias-to-index header x)))
+                                 (check-type x (or symbol
+                                                   string
+                                                   non-negative-integer))
+                                 (if (or (symbolp x)
+                                         (stringp x))
+                                     (cl-df.header:alias-to-index header x)
+                                     x)))
                        nreverse))
          (i 0))
     (transform table
