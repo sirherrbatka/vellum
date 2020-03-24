@@ -655,12 +655,15 @@
                   (setf (node parents column index) new-node))))))))
 
 
-(defun concatenate-trees (iterator)
-  (declare (optimize (speed 3) (debug 0) (safety 0)))
-  (bind ((columns (the simple-vector
-                       (~>> iterator read-columns
-                            (remove-if #'null _ :key #'column-root))))
-         (depth (the fixnum
+(defun concatenate-trees (iterator
+                          &aux (columns
+                                (~>> iterator read-columns
+                                     (remove-if #'null _ :key #'column-root))))
+  (declare (optimize (speed 3) (debug 0) (safety 0))
+           (type simple-vector columns))
+  (when (emptyp columns)
+    (return-from concatenate-trees nil))
+  (bind ((depth (the fixnum
                      (~> columns
                          (extremum #'> :key #'cl-ds.dicts.srrb:access-shift)
                          cl-ds.dicts.srrb:access-shift)))
