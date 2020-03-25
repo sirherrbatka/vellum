@@ -9,9 +9,8 @@
   :depends-on ( :iterate       :serapeum
                 :lparallel     :cl-data-structures
                 :metabang-bind :alexandria
-                :local-time    :postmodern
-                :cl-postgres   :s-sql
-                :mcclim        :clim
+                :local-time    :cl-postgres
+                :s-sql         :mcclim
                 :documentation-utils-extensions)
   :serial T
   :pathname "src"
