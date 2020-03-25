@@ -4,6 +4,7 @@
   (:use #:cl #:cl-data-frames.aux-package)
   (:nicknames #:cl-df)
   (:export
+   #:add-columns
    #:copy-from
    #:copy-to
    #:empty-column

@@ -195,3 +195,12 @@
     (hash-join-implementation frame-specs header
                               class test
                               #'join-product)))
+
+
+(defun add-columns (frame &rest column-specs)
+  (cl-df:hstack frame
+                (mapcar (lambda (x)
+                          (apply #'cl-df:empty-column
+                                 (~> frame cl-df.table:header class-of)
+                                 x))
+                        column-specs)))

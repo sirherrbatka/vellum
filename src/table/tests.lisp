@@ -58,7 +58,7 @@
   (prove:is (cl-df:at *replica* 0 1) 3)
   (prove:is (cl-df:at *replica* 0 2) 4)
 
-  (defparameter *concatenated-table* (cl-df:hstack *table*
+  (defparameter *concatenated-table* (cl-df:vstack *table*
                                                    (list *replica*)))
   (prove:is (column-count *concatenated-table*) 4)
   (prove:is (row-count *concatenated-table*) 6)

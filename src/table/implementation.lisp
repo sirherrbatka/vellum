@@ -64,7 +64,7 @@
   (~> frame header (cl-df.header:column-type column)))
 
 
-(defmethod hstack ((frame standard-table) more-frames)
+(defmethod vstack ((frame standard-table) more-frames)
   (let* ((new-columns
            (map 'vector
                 (lambda (column &aux (new (cl-ds:replica column t)))
@@ -99,7 +99,7 @@
     new-frame))
 
 
-(defmethod vstack ((frame standard-table) more-frames)
+(defmethod hstack ((frame standard-table) more-frames)
   (cl-ds:across more-frames
                 (lambda (x) (check-type x standard-table)))
   (let* ((more-frames (~>> (cl-ds.alg:accumulate more-frames
@@ -127,7 +127,7 @@
           :columns new-columns)))
 
 
-(defmethod vselect ((frame standard-table) selector)
+(defmethod hselect ((frame standard-table) selector)
   (let* ((header (header frame))
          (columns (read-columns frame))
          (column-indexes (~>> (curry #'cl-df.header:alias-to-index header)
@@ -144,7 +144,7 @@
       :columns new-columns)))
 
 
-(defmethod hselect ((frame standard-table) (selector selection))
+(defmethod vselect ((frame standard-table) (selector selection))
   (bind ((columns (read-columns frame))
          (column-count (length columns))
          (starts (read-starts selector))
