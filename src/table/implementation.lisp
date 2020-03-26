@@ -157,7 +157,7 @@
     (declare (type simple-vector new-columns columns)
              (type fixnum column-count))
     (when (emptyp new-columns)
-      (return-from hselect (cl-ds.utils:quasi-clone* frame
+      (return-from vselect (cl-ds.utils:quasi-clone* frame
                             :columns new-columns)))
     (iterate
       (with iterator = (make-iterator new-columns))
