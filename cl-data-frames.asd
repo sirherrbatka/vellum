@@ -11,7 +11,8 @@
                 :metabang-bind :alexandria
                 :local-time    :cl-postgres
                 :s-sql         :mcclim
-                :documentation-utils-extensions)
+                :documentation-utils-extensions
+                :postmodern)
   :serial T
   :pathname "src"
   :components ((:file "aux-package")
