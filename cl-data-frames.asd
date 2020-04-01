@@ -49,7 +49,8 @@
                 :components ((:file "package")
                              (:file "conditions")
                              (:file "generics")
-                             (:file "functions")))
+                             (:file "functions")
+                             (:file "macros")))
                (:module "integration"
                 :components ((:file "package")
                              (:file "cl-ds")

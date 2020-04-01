@@ -9,6 +9,7 @@
    #:copy-to
    #:empty-column
    #:empty-table
+   #:with-standard-header
    #:join
    #:file-input-row-cant-be-created
    #:new-columns
