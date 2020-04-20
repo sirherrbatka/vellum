@@ -1,4 +1,4 @@
-(in-package #:cl-df.table)
+(in-package #:vellum.table)
 
 
 (cl-ds.alg.meta:define-aggregation-function
@@ -10,9 +10,9 @@
      (key #'identity)
      (body nil)
      (class 'standard-table)
-     (header-class 'cl-df.header:standard-header)
+     (header-class 'vellum.header:standard-header)
      (columns '())
-     (header (apply #'cl-df.header:make-header
+     (header (apply #'vellum.header:make-header
                     header-class columns)))
 
     (%iterator %row %body %class %columns %column-count %header)
@@ -20,45 +20,45 @@
     ((setf %header header
            %class class
            %body body
-           %column-count (cl-data-frames.header:column-count %header)
+           %column-count (vellum.header:column-count %header)
            %columns (make-array %column-count))
      (iterate
        (for i from 0 below %column-count)
        (setf (aref %columns i)
-             (cl-df.column:make-sparse-material-column
-              :element-type (cl-df.header:column-type %header i))))
-     (setf %iterator (cl-df.column:make-iterator %columns)
-           %row (make 'cl-df.table:setfable-table-row
+             (vellum.column:make-sparse-material-column
+              :element-type (vellum.header:column-type %header i))))
+     (setf %iterator (vellum.column:make-iterator %columns)
+           %row (make 'vellum.table:setfable-table-row
                       :iterator %iterator)))
 
     ((row)
      (iterate
        (for i from 0 below %column-count)
-       (setf (cl-df.column:iterator-at %iterator i)
-             (cl-df.header:row-at %header row i)))
+       (setf (vellum.column:iterator-at %iterator i)
+             (vellum.header:row-at %header row i)))
      (let ((body %body))
        (unless (null body)
-         (cl-df.header:with-header (%header)
-           (let ((cl-df.header:*row* %row))
+         (vellum.header:with-header (%header)
+           (let ((vellum.header:*row* %row))
              (funcall body %row)))))
-     (cl-df.column:move-iterator %iterator 1))
+     (vellum.column:move-iterator %iterator 1))
 
-    ((cl-df.column:finish-iterator %iterator)
+    ((vellum.column:finish-iterator %iterator)
      (make %class
            :header %header
            :columns %columns)))
 
 
-(defmethod to-table ((range cl-df.header:frame-range-mixin)
+(defmethod to-table ((range vellum.header:frame-range-mixin)
                      &key (key #'identity)
-                       (class 'cl-df.table:standard-table)
-                       (header-class 'cl-df.header:standard-header)
+                       (class 'vellum.table:standard-table)
+                       (header-class 'vellum.header:standard-header)
                        (columns '())
                        (body nil)
-                       (header (apply #'cl-df.header:make-header
+                       (header (apply #'vellum.header:make-header
                                       header-class
                                       columns)))
-  (cl-df.header:with-header (header)
+  (vellum.header:with-header (header)
     (call-next-method range :key key
                             :class class
                             :body body

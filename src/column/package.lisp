@@ -1,9 +1,9 @@
 (in-package #:cl-user)
 
 
-(defpackage cl-data-frames.column
-  (:use #:cl #:cl-data-frames.aux-package)
-  (:nicknames #:cl-df.column)
+(defpackage vellum.column
+  (:use #:cl #:vellum.aux-package)
+  (:nicknames #:vellum.column)
   (:export
    #:augment-iterator
    #:columns

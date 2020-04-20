@@ -1,4 +1,4 @@
-(in-package #:cl-df.column)
+(in-package #:vellum.column)
 
 
 (defgeneric column-type (column))

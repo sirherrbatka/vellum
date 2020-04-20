@@ -1,4 +1,4 @@
-(cl:in-package #:cl-df.csv)
+(cl:in-package #:vellum.csv)
 
 
 (define-condition wrong-number-of-columns-in-the-csv-file

@@ -1,9 +1,9 @@
 (in-package #:cl-user)
 
 
-(defpackage cl-data-frames.header
-  (:use #:cl #:cl-data-frames.aux-package)
-  (:nicknames #:cl-df.header)
+(defpackage vellum.header
+  (:use #:cl #:vellum.aux-package)
+  (:nicknames #:vellum.header)
   (:export
    #:alias-to-index
    #:invalid-alias

@@ -1,10 +1,10 @@
 (in-package #:cl-user)
 
-(defpackage :cl-data-frames.aux-package
+(defpackage :vellum.aux-package
   (:use #:cl)
   (:export #:rexport))
 
-(in-package :cl-data-frames.aux-package)
+(in-package :vellum.aux-package)
 
 (defmacro rexport (package &body symbols)
   (alexandria:with-gensyms (!package)
@@ -14,7 +14,7 @@
        ,@(mapcar (lambda (symbol) `(export ',symbol ,!package))
                  symbols))))
 
-(rexport :cl-data-frames.aux-package
+(rexport :vellum.aux-package
   alexandria:if-let
   alexandria:when-let
   alexandria:when-let*

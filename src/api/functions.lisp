@@ -1,17 +1,17 @@
-(in-package #:cl-df)
+(in-package #:vellum)
 
 
 (defun empty-column (header-class &rest row-parameters)
   (~>> (make-header header-class row-parameters)
-       (cl-df.table:make-table 'cl-df.table:standard-table)))
+       (vellum.table:make-table 'vellum.table:standard-table)))
 
 
 (defun new-columns (table &rest columns)
   (~>> table
-       cl-df.table:header
+       vellum.table:header
        class-of
-       (cl-df:make-header _ columns)
-       (cl-df.table:make-table (class-of table))
+       (vellum:make-header _ columns)
+       (vellum.table:make-table (class-of table))
        (vstack table)))
 
 
@@ -25,13 +25,13 @@
              :in-place in-place))
 
 
-(defun empty-table (&key (header (cl-df.header:header)))
-  (cl-df.table:make-table 'cl-df.table:standard-table header))
+(defun empty-table (&key (header (vellum.header:header)))
+  (vellum.table:make-table 'vellum.table:standard-table header))
 
 
 (defun order-by (table column comparator &rest columns-comparators)
   (let* ((content (make-array (row-count table)))
-         (header (cl-df.table:header table))
+         (header (vellum.table:header table))
          (comparators (~>> (batches columns-comparators 2)
                            (mapcar #'second)
                            (cons comparator)
@@ -45,14 +45,14 @@
                                                    non-negative-integer))
                                  (if (or (symbolp x)
                                          (stringp x))
-                                     (cl-df.header:alias-to-index header x)
+                                     (vellum.header:alias-to-index header x)
                                      x)))
                        nreverse))
          (i 0))
     (transform table
                (lambda (&rest all)
                  (declare (ignore all))
-                 (setf (aref content i) (cl-df.header:current-row-as-vector))
+                 (setf (aref content i) (vellum.header:current-row-as-vector))
                  (incf i))
                :in-place t)
     (iterate
@@ -68,8 +68,8 @@
   (bind ((raw-column-specs
           (iterate
             (for (label frame column) in frame-specs)
-            (for header = (cl-df.table:header frame))
-            (for column-specs = (cl-df.header:column-specs header))
+            (for header = (vellum.table:header frame))
+            (for column-specs = (vellum.header:column-specs header))
             (for transformed-specs =
                  (mapcar (lambda (x)
                            (let* ((alias (getf x :alias))
@@ -107,16 +107,16 @@
 (defun hash-join-implementation (frame-specs header class test function)
   (let ((frames-count (length frame-specs))
         (hash-table (make-hash-table :test test))
-        (fresh-table (cl-df.table:make-table class header)))
+        (fresh-table (vellum.table:make-table class header)))
     (iterate
       (for i from 0)
       (for (label frame column) in frame-specs)
-      (for column-count = (cl-df:column-count frame))
-      (cl-df:transform frame
+      (for column-count = (vellum:column-count frame))
+      (vellum:transform frame
                        (lambda (&rest all)
                          (declare (ignore all))
-                         (let* ((row (cl-df.header:row))
-                                (key (cl-df:rr column row)))
+                         (let* ((row (vellum.header:row))
+                                (key (vellum:rr column row)))
                            (unless (null key)
                              (let ((data
                                      (ensure (gethash key hash-table)
@@ -125,26 +125,26 @@
                                    (row-data (make-array column-count)))
                                (iterate
                                  (for i from 0 below column-count)
-                                 (setf (aref row-data i) (cl-df:rr i row)))
+                                 (setf (aref row-data i) (vellum:rr i row)))
                                (vector-push-extend row-data (aref data i))))))
                        :in-place t))
   (let ((range (~> hash-table
                    cl-ds.alg:make-hash-table-range
                    (cl-ds.alg:multiplex :function function
                                         :key #'cdr))))
-    (cl-df:transform fresh-table
+    (vellum:transform fresh-table
                      (lambda (&rest all)
                        (declare (ignore all))
                        (let ((row-data (cl-ds:consume-front range)))
                          (if (null row-data)
-                             (cl-df:finish-transformation)
+                             (vellum:finish-transformation)
                              (iterate
                                (with k = 0)
                                (for i from 0 below (length row-data))
                                (for sub = (aref row-data i))
                                (iterate
                                  (for j from 0 below (length sub))
-                                 (setf (cl-df:rr k) (aref sub j))
+                                 (setf (vellum:rr k) (aref sub j))
                                  (incf k))))))
                      :in-place t
                      :end nil))))
@@ -152,10 +152,10 @@
 
 (defmethod join ((algorithm (eql :hash)) (method (eql :inner)) (frame-specs list)
                  &key
-                   (class 'cl-df.table:standard-table)
-                   (header-class 'cl-df.header:standard-header)
+                   (class 'vellum.table:standard-table)
+                   (header-class 'vellum.header:standard-header)
                    (columns (collect-column-specs frame-specs))
-                   (header (apply #'cl-df.header:make-header
+                   (header (apply #'vellum.header:make-header
                                   header-class columns))
                    (test 'eql))
   (hash-join-implementation frame-specs header
@@ -165,14 +165,14 @@
 
 (defmethod join ((algorithm (eql :hash)) (method (eql :left)) (frame-specs list)
                  &key
-                   (class 'cl-df.table:standard-table)
-                   (header-class 'cl-df.header:standard-header)
+                   (class 'vellum.table:standard-table)
+                   (header-class 'vellum.header:standard-header)
                    (columns (collect-column-specs frame-specs))
-                   (header (apply #'cl-df.header:make-header
+                   (header (apply #'vellum.header:make-header
                                   header-class columns))
                    (test 'eql))
   (bind ((lengths (map 'vector
-                       (compose #'cl-df:column-count #'second)
+                       (compose #'vellum:column-count #'second)
                        frame-specs))
          (length (length frame-specs))
          ((:flet join-product (input))
@@ -198,9 +198,9 @@
 
 
 (defun add-columns (frame &rest column-specs)
-  (cl-df:hstack frame
+  (vellum:hstack frame
                 (mapcar (lambda (x)
-                          (apply #'cl-df:empty-column
-                                 (~> frame cl-df.table:header class-of)
+                          (apply #'vellum:empty-column
+                                 (~> frame vellum.table:header class-of)
                                  x))
                         column-specs)))

@@ -1,7 +1,7 @@
 (cl:in-package #:cl-user)
 
 
-(asdf:defsystem cl-data-frames
+(asdf:defsystem vellum
   :name "cl-data-frames"
   :version "0.0.0"
   :license "BSD simplified"

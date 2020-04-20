@@ -1,4 +1,4 @@
-(in-package #:cl-df.table)
+(in-package #:vellum.table)
 
 
 (define-condition no-transformation (cl-ds:operation-not-allowed)

@@ -1,4 +1,4 @@
-(cl:in-package #:cl-df)
+(cl:in-package #:vellum)
 
 
 (defgeneric copy-from (format input &rest options &key &allow-other-keys))
@@ -8,20 +8,20 @@
 (defgeneric show (as table &key &allow-other-keys))
 
 (defmethod show ((as (eql :text))
-                 (table cl-df.table:fundamental-table)
+                 (table vellum.table:fundamental-table)
                  &key
                    (output *standard-output*)
                    (start 0)
                    (end 10))
-  (check-type table cl-df.table:fundamental-table)
+  (check-type table vellum.table:fundamental-table)
   (check-type output stream)
   (check-type start non-negative-integer)
   (check-type end non-negative-integer)
-  (bind ((column-count (cl-df:column-count table))
+  (bind ((column-count (vellum:column-count table))
          (end (min end (row-count table)))
          (number-of-rows (max 0 (- end start)))
          (strings (make-array `(,(1+ number-of-rows) ,column-count)))
-         (header (cl-df.table:header table))
+         (header (vellum.table:header table))
          (desired-sizes (make-array column-count
                                     :element-type 'fixnum
                                     :initial-element 0))
@@ -43,7 +43,7 @@
       (for j from 0 below column-count)
       (for string = (or (ignore-errors
                          (~> header
-                             (cl-df.header:index-to-alias j)
+                             (vellum.header:index-to-alias j)
                              symbol-name))
                         (format nil "~a" j)))
       (setf (aref strings 0 j) string)

@@ -1,9 +1,9 @@
 (in-package #:cl-user)
 
 
-(defpackage cl-data-frames.csv
-  (:use #:cl #:cl-data-frames.aux-package)
-  (:nicknames #:cl-df.csv)
+(defpackage vellum.csv
+  (:use #:cl #:vellum.aux-package)
+  (:nicknames #:vellum.csv)
   (:export
    #:csv-range
    #:csv-format-error

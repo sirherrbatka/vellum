@@ -1,4 +1,4 @@
-(cl:in-package #:cl-df.csv)
+(cl:in-package #:vellum.csv)
 
 
 (defclass csv-range (cl-ds:chunking-mixin
@@ -100,15 +100,15 @@
            (type simple-vector output))
   (iterate
     (with check-predicates = (read-check-predicates range))
-    (with header = (cl-df.header:header))
+    (with header = (vellum.header:header))
     (for j from 0)
     (for buffer in-vector buffers)
-    (for type = (cl-df.header:column-type header j))
+    (for type = (vellum.header:column-type header j))
     (for value = (from-string range type buffer))
     (unless (or (not check-predicates)
-                (funcall (cl-df.header:column-predicate header j)
+                (funcall (vellum.header:column-predicate header j)
                          value))
-      (error 'cl-df.header:predicate-failed
+      (error 'vellum.header:predicate-failed
              :column-number j
              :format-arguments (list value j)
              :value value))
@@ -137,9 +137,9 @@
   (let* ((stream (cl-ds.fs:ensure-stream range))
          (separator (read-separator range))
          (quote (read-quote range))
-         (header (cl-df:header))
+         (header (vellum:header))
          (file-position (file-position stream))
-         (column-count (cl-df.header:column-count header))
+         (column-count (vellum.header:column-count header))
          (buffer (make-data-buffer column-count))
          (check-predicates (read-check-predicates range))
          (result (make-array column-count :initial-element :null))
@@ -159,12 +159,12 @@
                     path
                     (lambda (field index)
                       (bind ((trim (trim-whitespace field))
-                             (type (cl-df.header:column-type header index))
+                             (type (vellum.header:column-type header index))
                              ((:values value failed)
                               (ignore-errors (from-string range type trim))))
                         (cond (failed nil)
                               ((or (not check-predicates)
-                                   (funcall (cl-df.header:column-predicate
+                                   (funcall (vellum.header:column-predicate
                                              header index)
                                             value))
                                (setf (aref result index) value)
@@ -179,8 +179,8 @@
   (let* ((stream (cl-ds.fs:ensure-stream range))
          (separator (read-separator range))
          (quote (read-quote range))
-         (header (cl-df:header))
-         (column-count (cl-df.header:column-count header))
+         (header (vellum:header))
+         (column-count (vellum.header:column-count header))
          (buffer (make-data-buffer column-count))
          (check-predicates (read-check-predicates range))
          (result (make-array column-count :initial-element :null))
@@ -197,12 +197,12 @@
                     path
                     (lambda (field index)
                       (bind ((trim (trim-whitespace field))
-                             (type (cl-df.header:column-type header index))
+                             (type (vellum.header:column-type header index))
                              ((:values value failed)
                               (ignore-errors (from-string range type trim))))
                         (cond (failed nil)
                               ((or (not check-predicates)
-                                   (funcall (cl-df.header:column-predicate
+                                   (funcall (vellum.header:column-predicate
                                              header index)
                                             value))
                                (setf (aref result index) value)
@@ -217,11 +217,11 @@
     (let* ((stream (cl-ds.fs:ensure-stream range))
            (separator (read-separator range))
            (quote (read-quote range))
-           (column-count (~> (cl-df.header:header)
-                             cl-df.header:column-count))
+           (column-count (~> (vellum.header:header)
+                             vellum.header:column-count))
            (buffer (make-data-buffer column-count))
            (buffer2 (make-array column-count :initial-element :null))
-           (header (cl-df:header))
+           (header (vellum:header))
            (check-predicates (read-check-predicates range))
            (path (cl-ds.fs:read-path range))
            (line-buffer (make-array 0
@@ -229,7 +229,7 @@
                                     :fill-pointer 0
                                     :adjustable t))
            (escape-char (read-escape range)))
-      (cl-df.header:set-row buffer2)
+      (vellum.header:set-row buffer2)
       (unwind-protect
            (iterate
              (for line = (read-line-buffered stream line-buffer))
@@ -239,12 +239,12 @@
                              buffer path
                              (lambda (field index)
                                (bind ((trim (trim-whitespace field))
-                                      (type (cl-df.header:column-type header index))
+                                      (type (vellum.header:column-type header index))
                                       ((:values value failed)
                                        (ignore-errors (from-string range type trim))))
                                  (cond (failed nil)
                                        ((or (not check-predicates)
-                                            (funcall (cl-df.header:column-predicate
+                                            (funcall (vellum.header:column-predicate
                                                       header index)
                                                      value))
                                         (setf (aref buffer2 index) value)
@@ -291,11 +291,11 @@
                                               :quote quote
                                               :check-predicates check-predicates)))
       (cl-ds.fs:close-inner-stream result)
-      (make 'cl-df.header:forward-proxy-frame-range
+      (make 'vellum.header:forward-proxy-frame-range
             :original-range result))))
 
 
-(defmethod cl-df:copy-from ((format (eql ':csv))
+(defmethod vellum:copy-from ((format (eql ':csv))
                             (input string)
                             &rest options
                             &key
@@ -312,7 +312,7 @@
                           :check-predicates check-predicates))
 
 
-(defmethod cl-df:copy-from ((format (eql ':csv))
+(defmethod vellum:copy-from ((format (eql ':csv))
                             (input pathname)
                             &rest options
                             &key
@@ -329,7 +329,7 @@
                           :check-predicates check-predicates))
 
 
-(defmethod cl-df:copy-from ((format (eql ':csv))
+(defmethod vellum:copy-from ((format (eql ':csv))
                             (input cl-ds:fundamental-forward-range)
                             &rest options
                             &key
@@ -365,33 +365,33 @@
                           inner)))
                      (cl-ds.alg:without #'null)
                      (cl-ds.alg:multiplex :function #'identity))))
-    (make 'cl-df.header:forward-proxy-frame-range
+    (make 'vellum.header:forward-proxy-frame-range
           :original-range result)))
 
 
 (defun write-row (output header row)
   (iterate
-    (with column-count = (cl-df.header:column-count header))
+    (with column-count = (vellum.header:column-count header))
     (for column from 0 below column-count)
-    (for value = (cl-df.header:row-at header row column))
+    (for value = (vellum.header:row-at header row column))
     (to-stream value output)
     (if (= (1+ column) column-count)
         (terpri output)
         (princ #\, output))))
 
 
-(defmethod cl-df:copy-to ((format (eql ':csv))
+(defmethod vellum:copy-to ((format (eql ':csv))
                           (output stream)
                           (input cl-ds:fundamental-forward-range)
                           &rest options
                           &key (header t))
   (declare (ignore options))
-  (let* ((h (cl-df.header:header))
-         (column-count (cl-df.header:column-count h)))
+  (let* ((h (vellum.header:header))
+         (column-count (vellum.header:column-count h)))
     (when header
       (iterate
         (for column from 0 below column-count)
-        (for alias = (cl-df.header:index-to-alias h column))
+        (for alias = (vellum.header:index-to-alias h column))
         (when alias
           (prin1 (symbol-name alias) output))
         (unless (= (1+ column) column-count)
@@ -400,25 +400,25 @@
     (cl-ds:across input
                   (lambda (&rest all)
                     (declare (ignore all))
-                    (write-row output h (cl-df.header:row))))
+                    (write-row output h (vellum.header:row))))
     input))
 
 
-(defmethod cl-df:copy-to ((format (eql ':csv))
+(defmethod vellum:copy-to ((format (eql ':csv))
                           (output stream)
-                          (input cl-df.table:standard-table)
+                          (input vellum.table:standard-table)
                           &rest options
                           &key (header t))
   (declare (ignore header))
-  (cl-df:with-table (input)
-    (apply #'cl-df:copy-to format
+  (vellum:with-table (input)
+    (apply #'vellum:copy-to format
            output
            (cl-ds:whole-range input)
            options))
   input)
 
 
-(defmethod cl-df:copy-to ((format (eql ':csv))
+(defmethod vellum:copy-to ((format (eql ':csv))
                           (output pathname)
                           input
                           &rest options
@@ -429,29 +429,29 @@
   (with-output-to-file (stream output
                                :if-exists if-exists
                                :if-does-not-exist if-does-not-exist)
-    (apply #'cl-df:copy-to format stream input options))
+    (apply #'vellum:copy-to format stream input options))
   input)
 
 
-(defmethod cl-df:copy-to ((format (eql ':csv))
+(defmethod vellum:copy-to ((format (eql ':csv))
                           output
                           (input cl-ds:fundamental-forward-range)
                           &rest options
                           &key (header t) (if-exists :supersede))
   (declare (ignore header))
   (with-output-to-file (stream output :if-exists if-exists)
-    (apply #'cl-df:copy-to format stream input options))
+    (apply #'vellum:copy-to format stream input options))
   input)
 
 
-(defmethod cl-df:copy-to ((format (eql ':csv))
+(defmethod vellum:copy-to ((format (eql ':csv))
                           output
-                          (input cl-df.table:standard-table)
+                          (input vellum.table:standard-table)
                           &rest options
                           &key (header t) (if-exists :supersede))
   (declare (ignore header if-exists))
-  (cl-df:with-table (input)
-    (apply #'cl-df:copy-to format
+  (vellum:with-table (input)
+    (apply #'vellum:copy-to format
            output
            (cl-ds:whole-range input)
            options))

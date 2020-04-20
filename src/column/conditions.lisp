@@ -1,4 +1,4 @@
-(in-package #:cl-df.column)
+(in-package #:vellum.column)
 
 
 (define-condition column-error (program-error)

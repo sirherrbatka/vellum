@@ -1,4 +1,4 @@
-(in-package #:cl-df.table)
+(in-package #:vellum.table)
 
 
 (defclass fundamental-table (cl-ds:traversable)

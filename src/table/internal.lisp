@@ -1,4 +1,4 @@
-(in-package #:cl-df.table)
+(in-package #:vellum.table)
 
 
 (defun insert-tail (column)
@@ -17,7 +17,7 @@
 
 
 (defun make-iterator (columns &key (transformation #'identity))
-  (cl-df.column:make-iterator columns :transformation transformation))
+  (vellum.column:make-iterator columns :transformation transformation))
 
 
 (defun ensure-replicas (columns new-columns &optional (isolate t))
@@ -43,9 +43,9 @@
     (when (zerop column-count)
       (return-from remove-nulls-from-columns columns))
     (let* ((iterator (make-iterator columns :transformation transform))
-           (new-columns (cl-df.column:columns iterator)))
+           (new-columns (vellum.column:columns iterator)))
       (assert (not (eq new-columns columns)))
-      (cl-df.column:remove-nulls iterator)
+      (vellum.column:remove-nulls iterator)
       new-columns)))
 
 
@@ -61,17 +61,17 @@
                      (iterate
                        (declare (type fixnum i))
                        (for i from 0 below column-count)
-                       (setf (cl-df.column:iterator-at iterator i) :null))
-                     (setf (cl-df.column:iterator-at marker-iterator 0) t
+                       (setf (vellum.column:iterator-at iterator i) :null))
+                     (setf (vellum.column:iterator-at marker-iterator 0) t
                            dropped t))
                     ((eq operation :nullify)
                      (iterate
                        (declare (type fixnum i))
                        (for i from 0 below column-count)
-                       (setf (cl-df.column:iterator-at iterator i) :null)))
+                       (setf (vellum.column:iterator-at iterator i) :null)))
                     (t (funcall prev-control operation))))))
       (funcall function)
       (incf count)
-      (cl-df.column:move-iterator iterator 1)
-      (cl-df.column:move-iterator marker-iterator 1)
+      (vellum.column:move-iterator iterator 1)
+      (vellum.column:move-iterator marker-iterator 1)
       transformation)))

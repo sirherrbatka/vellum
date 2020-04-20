@@ -1,9 +1,9 @@
-(in-package #:cl-df.table)
+(in-package #:vellum.table)
 
 
 (defmethod at ((frame standard-table) (column symbol) (row integer))
   (~> frame header
-      (cl-df.header:alias-to-index column)
+      (vellum.header:alias-to-index column)
       (at frame _ row)))
 
 
@@ -13,17 +13,17 @@
   (let* ((columns (read-columns frame))
          (length (array-dimension columns 0)))
     (unless (< column length)
-      (error 'cl-df.header:no-column
+      (error 'vellum.header:no-column
              :bounds (iota length)
              :format-arguments (list column)
              :value column))
     (~> (aref columns column)
-        (cl-df.column:column-at row))))
+        (vellum.column:column-at row))))
 
 
 (defmethod (setf at) (new-value (frame standard-table)
                       (column symbol) (row integer))
-  (setf (at frame (cl-df.header:alias-to-index (header frame)
+  (setf (at frame (vellum.header:alias-to-index (header frame)
                                                column)
             row)
         new-value))
@@ -36,32 +36,32 @@
   (let* ((columns (read-columns frame))
          (length (array-dimension columns 0)))
     (unless (< column length)
-      (error 'cl-df.header:no-column
+      (error 'vellum.header:no-column
              :bounds (iota length)
              :format-arguments (list column)
              :value column))
-    (setf (cl-df.column:column-at (aref columns column) row)
+    (setf (vellum.column:column-at (aref columns column) row)
           new-value)))
 
 
 (defmethod column-count ((frame standard-table))
-  (~> frame header cl-df.header:column-count))
+  (~> frame header vellum.header:column-count))
 
 
 (defmethod row-count ((frame standard-table))
   (or (iterate
         (for column in-vector (read-columns frame))
-        (maximize (cl-df.column:column-size column)))
+        (maximize (vellum.column:column-size column)))
       0))
 
 
 (defmethod column-name ((frame standard-table) (column integer))
   (~> frame header
-      (cl-df.header:index-to-alias column)))
+      (vellum.header:index-to-alias column)))
 
 
 (defmethod column-type ((frame standard-table) column)
-  (~> frame header (cl-df.header:column-type column)))
+  (~> frame header (vellum.header:column-type column)))
 
 
 (defmethod vstack ((frame standard-table) more-frames)
@@ -79,23 +79,23 @@
          (column-count (column-count new-frame))
          (row-count (row-count new-frame)))
     (with-table (new-frame)
-      (cl-df.column:move-iterator iterator row-count)
+      (vellum.column:move-iterator iterator row-count)
       (cl-ds:across
        more-frames
        (lambda (frame)
          (unless (eql column-count (column-count frame))
-           (error 'cl-df.header:headers-incompatible
+           (error 'vellum.header:headers-incompatible
                   :header (header frame)
                   :control-string "Inconsistent number of columns in the frames."))
          (cl-ds:traverse
           frame
-          (cl-df.header:body ()
+          (vellum.header:body ()
             (iterate
               (for i from 0 below column-count)
-              (setf (cl-df.column:iterator-at iterator i)
-                    (cl-df.header:rr i)))
-            (cl-df.column:move-iterator iterator 1))))))
-    (cl-df.column:finish-iterator iterator)
+              (setf (vellum.column:iterator-at iterator i)
+                    (vellum.header:rr i)))
+            (vellum.column:move-iterator iterator 1))))))
+    (vellum.column:finish-iterator iterator)
     new-frame))
 
 
@@ -107,9 +107,9 @@
                                                  :initial-value nil)
                            nreverse
                            (cons frame)))
-         (header (apply #'cl-df.header:concatenate-headers
+         (header (apply #'vellum.header:concatenate-headers
                         (mapcar #'header more-frames)))
-         (column-count (cl-df.header:column-count header))
+         (column-count (vellum.header:column-count header))
          (new-columns (make-array column-count))
          (index 0))
     (declare (type fixnum index column-count)
@@ -130,11 +130,11 @@
 (defmethod hselect ((frame standard-table) selector)
   (let* ((header (header frame))
          (columns (read-columns frame))
-         (column-indexes (~>> (curry #'cl-df.header:alias-to-index header)
+         (column-indexes (~>> (curry #'vellum.header:alias-to-index header)
                               (cl-ds.utils:if-else #'integerp #'identity)
                               (cl-ds.alg:on-each selector)
                               cl-ds.alg:to-vector))
-         (new-header (cl-df.header:select-columns header column-indexes))
+         (new-header (vellum.header:select-columns header column-indexes))
          (new-columns (map 'vector (compose (rcurry #'cl-ds:replica t)
                                             (curry #'aref columns))
                            column-indexes)))
@@ -151,8 +151,8 @@
          (ends (read-ends selector))
          (new-columns (map 'vector
                            (lambda (x)
-                             (cl-df.column:make-sparse-material-column
-                              :element-type (cl-df.column:column-type x)))
+                             (vellum.column:make-sparse-material-column
+                              :element-type (vellum.column:column-type x)))
                            columns)))
     (declare (type simple-vector new-columns columns)
              (type fixnum column-count))
@@ -164,7 +164,7 @@
       (for start in-vector starts)
       (for end in-vector ends)
       (for source-iterator = (iterator frame t))
-      (cl-df.column:move-iterator source-iterator start)
+      (vellum.column:move-iterator source-iterator start)
       (iterate
         (for i
              from start
@@ -173,11 +173,11 @@
           (declare (type fixnum column-index))
           (for column-index from 0 below column-count)
           (for column = (aref new-columns column-index))
-          (setf (cl-df.column:iterator-at iterator column-index)
-                (cl-df.column:iterator-at source-iterator column-index)))
-        (cl-df.column:move-iterator iterator 1)
-        (cl-df.column:move-iterator source-iterator 1))
-      (finally (cl-df.column:finish-iterator iterator)))
+          (setf (vellum.column:iterator-at iterator column-index)
+                (vellum.column:iterator-at source-iterator column-index)))
+        (vellum.column:move-iterator iterator 1)
+        (vellum.column:move-iterator source-iterator 1))
+      (finally (vellum.column:finish-iterator iterator)))
     (cl-ds.utils:quasi-clone* frame
       :columns new-columns)))
 
@@ -187,8 +187,8 @@
          (column-count (length columns))
          (new-columns (map 'vector
                            (lambda (x)
-                             (cl-df.column:make-sparse-material-column
-                              :element-type (cl-df.column:column-type x)))
+                             (vellum.column:make-sparse-material-column
+                              :element-type (vellum.column:column-type x)))
                            columns)))
     (declare (type simple-vector new-columns)
              (type fixnum column-count))
@@ -203,10 +203,10 @@
            (declare (type fixnum column-index))
            (for column-index from 0 below column-count)
            (for column = (aref columns column-index))
-           (setf (cl-df.column:iterator-at iterator column-index)
-                 (cl-df.column:column-at column row)))
-         (cl-df.column:move-iterator iterator 1)))
-      (cl-df.column:finish-iterator iterator)
+           (setf (vellum.column:iterator-at iterator column-index)
+                 (vellum.column:column-at column row)))
+         (vellum.column:move-iterator iterator 1)))
+      (vellum.column:finish-iterator iterator)
       (cl-ds.utils:quasi-clone* frame
         :columns new-columns))))
 
@@ -224,7 +224,7 @@
     (with-table (frame)
       (let* ((transformation (transformation frame :in-place in-place))
              (row (standard-transformation-row transformation)))
-        (cl-df.header:set-row row)
+        (vellum.header:set-row row)
         (block out
           (cl-ds:traverse
            mask
@@ -241,7 +241,7 @@
                (new-columns (read-columns result)))
           (iterate
             (for column in-vector new-columns)
-            (cl-df.column:truncate-to-length column new-size))
+            (vellum.column:truncate-to-length column new-size))
           result)))))
 
 
@@ -253,13 +253,13 @@
     (error 'cl-ds:operation-not-allowed
            :format-control "Can't transform frame without a columns."))
   (let* ((columns (read-columns frame))
-         (marker-column (cl-df.column:make-sparse-material-column
+         (marker-column (vellum.column:make-sparse-material-column
                          :element-type 'boolean))
          (marker-iterator (make-iterator (vector marker-column)))
          (iterator (iterator frame in-place))
          (row (make 'setfable-table-row :iterator iterator)))
-    (cl-df.column:move-iterator iterator start)
-    (cl-df.column:move-iterator marker-iterator start)
+    (vellum.column:move-iterator iterator start)
+    (vellum.column:move-iterator marker-iterator start)
     (make-standard-transformation
      :marker-iterator marker-iterator
      :marker-column marker-column
@@ -277,26 +277,26 @@
   (ensure-functionf function)
   (cl-ds.utils:with-slots-for (object standard-transformation)
     (with-table (table)
-      (cl-df.header:set-row row)
+      (vellum.header:set-row row)
       (transform-row-impl object function))))
 
 
 (defmethod transformation-result ((object standard-transformation))
   (cl-ds.utils:with-slots-for (object standard-transformation)
-    (cl-df.column:finish-iterator iterator)
-    (let ((new-columns (cl-df.column:columns iterator))
+    (vellum.column:finish-iterator iterator)
+    (let ((new-columns (vellum.column:columns iterator))
           (marker-iterator marker-iterator))
       (assert (not (eq new-columns columns)))
       (when dropped
-        (cl-df.column:finish-iterator marker-iterator)
+        (vellum.column:finish-iterator marker-iterator)
         (setf marker-iterator (make-iterator (vector marker-column)))
         (iterate
           (for i from 0 below (the fixnum (+ start count)))
-          (for value = (cl-df.column:iterator-at marker-iterator 0))
-          (setf (cl-df.column:iterator-at marker-iterator 0)
+          (for value = (vellum.column:iterator-at marker-iterator 0))
+          (setf (vellum.column:iterator-at marker-iterator 0)
                 (if (eql :null value) t :null))
-          (cl-df.column:move-iterator marker-iterator 1))
-        (cl-df.column:finish-iterator marker-iterator)
+          (vellum.column:move-iterator marker-iterator 1))
+        (vellum.column:finish-iterator marker-iterator)
         (let ((cleaned-columns (adjust-array new-columns
                                              (1+ column-count))))
           (setf (last-elt cleaned-columns) marker-column
@@ -332,7 +332,7 @@
              (lambda (operation)
                (cond ((eq operation :finish) (setf done t))
                      (t (funcall *transform-control* operation))))))
-      (cl-df.header:set-row row)
+      (vellum.header:set-row row)
       (iterate
         (declare (type fixnum i))
         (for i from start)
@@ -364,41 +364,41 @@
           :columns (ensure-replicas columns new-columns)))))
 
 
-(defmethod cl-df.header:row-at ((header cl-df.header:standard-header)
+(defmethod vellum.header:row-at ((header vellum.header:standard-header)
                                 (row table-row)
                                 (position string))
-  (cl-df.header:row-at header row (cl-df.header:alias-to-index header
+  (vellum.header:row-at header row (vellum.header:alias-to-index header
                                                                position)))
 
 
-(defmethod cl-df.header:row-at ((header cl-df.header:standard-header)
+(defmethod vellum.header:row-at ((header vellum.header:standard-header)
                                 (row table-row)
                                 (position symbol))
-  (cl-df.header:row-at header row (cl-df.header:alias-to-index header
+  (vellum.header:row-at header row (vellum.header:alias-to-index header
                                                                position)))
 
 
-(defmethod (setf cl-df.header:row-at) (new-value
-                                       (header cl-df.header:standard-header)
+(defmethod (setf vellum.header:row-at) (new-value
+                                       (header vellum.header:standard-header)
                                        (row setfable-table-row)
                                        (position symbol))
-  (setf (cl-df.header:row-at header row
-                             (cl-df.header:alias-to-index header
+  (setf (vellum.header:row-at header row
+                             (vellum.header:alias-to-index header
                                                           position))
         new-value))
 
 
-(defmethod cl-df.header:row-at ((header cl-df.header:standard-header)
+(defmethod vellum.header:row-at ((header vellum.header:standard-header)
                                 (row table-row)
                                 position)
-  (~> row read-iterator (cl-df.column:iterator-at position)))
+  (~> row read-iterator (vellum.column:iterator-at position)))
 
 
-(defmethod (setf cl-df.header:row-at) (new-value
-                                       (header cl-df.header:standard-header)
+(defmethod (setf vellum.header:row-at) (new-value
+                                       (header vellum.header:standard-header)
                                        (row setfable-table-row)
                                        position)
-  (setf (~> row read-iterator (cl-df.column:iterator-at position))
+  (setf (~> row read-iterator (vellum.column:iterator-at position))
         new-value))
 
 
@@ -433,14 +433,14 @@
 (defmethod cl-ds:peek-front ((range standard-table-range))
   (bind ((row-count (read-row-count range))
          (iterator (read-iterator range))
-         (row (cl-df.column:index iterator))
+         (row (vellum.column:index iterator))
          (header (read-header range))
-         (column-count (cl-df.header:column-count header)))
+         (column-count (vellum.header:column-count header)))
     (if (< row row-count)
         (iterate
           (with result = (make-array column-count))
           (for i from 0 below column-count)
-          (setf (aref result i) (cl-df.column:iterator-at iterator i))
+          (setf (aref result i) (vellum.column:iterator-at iterator i))
           (finally (return (values result t))))
         (values nil nil))))
 
@@ -460,26 +460,26 @@
   (check-type count non-negative-fixnum)
   (let* ((iterator (read-iterator range))
          (count (clamp count 0 (- (read-row-count range)
-                                  (cl-df.column:index iterator)))))
+                                  (vellum.column:index iterator)))))
     (when (zerop count)
       (return-from cl-ds:drop-front (values range count)))
-    (cl-df.column:move-iterator iterator count)
+    (vellum.column:move-iterator iterator count)
     (values range count)))
 
 
 (defmethod cl-ds:consume-front ((range standard-table-range))
   (bind ((row-count (read-row-count range))
          (iterator (read-iterator range))
-         (row (cl-df.column:index iterator))
+         (row (vellum.column:index iterator))
          (header (read-header range))
-         (column-count (cl-df.header:column-count header)))
+         (column-count (vellum.header:column-count header)))
     (if (< row row-count)
         (iterate
           (with result = (make-array column-count))
           (for i from 0 below column-count)
-          (setf (aref result i) (cl-df.column:iterator-at iterator i))
+          (setf (aref result i) (vellum.column:iterator-at iterator i))
           (finally
-           (cl-df.column:move-iterator iterator 1)
+           (vellum.column:move-iterator iterator 1)
            (return (values result t))))
         (values nil nil))))
 
@@ -490,11 +490,11 @@
   (bind ((iterator (read-iterator range))
          (row (read-table-row range))
          (row-count (read-row-count range)))
-    (cl-df.header:set-row row)
+    (vellum.header:set-row row)
     (iterate
-      (while (< (cl-df.column:index iterator) row-count))
+      (while (< (vellum.column:index iterator) row-count))
       (funcall function row)
-      (cl-df.column:move-iterator iterator 1))
+      (vellum.column:move-iterator iterator 1))
     (values nil nil)))
 
 
@@ -509,12 +509,12 @@
   (with-table (frame)
     (let* ((iterator (iterator frame t))
            (row (make-instance 'table-row :iterator iterator)))
-      (cl-df.header:set-row row)
+      (vellum.header:set-row row)
       (iterate
         (declare (type fixnum i))
         (for i from 0 below (row-count frame))
         (funcall function row)
-        (cl-df.column:move-iterator iterator 1)
+        (vellum.column:move-iterator iterator 1)
         (finally (return frame))))))
 
 
@@ -549,16 +549,16 @@
 
 
 (defmethod make-table ((class (eql 'standard-table))
-                       &optional (header (cl-df.header:header)))
-  (check-type header cl-df.header:standard-header)
+                       &optional (header (vellum.header:header)))
+  (check-type header vellum.header:standard-header)
   (make 'standard-table
         :header header
         :columns (iterate
                    (with columns = (~> header
-                                       cl-df.header:column-count
+                                       vellum.header:column-count
                                        make-array))
-                   (for i from 0 below (cl-df.header:column-count header))
+                   (for i from 0 below (vellum.header:column-count header))
                    (setf (aref columns i)
-                         (cl-df.column:make-sparse-material-column
-                          :element-type (cl-df.header:column-type header i)))
+                         (vellum.column:make-sparse-material-column
+                          :element-type (vellum.header:column-type header i)))
                    (finally (return columns)))))

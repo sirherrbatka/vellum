@@ -1,4 +1,4 @@
-(in-package #:cl-df.csv)
+(in-package #:vellum.csv)
 
 (prove:plan 5)
 

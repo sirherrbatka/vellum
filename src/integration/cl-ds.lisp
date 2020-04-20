@@ -1,4 +1,4 @@
-(in-package #:cl-df.int)
+(in-package #:vellum.int)
 
 
 (defgeneric gather-column-data (range definitions result))
@@ -56,55 +56,55 @@
 
 
 (defun common-to-table (range key class header body)
-  (bind ((column-count (cl-df.header:column-count header))
+  (bind ((column-count (vellum.header:column-count header))
          (columns (make-array column-count))
          (columns-buffer (make-array column-count)))
     (iterate
       (for i from 0 below column-count)
       (setf (aref columns i)
-            (cl-df.column:make-sparse-material-column
-             :element-type (cl-df.header:column-type header i))))
-    (let* ((iterator (cl-df.column:make-iterator columns))
-           (cl-df.header:*row* (make 'cl-df.table:setfable-table-row
+            (vellum.column:make-sparse-material-column
+             :element-type (vellum.header:column-type header i))))
+    (let* ((iterator (vellum.column:make-iterator columns))
+           (vellum.header:*row* (make 'vellum.table:setfable-table-row
                                      :iterator iterator)))
       (fill-columns-buffer-impl
        range 0 columns-buffer
        (lambda ()
          (iterate
            (for i from 0 below column-count)
-           (setf (cl-df.column:iterator-at iterator i)
+           (setf (vellum.column:iterator-at iterator i)
                  (aref columns-buffer i))
            (unless (null body)
-             (funcall body cl-df.header:*row*))
-           (finally (cl-df.column:move-iterator iterator 1))))
+             (funcall body vellum.header:*row*))
+           (finally (vellum.column:move-iterator iterator 1))))
        key)
-      (cl-df.column:finish-iterator iterator)
+      (vellum.column:finish-iterator iterator)
       (make class
             :header header
             :columns columns))))
 
 
-(defmethod cl-df:to-table ((range cl-ds.alg:group-by-result-range)
+(defmethod vellum:to-table ((range cl-ds.alg:group-by-result-range)
                            &key
                              (key #'identity)
-                             (header-class 'cl-df:standard-header)
-                             (class 'cl-df.table:standard-table)
+                             (header-class 'vellum:standard-header)
+                             (class 'vellum.table:standard-table)
                              (columns '())
                              (body nil)
-                             (header (apply #'cl-df:make-header
+                             (header (apply #'vellum:make-header
                                             header-class
                                             (gather-column-data range columns '()))))
   (common-to-table range key class header body))
 
 
-(defmethod cl-df:to-table ((range cl-ds.alg:summary-result-range)
+(defmethod vellum:to-table ((range cl-ds.alg:summary-result-range)
                            &key
                              (key #'identity)
-                             (header-class 'cl-df:standard-header)
-                             (class 'cl-df.table:standard-table)
+                             (header-class 'vellum:standard-header)
+                             (class 'vellum.table:standard-table)
                              (columns '())
                              (body nil)
-                             (header (apply #'cl-df:make-header
+                             (header (apply #'vellum:make-header
                                             header-class
                                             (gather-column-data range columns '()))))
   (common-to-table range key class header body))

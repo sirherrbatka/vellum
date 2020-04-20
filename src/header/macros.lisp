@@ -1,4 +1,4 @@
-(in-package #:cl-data-frames.header)
+(in-package #:vellum.header)
 
 
 (defmacro with-header ((header) &body body)
@@ -30,11 +30,11 @@
          ((:flet generate-column-index (generated column))
           `(setf ,generated
                  ,(cond ((stringp column)
-                         `(cl-df.header:alias-to-index
+                         `(vellum.header:alias-to-index
                            ,!header
                            ,column))
                         ((symbolp column)
-                         `(cl-df.header:alias-to-index
+                         `(vellum.header:alias-to-index
                            ,!header
                            ,(symbol-name column)))
                         (t column)))))
@@ -42,7 +42,7 @@
       `(let (,!header ,@generated)
          (lambda (&rest ,!arg)
            (declare (ignore ,!arg))
-           (let ((,!current-header (cl-df.header:header)))
+           (let ((,!current-header (vellum.header:header)))
              (unless (eq ,!current-header ,!header)
                (setf ,!header ,!current-header)
                ,@(mapcar #'generate-column-index
@@ -72,15 +72,15 @@
     `(let ((,!header nil)
            (,!index nil))
        (lambda (&rest all) (declare (ignore all))
-         (let ((,!current-header (cl-df.header:header))
-               (,!row (cl-df.header:row)))
+         (let ((,!current-header (vellum.header:header))
+               (,!row (vellum.header:row)))
            (unless (eq ,!current-header ,!header)
              (setf ,!header ,!current-header
                    ,!index ,(cond ((stringp column)
-                                   `(cl-df.header:alias-to-index ,!header
+                                   `(vellum.header:alias-to-index ,!header
                                                                  ,column))
                                   ((symbolp column)
-                                   `(cl-df.header:alias-to-index ,!header
+                                   `(vellum.header:alias-to-index ,!header
                                                                  ,(symbol-name column)))
                                   (t column))))
            (row-at ,!header ,!row ,!index))))))

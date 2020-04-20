@@ -1,9 +1,9 @@
 (in-package #:cl-user)
 
 
-(defpackage cl-data-frames.table
-  (:use #:cl #:cl-data-frames.aux-package)
-  (:nicknames #:cl-df.table)
+(defpackage vellum.table
+  (:use #:cl #:vellum.aux-package)
+  (:nicknames #:vellum.table)
   (:export
    #:*table*
    #:*transform-in-place*

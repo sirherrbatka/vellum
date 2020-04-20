@@ -1,8 +1,8 @@
-(in-package #:cl-df.table)
+(in-package #:vellum.table)
 
 
 (defmacro with-table ((table) &body body)
   (once-only (table)
     `(let ((*table* ,table))
-       (cl-df.header:with-header ((header ,table))
+       (vellum.header:with-header ((header ,table))
          ,@body))))
