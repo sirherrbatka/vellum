@@ -2,7 +2,7 @@
 
 
 (asdf:defsystem vellum
-  :name "cl-data-frames"
+  :name "vellum"
   :version "0.0.0"
   :license "BSD simplified"
   :author "Marek Kochanowicz"
