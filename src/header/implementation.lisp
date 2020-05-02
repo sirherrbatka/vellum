@@ -131,8 +131,7 @@
                           &key list-format)
   (make 'forward-proxy-frame-range
         :original-range (cl-ds:clone data)
-        :list-format list-format
-        :header header))
+        :list-format list-format))
 
 
 (defmethod make-row ((header standard-header)

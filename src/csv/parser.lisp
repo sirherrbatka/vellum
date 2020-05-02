@@ -26,7 +26,9 @@
   (callback csv-parsing-state-frame-callback))
 
 
+(-> rollback (csv-parsing-state-frame) (or null csv-parsing-state-frame))
 (defun rollback (frame)
+  (declare (optimize (speed 3) (safety 0)))
   (let ((new-frame frame)
         (old-frame (csv-parsing-state-frame-previous-frame frame)))
     (declare (type csv-parsing-state-frame new-frame)
@@ -35,6 +37,7 @@
       (return-from rollback nil))
     (cl-ds.utils:with-slots-for (old-frame csv-parsing-state-frame)
       (iterate
+        (declare (type fixnum i))
         (for i from (1+ field-index)
              to (min (csv-parsing-state-frame-field-index new-frame)
                      (1- (length fields))))
