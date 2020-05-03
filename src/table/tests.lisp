@@ -8,7 +8,7 @@
                               #(3 c 7 s)))
 
   (vellum:with-header ((vellum:make-header 'vellum:standard-header
-                                         nil nil nil nil))
+                                           nil nil nil nil))
     (defparameter *table*
       (~> *test-data*
           cl-ds:whole-range
@@ -70,14 +70,14 @@
   (prove:is (vellum:at *concatenated-table* 0 4) 3)
   (prove:is (vellum:at *concatenated-table* 0 5) 4)
 
-  (defparameter *sub-table* (hselect *concatenated-table* (selection 1 4)))
+  (defparameter *sub-table* (vselect *concatenated-table* (selection 1 4)))
   (prove:is (column-count *sub-table*) 4)
   (prove:is (row-count *sub-table*) 3)
   (prove:is (at *sub-table* 0 0) 4)
   (prove:is (at *sub-table* 0 1) 6)
   (prove:is (at *sub-table* 0 2) 2)
 
-  (defparameter *sub-table* (hselect *concatenated-table* (iota 3 :start 1)))
+  (defparameter *sub-table* (vselect *concatenated-table* (iota 3 :start 1)))
   (prove:is (column-count *sub-table*) 4)
   (prove:is (row-count *sub-table*) 3)
   (prove:is (at *sub-table* 0 0) 4)

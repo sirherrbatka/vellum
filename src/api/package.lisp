@@ -14,6 +14,7 @@
    #:file-input-row-cant-be-created
    #:new-columns
    #:order-by
+   #:as-matrix
    #:row-cant-be-created
    #:sample
    #:show))
