@@ -125,6 +125,11 @@
         :value (second form)))
 
 
+(defmethod make-selection-block* ((symbol (eql :sampling)) form)
+  (make 'sampling-selection-block
+        :sampling-rate (second form)))
+
+
 (defun fold-selection-input (input)
   (bind ((batches (batches input 2))
          ((:labels fold (opening list))
@@ -166,6 +171,11 @@
     (make 'selection :stack (new-stack-frame nil root))))
 
 
+(defmethod overlaps ((current-block sampling-selection-block)
+                     stack-frame)
+  t)
+
+
 (defmethod overlaps ((current-block bounded-selection-block)
                      stack-frame)
   (>= (1+ (index stack-frame))
@@ -198,6 +208,28 @@
                (setf (index stack-frame) new-index
                      (access-value stack-frame) new-index)
                stack-frame)))))
+
+
+(defmethod forward* ((current-block sampling-selection-block)
+                     stack-frame)
+  (let* ((index (index stack-frame))
+         (sampling-rate (read-sampling-rate current-block))
+         (parent (access-parent current-block))
+         (to (cond ((typep parent 'root-selection-block)
+                    most-positive-fixnum)
+                   ((typep parent 'take-selection-bock)
+                    (read-to parent))
+                   (t (error 'selection-syntax-error
+                             :format-control "Selection must be nested in the take block."
+                             :format-arguments '())))))
+    (iterate
+      (for i from (1+ index) below to)
+      (setf (index stack-frame) i)
+      (for take = (<= (random 1.0) sampling-rate))
+      (when take
+        (setf (access-value stack-frame) i)
+        (leave stack-frame))
+      (finally (return (forward (read-previous-frame stack-frame)))))))
 
 
 (defmethod forward* ((current-block skip-selection-block)
@@ -245,3 +277,10 @@
         nil
         (forward (new-stack-frame stack-frame
                                   (pop (access-state stack-frame)))))))
+
+
+
+(iterate
+  (with selection = (fold-selection-input '(:sampling 0.5)))
+  (repeat 50)
+  (print (next-position selection)))

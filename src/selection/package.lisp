@@ -6,4 +6,5 @@
   (:export
    #:fold-selection-input
    #:alias-when-selecting-row
+   #:selection-syntax-error
    #:next-position))

@@ -60,3 +60,8 @@
 (defclass value-selection-block (fundamental-selection-block)
   ((%value :initarg :value
            :reader read-value)))
+
+
+(defclass sampling-selection-block (fundamental-selection-block)
+  ((%sampling-rate :initarg :sampling-rate
+                   :reader read-sampling-rate)))
