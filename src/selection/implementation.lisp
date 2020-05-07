@@ -277,10 +277,3 @@
         nil
         (forward (new-stack-frame stack-frame
                                   (pop (access-state stack-frame)))))))
-
-
-
-(iterate
-  (with selection = (fold-selection-input '(:sampling 0.5)))
-  (repeat 50)
-  (print (next-position selection)))
