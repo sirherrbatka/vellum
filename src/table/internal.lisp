@@ -104,6 +104,7 @@
 
 (defun select-rows (frame selection)
   (bind ((columns (read-columns frame))
+         (row-count (row-count frame))
          (column-count (length columns))
          (new-columns (map 'vector
                            (lambda (x)
@@ -123,7 +124,7 @@
       (for source-iterator = (iterator frame t))
       (for value = (vellum.selection:next-position selection))
       (for previous-value previous value initially 0)
-      (while (and value (< value column-count)))
+      (while (and value (< value row-count)))
       (vellum.column:move-iterator-to source-iterator value)
       (iterate
         (declare (type fixnum column-index))
