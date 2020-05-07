@@ -12,7 +12,7 @@
       (~> *test-data*
           cl-ds:whole-range
           vellum:decorate
-          (vellum:to-table :header (vellum.header:header)))))
+          (vellum:to-table :header (vellum:header)))))
 
   (prove:is (vellum:at *table* 0 0) 1)
   (prove:is (vellum:at *table* 0 1) 2)
