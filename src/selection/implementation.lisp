@@ -1,61 +1,9 @@
 (cl:in-package #:vellum.selection)
 
 
-(defun index (stack-frame)
-  (car (access-index stack-frame)))
-
-
-(defun (setf index) (new-value stack-frame)
-  (setf (car (access-index stack-frame)) new-value))
-
-
-(defmethod new-stack-frame (previous-stack-frame (current-block fundamental-selection-block))
-  (make 'stack-frame
-        :index (access-index previous-stack-frame)
-        :previous-frame previous-stack-frame
-        :current-block current-block
-        :state nil))
-
-
-(defmethod new-stack-frame (previous-stack-frame (current-block bracket-selection-block))
-  (make 'stack-frame
-        :index (access-index previous-stack-frame)
-        :previous-frame previous-stack-frame
-        :current-block current-block
-        :state (read-children current-block)))
-
-
-(defmethod new-stack-frame (previous-stack-frame (current-block root-selection-block))
-  (make 'stack-frame
-        :index (list -1)
-        :previous-frame previous-stack-frame
-        :current-block current-block
-        :state (read-children current-block)))
-
-
 (defun forward (stack-frame)
   (forward* (read-current-block stack-frame)
             stack-frame))
-
-
-(defun next-position (selection)
-  (iterate
-    (setf #1=(access-stack selection) (forward #1#))
-    (for stack-frame = #1#)
-    (until (null stack-frame))
-    (for value = (access-value stack-frame))
-    (cond ((null stack-frame)
-           (leave nil))
-          ((null value)
-           (next-iteration))
-          (t (leave value)))))
-
-
-
-(defmethod print-object ((object bracket-selection-block) stream)
-  (print-unreadable-object (object stream :type t)
-    (format stream "~{~a~^ ~}" (read-children object))))
-
 
 
 (defun ensure-index (alias-or-index)
@@ -93,9 +41,59 @@
         (ensure-index (read-value object))))
 
 
+(defmethod print-object ((object bracket-selection-block) stream)
+  (print-unreadable-object (object stream :type t)
+    (format stream "~{~a~^ ~}" (read-children object))))
+
+
 (defmethod print-object ((block value-selection-block) stream)
   (print-unreadable-object (block stream :type t)
     (format stream "~a" (read-value block))))
+
+
+(defun index (stack-frame)
+  (car (access-index stack-frame)))
+
+
+(defun (setf index) (new-value stack-frame)
+  (setf (car (access-index stack-frame)) new-value))
+
+
+(defmethod new-stack-frame (previous-stack-frame (current-block fundamental-selection-block))
+  (make 'stack-frame
+        :index (access-index previous-stack-frame)
+        :previous-frame previous-stack-frame
+        :current-block current-block
+        :state nil))
+
+
+(defmethod new-stack-frame (previous-stack-frame (current-block bracket-selection-block))
+  (make 'stack-frame
+        :index (access-index previous-stack-frame)
+        :previous-frame previous-stack-frame
+        :current-block current-block
+        :state (read-children current-block)))
+
+
+(defmethod new-stack-frame (previous-stack-frame (current-block root-selection-block))
+  (make 'stack-frame
+        :index (list -1)
+        :previous-frame previous-stack-frame
+        :current-block current-block
+        :state (read-children current-block)))
+
+
+(defun next-position (selection)
+  (iterate
+    (setf #1=(access-stack selection) (forward #1#))
+    (for stack-frame = #1#)
+    (until (null stack-frame))
+    (for value = (access-value stack-frame))
+    (cond ((null stack-frame)
+           (leave nil))
+          ((null value)
+           (next-iteration))
+          (t (leave value)))))
 
 
 (defun first-atom (form)
@@ -107,60 +105,6 @@
 (defun make-selection-block (form)
   (let ((symbol (first-atom form)))
     (make-selection-block* symbol form)))
-
-
-(defun group-selection-input (input)
-  (batches input 2))
-
-
-(define-constant +bracket-forms+
-    '((:take-from :skip-from)
-      (:take-to :skip-to)
-      (take-selection-block skip-selection-block))
-  :test 'equal)
-
-
-(defun openings ()
-  (first +bracket-forms+))
-
-
-(defun closings ()
-  (second +bracket-forms+))
-
-
-(defun block-classes ()
-  (third +bracket-forms+))
-
-
-(defun opening-p (symbol)
-  (member symbol (openings)))
-
-
-(defun closing-p (symbol)
-  (member symbol (closings)))
-
-
-(defun matching-opening-p (closing symbol)
-  (eql (position symbol (openings))
-       (position closing (closings))))
-
-
-(defun matching-block-class (symbol)
-  (or (when-let ((position (position symbol (openings))))
-        (elt (block-classes) position))
-      (when-let ((position (position symbol (closings))))
-        (elt (block-classes) position))))
-
-
-(defun matching-closing-p (opening symbol)
-  (let ((opening-position (position opening (openings)))
-        (closing-position (position symbol (closings))))
-    (and opening-position closing-position
-         (eql opening-position closing-position))))
-
-
-(defun matching-opening (closing)
-  (elt (openings) (position closing (closings))))
 
 
 (defmethod make-selection-block* (symbol form)
@@ -256,10 +200,6 @@
                stack-frame)))))
 
 
-(defun rootp (block)
-  (typep block 'root-selection-block))
-
-
 (defmethod forward* ((current-block skip-selection-block)
                      stack-frame)
   (let* ((index (index stack-frame))
@@ -271,7 +211,7 @@
          (previous-state (access-state previous-stack-frame)))
     (cond ((or (< (1+ index) from)
                 (and (endp previous-state)
-                     (rootp parent)
+                     (typep parent 'root-selection-block)
                      (>= index to)))
            (setf (access-value stack-frame)
                  (incf (index stack-frame)))
