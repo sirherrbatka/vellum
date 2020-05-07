@@ -14,6 +14,7 @@
          (length (array-dimension columns 0)))
     (unless (< column length)
       (error 'vellum.header:no-column
+             :argument 'column
              :bounds (iota length)
              :format-arguments (list column)
              :value column))
@@ -125,61 +126,6 @@
     (make 'standard-table
           :header header
           :columns new-columns)))
-
-
-(defmethod vselect ((frame standard-table) selector)
-  (let* ((header (header frame))
-         (columns (read-columns frame))
-         (column-indexes (~>> (curry #'vellum.header:alias-to-index header)
-                              (cl-ds.utils:if-else #'integerp #'identity)
-                              (cl-ds.alg:on-each selector)
-                              cl-ds.alg:to-vector))
-         (new-header (vellum.header:select-columns header column-indexes))
-         (new-columns (map 'vector (compose (rcurry #'cl-ds:replica t)
-                                            (curry #'aref columns))
-                           column-indexes)))
-    (declare (type simple-vector columns new-columns))
-    (cl-ds.utils:quasi-clone* frame
-      :header new-header
-      :columns new-columns)))
-
-
-(defmethod hselect ((frame standard-table) (selector selection))
-  (bind ((columns (read-columns frame))
-         (column-count (length columns))
-         (starts (read-starts selector))
-         (ends (read-ends selector))
-         (new-columns (map 'vector
-                           (lambda (x)
-                             (vellum.column:make-sparse-material-column
-                              :element-type (vellum.column:column-type x)))
-                           columns)))
-    (declare (type simple-vector new-columns columns)
-             (type fixnum column-count))
-    (when (emptyp new-columns)
-      (return-from hselect (cl-ds.utils:quasi-clone* frame
-                            :columns new-columns)))
-    (iterate
-      (with iterator = (make-iterator new-columns))
-      (for start in-vector starts)
-      (for end in-vector ends)
-      (for source-iterator = (iterator frame t))
-      (vellum.column:move-iterator source-iterator start)
-      (iterate
-        (for i
-             from start
-             below end)
-        (iterate
-          (declare (type fixnum column-index))
-          (for column-index from 0 below column-count)
-          (for column = (aref new-columns column-index))
-          (setf (vellum.column:iterator-at iterator column-index)
-                (vellum.column:iterator-at source-iterator column-index)))
-        (vellum.column:move-iterator iterator 1)
-        (vellum.column:move-iterator source-iterator 1))
-      (finally (vellum.column:finish-iterator iterator)))
-    (cl-ds.utils:quasi-clone* frame
-      :columns new-columns)))
 
 
 (defmethod vmask ((frame standard-table) mask
@@ -505,20 +451,6 @@
   (cl-ds.alg.meta:apply-aggregation-function range function all))
 
 
-(defmethod cl-ds:traverse ((selection selection)
-                           function)
-  (ensure-functionf function)
-  (iterate
-    (for i from (read-start selection) below (read-end selection))
-    (funcall function i))
-  selection)
-
-
-(defmethod cl-ds:across ((selection selection)
-                         function)
-  (cl-ds:traverse selection function))
-
-
 (defmethod make-table ((class (eql 'standard-table))
                        &optional (header (vellum.header:header)))
   (check-type header vellum.header:standard-header)
@@ -533,3 +465,12 @@
                          (vellum.column:make-sparse-material-column
                           :element-type (vellum.header:column-type header i)))
                    (finally (return columns)))))
+
+
+(defmethod select ((frame standard-table) &key rows columns)
+  (let ((selected-columns (if (null columns)
+                              frame
+                              (select-columns frame columns))))
+    (if (null rows)
+        selected-columns
+        (select-rows selected-columns rows))))

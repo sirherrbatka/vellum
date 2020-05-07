@@ -20,4 +20,5 @@
    #:make-iterator
    #:make-sparse-material-column
    #:move-iterator
+   #:move-iterator-to
    #:sparse-material-column))

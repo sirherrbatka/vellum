@@ -66,11 +66,11 @@
              (read-columns iterator)
              :key #'column-size)))
 
-(-> move-iterator (sparse-material-column-iterator non-negative-fixnum) t)
-(defun move-iterator (iterator times)
+
+(-> move-iterator-to (sparse-material-column-iterator non-negative-fixnum) t)
+(defun move-iterator-to (iterator new-index)
   (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (bind ((index (access-index iterator))
-         (new-index (+ index times))
          (new-depth (~> new-index
                         integer-length
                         (ceiling cl-ds.common.rrb:+bit-count+)
@@ -80,7 +80,7 @@
              (type boolean promoted))
     (unless promoted
       (setf (access-index iterator) new-index)
-      (return-from move-iterator nil))
+      (return-from move-iterator-to nil))
     (let* ((initialization-status (read-initialization-status iterator))
            (depths (read-depths iterator))
            (stacks (read-stacks iterator))
@@ -136,6 +136,13 @@
                            (aref stacks i)))))
       (setf (access-index iterator) new-index))
     nil))
+
+
+(-> move-iterator (sparse-material-column-iterator non-negative-fixnum) t)
+(defun move-iterator (iterator times)
+  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
+  (move-iterator-to iterator (+ (sparse-material-column-iterator-index iterator)
+                                times)))
 
 (defun into-vector-copy (element vector)
   (lret ((result (map-into (make-array

@@ -34,6 +34,10 @@
                              (:file "conditions")
                              (:file "internal")
                              (:file "implementation")))
+               (:module "selection"
+                :components ((:file "package")
+                             (:file "conditions")
+                             (:file "implementation")))
                (:module "table"
                 :components ((:file "package")
                              (:file "variables")

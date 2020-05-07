@@ -6,6 +6,7 @@
   (:nicknames #:vellum.header)
   (:export
    #:alias-to-index
+   #:no-header
    #:invalid-alias
    #:body
    #:brr

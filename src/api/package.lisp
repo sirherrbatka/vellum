@@ -35,7 +35,6 @@
   vellum.table:at
   vellum.table:column-count
   vellum.table:drop-row
-  vellum.table:hselect
   vellum.table:finish-transformation
   vellum.table:hstack
   vellum.table:*transform-in-place*
@@ -49,7 +48,7 @@
   vellum.table:transformation
   vellum.table:transformation-result
   vellum.table:vmask
-  vellum.table:vselect
+  vellum.table:select
   vellum.table:vstack
   vellum.table:with-table
   cl-ds:replica)

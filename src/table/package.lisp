@@ -16,7 +16,6 @@
    #:transformation
    #:transform-row
    #:transformation-result
-   #:hselect
    #:hstack
    #:no-transformation
    #:fundamental-table
@@ -28,11 +27,10 @@
    #:nullify
    #:remove-nulls
    #:row-count
-   #:selection
    #:make-table
    #:to-table
    #:transform
    #:vmask
-   #:vselect
    #:vstack
+   #:select
    #:with-table))
