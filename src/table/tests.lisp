@@ -1,6 +1,6 @@
 (in-package #:vellum.table)
 
-(prove:plan 42)
+(prove:plan 44)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -76,6 +76,11 @@
   (prove:is (at *sub-table* 0 0) 4)
   (prove:is (at *sub-table* 0 1) 6)
   (prove:is (at *sub-table* 0 2) 2)
+
+  (defparameter *sub-table* (select *concatenated-table*
+                              :columns '(:take-to 2)))
+  (prove:is (column-count *sub-table*) 3)
+  (prove:is (row-count *sub-table*) 6)
 
   (defparameter *sub-table* (select *concatenated-table*
                               :rows '(:v 1 :v 2 :v 3)))

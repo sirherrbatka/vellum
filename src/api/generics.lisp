@@ -79,6 +79,7 @@
 
 (defmethod join :before (algorithm method (frame-specs list) &key &allow-other-keys)
   (when (emptyp frame-specs)
-    (error 'cl-ds:invalid-value
+    (error 'cl-ds:invalid-argument-value
            :value frame-specs
+           :argument frame-specs
            :format-control "Empty frame-specs list, nothing to join.")))

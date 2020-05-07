@@ -20,12 +20,12 @@
 
 
 (define-condition index-out-of-column-bounds (column-error
-                                              cl-ds:argument-out-of-bounds)
+                                              cl-ds:argument-value-out-of-bounds)
   ())
 
 
 (define-condition no-such-column (column-error
-                                  cl-ds:argument-out-of-bounds)
+                                  cl-ds:argument-value-out-of-bounds)
   ())
 
 

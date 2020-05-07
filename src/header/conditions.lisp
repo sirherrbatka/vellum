@@ -1,7 +1,7 @@
 (in-package #:vellum.header)
 
 
-(define-condition no-column (cl-ds:argument-not-in-allowed-set)
+(define-condition no-column (cl-ds:argument-value-not-in-allowed-set)
   ()
   (:default-initargs :format-control "No column ~a."))
 
