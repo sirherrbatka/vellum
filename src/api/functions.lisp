@@ -15,16 +15,6 @@
        (vstack table)))
 
 
-(defun sample (table chance-to-pick &key (in-place *transform-in-place*))
-  (check-type chance-to-pick (real 0 1))
-  (transform table
-             (lambda (&rest all)
-               (declare (ignore all))
-               (unless (< chance-to-pick (random 1.0d0))
-                 (drop-row)))
-             :in-place in-place))
-
-
 (defun empty-table (&key (header (vellum.header:header)))
   (vellum.table:make-table 'vellum.table:standard-table header))
 

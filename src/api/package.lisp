@@ -16,7 +16,6 @@
    #:order-by
    #:as-matrix
    #:row-cant-be-created
-   #:sample
    #:show))
 
 (in-package :vellum)
