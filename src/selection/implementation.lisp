@@ -217,7 +217,7 @@
          (parent (access-parent current-block))
          (to (cond ((typep parent 'root-selection-block)
                     most-positive-fixnum)
-                   ((typep parent 'take-selection-bock)
+                   ((typep parent 'take-selection-block)
                     (read-to parent))
                    (t (error 'selection-syntax-error
                              :format-control "Selection must be nested in the take block."
