@@ -40,7 +40,6 @@
   vellum.table:nullify
   vellum.table:remove-nulls
   vellum.table:row-count
-  vellum.table:selection
   vellum.table:to-table
   vellum.table:transform
   vellum.table:transform-row
