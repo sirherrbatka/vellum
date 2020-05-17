@@ -39,7 +39,7 @@
      (let ((body %body))
        (unless (null body)
          (vellum.header:with-header (%header)
-           (let ((vellum.header:*row* %row))
+           (let ((vellum.header:*row* (box %row)))
              (funcall body %row)))))
      (vellum.column:move-iterator %iterator 1))
 
