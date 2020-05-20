@@ -196,19 +196,19 @@
                         column-specs)))
 
 
-(defun as-matrix (frame &optional (array-element-type t))
+(defun to-matrix (frame &key (element-type t) (key #'identity))
   (let* ((column-count (column-count frame))
          (row-count (row-count frame))
          (row-index 0)
          (result (make-array (list row-count column-count)
-                             :element-type array-element-type)))
+                             :element-type element-type)))
     (transform frame
                (body ()
                  (iterate
                    (with row = (vellum.header:row))
                    (for i from 0 below column-count)
                    (setf (aref result row-index i)
-                         (coerce (rr i row)
-                                 array-element-type))
+                         (coerce (funcall key (rr i row))
+                                 element-type))
                    (finally (incf row-index)))))
     result))
