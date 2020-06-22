@@ -11,6 +11,7 @@
    #:empty-table
    #:with-standard-header
    #:join
+   #:pipeline
    #:file-input-row-cant-be-created
    #:new-columns
    #:order-by

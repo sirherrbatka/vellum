@@ -6,3 +6,10 @@
                                     ,@(mapcar (curry #'list 'quote)
                                               columns)))
      ,@body))
+
+
+(defmacro pipeline ((table) &body body)
+  (once-only (table)
+    `(with-table (,table)
+       (~> (cl-ds:whole-range ,table)
+           ,@body))))
