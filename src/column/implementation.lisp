@@ -76,7 +76,7 @@
                         (ceiling cl-ds.common.rrb:+bit-count+)
                         1-))
          (promoted (index-promoted index new-index)))
-    (declare (type fixnum index new-index new-depth)
+    (declare (type fixnum index new-depth)
              (type boolean promoted))
     (unless promoted
       (setf (access-index iterator) new-index)
