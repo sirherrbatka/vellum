@@ -1,13 +1,13 @@
 (in-package #:vellum.table)
 
 
-(defmethod at ((frame standard-table) (column symbol) (row integer))
+(defmethod at ((frame standard-table) (row integer) (column symbol))
   (~> frame header
       (vellum.header:alias-to-index column)
       (at frame _ row)))
 
 
-(defmethod at ((frame standard-table) (column integer) (row integer))
+(defmethod at ((frame standard-table) (row integer) (column integer))
   (check-type column non-negative-integer)
   (check-type row non-negative-integer)
   (let* ((columns (read-columns frame))
@@ -23,7 +23,7 @@
 
 
 (defmethod (setf at) (new-value (frame standard-table)
-                      (column symbol) (row integer))
+                      (row integer) (column symbol))
   (setf (at frame (vellum.header:alias-to-index (header frame)
                                                column)
             row)
@@ -31,7 +31,7 @@
 
 
 (defmethod (setf at) (new-value (frame standard-table)
-                      (column integer) (row integer))
+                      (row integer) (column integer))
   (check-type column non-negative-integer)
   (check-type row non-negative-integer)
   (let* ((columns (read-columns frame))

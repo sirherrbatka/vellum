@@ -53,7 +53,7 @@
       (for row from 1)
       (iterate
         (for j from 0 below column-count)
-        (for string = (princ-to-string (at table j i)))
+        (for string = (princ-to-string (at table i j)))
         (setf (aref strings row j) string)
         (maxf (aref desired-sizes j) (length string))))
     (iterate

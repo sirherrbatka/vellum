@@ -9,9 +9,9 @@
 
 (defgeneric vmask (frame mask &key in-place))
 
-(defgeneric at (frame column row))
+(defgeneric at (frame row column))
 
-(defgeneric (setf at) (new-value frame column row))
+(defgeneric (setf at) (new-value frame row column))
 
 (defgeneric transform (frame function &key in-place start end))
 
