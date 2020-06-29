@@ -314,7 +314,7 @@
             cl-ds.common.rrb:sparse-rrb-node-bitmask
             integer-length
             (+ tree-index-bound)
-            (= cl-ds.common.rrb:+maximum-children-count+))
+            (- cl-ds.common.rrb:+maximum-children-count+))
         (+ tree-index-bound
            tail-size))))
 
