@@ -41,6 +41,7 @@
 (defmethod cl-ds.utils:cloning-information append
     ((signature column-signature))
   '((:type read-type)
+    (:alias read-alias)
     (:predicate read-predicate)))
 
 

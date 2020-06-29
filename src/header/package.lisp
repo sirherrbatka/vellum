@@ -11,6 +11,8 @@
    #:body
    #:brr
    #:column-count
+   #:read-alias
+   #:column-signature
    #:column-type
    #:*row*
    #:*header*

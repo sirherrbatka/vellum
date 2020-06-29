@@ -4,7 +4,7 @@
 (defmethod at ((frame standard-table) (row integer) (column symbol))
   (~> frame header
       (vellum.header:alias-to-index column)
-      (at frame _ row)))
+      (at frame row _)))
 
 
 (defmethod at ((frame standard-table) (row integer) (column integer))

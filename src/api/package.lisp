@@ -12,6 +12,7 @@
    #:with-standard-header
    #:join
    #:pipeline
+   #:alter-columns
    #:file-input-row-cant-be-created
    #:new-columns
    #:order-by
