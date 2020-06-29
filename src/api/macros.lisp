@@ -13,3 +13,20 @@
     `(with-table (,table)
        (~> (cl-ds:whole-range ,table)
            ,@body))))
+
+
+(defmacro aggregate-rows (table column params &rest more)
+  (flet ((aggregator-constructor (expression)
+           (bind (((function . body) expression))
+             `(cl-ds.alg.meta:aggregator-constructor
+               '() nil (function ,function)
+               (list '() ,@body)))))
+    `(%aggregate-rows ,table
+                      ,column
+                      (list ,(aggregator-constructor (first params))
+                            ,@(rest params))
+                      ,@(iterate
+                          (for (column (expression . rest)) in (batches more 2))
+                          (appending `(,column
+                                            (list ,(aggregator-constructor expression)
+                                              ,@rest)))))))

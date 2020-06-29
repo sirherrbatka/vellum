@@ -224,7 +224,7 @@
                  (id (or (vellum.header:read-alias column)
                          index))
                  (new-params (find-if (lambda (x)
-                                        (or (eql id x)
+                                        (or (equal id x)
                                             (eql index x)))
                                       pairs
                                       :key #'first)))
@@ -240,3 +240,36 @@
          (result (cl-ds.utils:quasi-clone table
                                           :header new-header)))
     (replica result t)))
+
+
+(defun %aggregate-rows (table &rest params)
+  (declare (optimize (debug 3)))
+  (bind ((pairs (batches params 2))
+         (row-count (row-count table))
+         (names (flatten (mapcar #'first pairs)))
+         (result (vellum.table:make-table 'vellum.table:standard-table
+                                          (apply #'vellum.header:make-header
+                                                 'vellum.header:standard-header
+                                                 (mapcar (curry #'list :alias)
+                                                         names)))))
+    (iterate
+      (for i from 0)
+      (for (name (aggregator-constructor . params)) in pairs)
+      (unless (listp name)
+        (setf name (list name)))
+      (iterate
+        (for id in name)
+        (for column = (vellum.table:column-at table id))
+        (for aggregator = (funcall aggregator-constructor))
+        (if (getf params :skip-nulls)
+            (cl-ds.alg.meta:across-aggregate
+             column
+             (curry #'cl-ds.alg.meta:pass-to-aggregation aggregator))
+            (iterate
+              (for i from 0 below row-count)
+              (cl-ds.alg.meta:pass-to-aggregation
+               aggregator
+               (vellum.column:column-at column i))))
+        (setf (vellum.table:at result 0 id)
+              (cl-ds.alg.meta:extract-result aggregator)))
+      (finally (return result)))))

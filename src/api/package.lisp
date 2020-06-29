@@ -17,6 +17,8 @@
    #:new-columns
    #:order-by
    #:to-matrix
+   #:aggregate-rows
+   #:%aggregate-rows
    #:row-cant-be-created
    #:show))
 

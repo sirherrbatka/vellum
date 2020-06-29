@@ -1,31 +1,15 @@
 (in-package #:vellum.table)
 
 
-(defmethod at ((frame standard-table) (row integer) (column symbol))
-  (~> frame header
-      (vellum.header:alias-to-index column)
-      (at frame row _)))
-
-
-(defmethod at ((frame standard-table) (row integer) (column integer))
-  (check-type column non-negative-integer)
-  (check-type row non-negative-integer)
-  (let* ((columns (read-columns frame))
-         (length (array-dimension columns 0)))
-    (unless (< column length)
-      (error 'vellum.header:no-column
-             :argument 'column
-             :bounds (iota length)
-             :format-arguments (list column)
-             :value column))
-    (~> (aref columns column)
-        (vellum.column:column-at row))))
+(defmethod at ((frame standard-table) (row integer) column)
+  (~> (column-at frame column)
+      (vellum.column:column-at row)))
 
 
 (defmethod (setf at) (new-value (frame standard-table)
-                      (row integer) (column symbol))
+                      (row integer) column)
   (setf (at frame (vellum.header:alias-to-index (header frame)
-                                               column)
+                                                column)
             row)
         new-value))
 
@@ -282,26 +266,26 @@
 
 
 (defmethod vellum.header:row-at ((header vellum.header:standard-header)
-                                (row table-row)
-                                (position string))
+                                 (row table-row)
+                                 (position string))
   (vellum.header:row-at header row (vellum.header:alias-to-index header
-                                                               position)))
+                                                                 position)))
 
 
 (defmethod vellum.header:row-at ((header vellum.header:standard-header)
-                                (row table-row)
-                                (position symbol))
+                                 (row table-row)
+                                 position)
   (vellum.header:row-at header row (vellum.header:alias-to-index header
-                                                               position)))
+                                                                 position)))
 
 
 (defmethod (setf vellum.header:row-at) (new-value
-                                       (header vellum.header:standard-header)
-                                       (row setfable-table-row)
-                                       (position symbol))
+                                        (header vellum.header:standard-header)
+                                        (row setfable-table-row)
+                                        position)
   (setf (vellum.header:row-at header row
                              (vellum.header:alias-to-index header
-                                                          position))
+                                                           position))
         new-value))
 
 
@@ -474,3 +458,21 @@
     (if (null rows)
         selected-columns
         (select-rows selected-columns rows))))
+
+
+(defmethod column-at ((frame standard-table) column)
+  (~>> (header frame)
+       (vellum.header:alias-to-index _ column)
+       (column-at frame)))
+
+
+(defmethod column-at ((frame standard-table) (column integer))
+  (let* ((columns (read-columns frame))
+         (length (array-dimension columns 0)))
+    (unless (< -1 column length)
+      (error 'vellum.header:no-column
+             :argument 'column
+             :bounds (iota length)
+             :format-arguments (list column)
+             :value column))
+    (aref columns column)))

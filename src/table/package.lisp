@@ -8,6 +8,7 @@
    #:*table*
    #:*transform-in-place*
    #:at
+   #:column-at
    #:column-count
    #:column-name
    #:column-type
