@@ -309,11 +309,12 @@
                        (1- node-size))
                  (1+ depth))))))
     (if (zerop tail-size)
-        (+ tree-index-bound (- cl-ds.common.rrb:+maximum-children-count+)
-           (~> (cl-ds.dicts.srrb:access-tree column)
-               (last-tree-node 0)
-               cl-ds.common.rrb:sparse-rrb-node-bitmask
-               integer-length))
+        (~> (cl-ds.dicts.srrb:access-tree column)
+            (last-tree-node 0)
+            cl-ds.common.rrb:sparse-rrb-node-bitmask
+            integer-length
+            (+ tree-index-bound)
+            (= cl-ds.common.rrb:+maximum-children-count+))
         (+ tree-index-bound
            tail-size))))
 
