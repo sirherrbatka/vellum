@@ -57,7 +57,7 @@
                                 `(,gensym ,binding))
                               names
                               gensyms))
-               (declare (special ,@selected-columns))
+               (declare (special ,@names))
                (prog1 (progn ,@body)
                  ,@(mapcar (lambda (column name gensym)
                              `(unless (eql ,name ,gensym)

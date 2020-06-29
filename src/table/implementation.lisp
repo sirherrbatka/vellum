@@ -8,25 +8,8 @@
 
 (defmethod (setf at) (new-value (frame standard-table)
                       (row integer) column)
-  (setf (at frame (vellum.header:alias-to-index (header frame)
-                                                column)
-            row)
+  (setf (vellum.column:column-at (column-at frame column) row)
         new-value))
-
-
-(defmethod (setf at) (new-value (frame standard-table)
-                      (row integer) (column integer))
-  (check-type column non-negative-integer)
-  (check-type row non-negative-integer)
-  (let* ((columns (read-columns frame))
-         (length (array-dimension columns 0)))
-    (unless (< column length)
-      (error 'vellum.header:no-column
-             :bounds (iota length)
-             :format-arguments (list column)
-             :value column))
-    (setf (vellum.column:column-at (aref columns column) row)
-          new-value)))
 
 
 (defmethod column-count ((frame standard-table))
@@ -153,7 +136,11 @@
   (when (~> frame read-columns length zerop)
     (error 'cl-ds:operation-not-allowed
            :format-control "Can't transform frame without a columns."))
-  (let* ((columns (read-columns frame))
+  (let* ((columns (cl-ds.utils:transform (lambda (x)
+                                           (cl-ds.dicts.srrb:transactional-insert-tail!
+                                            x
+                                            (cl-ds.common.abstract:read-ownership-tag x)))
+                                         (read-columns frame)))
          (marker-column (vellum.column:make-sparse-material-column
                          :element-type 'boolean))
          (marker-iterator (make-iterator (vector marker-column)))

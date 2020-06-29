@@ -270,6 +270,6 @@
               (cl-ds.alg.meta:pass-to-aggregation
                aggregator
                (vellum.column:column-at column i))))
-        (setf (vellum.table:at result 0 id)
+        (setf (at result 0 id)
               (cl-ds.alg.meta:extract-result aggregator)))
       (finally (return result)))))

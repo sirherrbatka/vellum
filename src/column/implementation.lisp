@@ -295,7 +295,7 @@
 
 
 (defmethod column-size ((column sparse-material-column))
-  (+ (cl-ds.dicts.srrb:access-tree-index-bound column)
+  (+ (cl-ds.dicts.srrb:access-tree-size column)
      (~> column cl-ds.dicts.srrb:access-tail-mask integer-length)))
 
 
