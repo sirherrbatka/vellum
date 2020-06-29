@@ -19,6 +19,8 @@
    #:to-matrix
    #:aggregate-rows
    #:%aggregate-rows
+   #:aggregate-columns
+   #:%aggregate-columns
    #:row-cant-be-created
    #:show))
 

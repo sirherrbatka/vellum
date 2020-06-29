@@ -28,5 +28,14 @@
                       ,@(iterate
                           (for (column (expression . rest)) in (batches more 2))
                           (appending `(,column
-                                            (list ,(aggregator-constructor expression)
-                                              ,@rest)))))))
+                                       (list ,(aggregator-constructor expression)
+                                             ,@rest)))))))
+
+
+(defmacro aggregate-columns (table expression &key skip-nulls)
+  (bind (((function . body) expression))
+    `(%aggregate-columns ,table
+                         (cl-ds.alg.meta:aggregator-constructor
+                          '() nil (function ,function)
+                          (list '() ,@body))
+                         :skip-nulls skip-nulls)))

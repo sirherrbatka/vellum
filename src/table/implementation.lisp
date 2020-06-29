@@ -67,16 +67,13 @@
     new-frame))
 
 
-(defmethod hstack ((frame standard-table) more-frames)
+(defmethod hstack ((frame standard-table) more-frames &key (isolate t))
   (cl-ds:across more-frames
                 (lambda (x) (check-type x standard-table)))
-  (let* ((more-frames (~>> (cl-ds.alg:accumulate more-frames
-                                                 (flip #'cons)
-                                                 :initial-value nil)
-                           nreverse
-                           (cons frame)))
+  (let* ((all-frames (~>> (cl-ds.alg:to-list more-frames)
+                          (cons frame)))
          (header (apply #'vellum.header:concatenate-headers
-                        (mapcar #'header more-frames)))
+                        (mapcar #'header all-frames)))
          (column-count (vellum.header:column-count header))
          (new-columns (make-array column-count))
          (index 0))
@@ -84,11 +81,11 @@
              (type simple-vector new-columns)
              (type list more-frames))
     (iterate
-      (for frame in more-frames)
+      (for frame in all-frames)
       (for columns = (read-columns frame))
       (iterate
         (for column in-vector columns)
-        (setf (aref new-columns index) (cl-ds:replica column t))
+        (setf (aref new-columns index) (cl-ds:replica column isolate))
         (the fixnum (incf index))))
     (make 'standard-table
           :header header

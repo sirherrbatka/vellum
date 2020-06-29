@@ -1,7 +1,7 @@
 (in-package #:vellum.table)
 
 
-(defgeneric hstack (frame more-frames))
+(defgeneric hstack (frame more-frames &key isolate))
 
 (defgeneric vstack (frame more-frames))
 

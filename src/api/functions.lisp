@@ -243,7 +243,6 @@
 
 
 (defun %aggregate-rows (table &rest params)
-  (declare (optimize (debug 3)))
   (bind ((pairs (batches params 2))
          (row-count (row-count table))
          (names (flatten (mapcar #'first pairs)))
@@ -273,3 +272,28 @@
         (setf (at result 0 id)
               (cl-ds.alg.meta:extract-result aggregator)))
       (finally (return result)))))
+
+
+(defun %aggregate-columns (table aggregator-constructor &key (skip-nulls nil))
+  (declare (optimize (speed 3)))
+  (bind ((column-count (column-count table))
+         (result (vellum.table:make-table 'vellum.table:standard-table
+                                          (vellum.header:make-header
+                                           'vellum.header:standard-header
+                                           '()))))
+    (declare (type fixnum column-count))
+    (~> (transform (hstack table (list result) :isolate nil)
+                     (lambda (&rest _) (declare (ignore _))
+                       (cl-ds.utils:cases ((null skip-nulls))
+                         (iterate
+                           (declare (type fixnum i))
+                           (with aggregator = (funcall aggregator-constructor))
+                           (for i from 0 below column-count)
+                           (for value = (rr i))
+                           (when (and skip-nulls (eq :null value))
+                             (next-iteration))
+                           (cl-ds.alg.meta:pass-to-aggregation aggregator value)
+                           (finally (setf (rr column-count)
+                                          (cl-ds.alg.meta:extract-result aggregator))))))
+                     :in-place nil)
+        (select :columns `(:v ,column-count)))))
