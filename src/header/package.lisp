@@ -13,6 +13,7 @@
    #:column-count
    #:read-alias
    #:column-signature
+   #:constantly-t
    #:column-type
    #:*row*
    #:*header*

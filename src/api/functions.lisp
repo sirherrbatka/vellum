@@ -274,13 +274,18 @@
       (finally (return result)))))
 
 
-(defun %aggregate-columns (table aggregator-constructor &key (skip-nulls nil))
+(defun %aggregate-columns (table aggregator-constructor
+                           &key (skip-nulls nil) (type t)
+                           alias
+                             (predicate vellum.header:constantly-t))
   (declare (optimize (speed 3)))
   (bind ((column-count (column-count table))
          (result (vellum.table:make-table 'vellum.table:standard-table
                                           (vellum.header:make-header
                                            'vellum.header:standard-header
-                                           '()))))
+                                           `(:predicate ,predicate
+                                             :alias ,alias
+                                             :type ,type)))))
     (declare (type fixnum column-count))
     (~> (transform (hstack table (list result) :isolate nil)
                      (lambda (&rest _) (declare (ignore _))
