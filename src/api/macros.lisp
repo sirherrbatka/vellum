@@ -34,24 +34,16 @@
 
 (defmacro aggregate-columns (table expression
                              &key
-                               (alias nil alias-p)
+                               alias
                                skip-nulls
                                (type t)
                                (predicate 'vellum.header:constantly-t))
   (bind (((function . body) expression))
-    (if alias-p
-        `(%aggregate-columns ,table
-                             (cl-ds.alg.meta:aggregator-constructor
-                              '() nil (function ,function)
-                              (list '() ,@body))
-                             :skip-nulls ,skip-nulls
-                             :type ,type
-                             :alias ,alias
-                             :predicate ,predicate)
-        `(%aggregate-columns ,table
-                             (cl-ds.alg.meta:aggregator-constructor
-                              '() nil (function ,function)
-                              (list '() ,@body))
-                             :skip-nulls ,skip-nulls
-                             :type ,type
-                             :predicate ,predicate))))
+    `(%aggregate-columns ,table
+                         (cl-ds.alg.meta:aggregator-constructor
+                          '() nil (function ,function)
+                          (list '() ,@body))
+                         :skip-nulls ,skip-nulls
+                         :type ,type
+                         :alias ,alias
+                         :predicate ,predicate)))
