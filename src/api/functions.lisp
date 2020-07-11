@@ -9,10 +9,11 @@
 (defun new-columns (table &rest columns)
   (~>> table
        vellum.table:header
-       class-of
-       (vellum:make-header _ columns)
-       (vellum.table:make-table (class-of table))
-       (vstack table)))
+       type-of
+       (apply #'vellum:make-header _ columns)
+       (vellum.table:make-table (type-of table))
+       list
+       (hstack table)))
 
 
 (defun empty-table (&key (header (vellum.header:header)))
