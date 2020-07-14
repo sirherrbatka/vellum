@@ -17,10 +17,9 @@
 
 
 (defmethod row-count ((frame standard-table))
-  (or (iterate
-        (for column in-vector (read-columns frame))
-        (maximize (vellum.column:column-size column)))
-      0))
+  (iterate
+    (for column in-vector (read-columns frame))
+    (maximize (vellum.column:column-size column))))
 
 
 (defmethod column-name ((frame standard-table) (column integer))
@@ -34,7 +33,7 @@
 
 (defmethod vstack ((frame standard-table) more-frames)
   (let* ((new-columns
-           (map 'vector
+           (cl-ds.utils:transform
                 (lambda (column &aux (new (cl-ds:replica column t)))
                   (~>> new
                        cl-ds.common.abstract:read-ownership-tag

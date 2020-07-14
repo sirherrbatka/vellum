@@ -295,31 +295,10 @@
 
 
 (defmethod column-size ((column sparse-material-column))
-  (bind ((tail-size (~> column
-                        cl-ds.dicts.srrb:access-tail-mask
-                        integer-length))
-         (tree-index-bound (cl-ds.dicts.srrb:access-tree-index-bound column))
-         (shift (cl-ds.dicts.srrb:access-shift column))
-         ((:labels last-tree-node (node depth))
-          (if (= depth shift)
-              node
-              (let ((node-size (cl-ds.common.rrb:sparse-rrb-node-size node)))
-                (last-tree-node
-                 (aref (cl-ds.common.rrb:sparse-rrb-node-content node)
-                       (1- node-size))
-                 (1+ depth)))))
-         (root (cl-ds.dicts.srrb:access-tree column)))
-    (if (zerop tail-size)
-        (if (cl-ds.meta:null-bucket-p root)
-            0
-            (~> root
-                (last-tree-node 0)
-                cl-ds.common.rrb:sparse-rrb-node-bitmask
-                integer-length
-                (+ tree-index-bound)
-                (- cl-ds.common.rrb:+maximum-children-count+)))
-        (+ tree-index-bound
-           tail-size))))
+  (+ (cl-ds.dicts.srrb:scan-index-bound column)
+     (~> column
+         cl-ds.dicts.srrb:access-tail-mask
+         integer-length)))
 
 
 (defmethod remove-nulls ((iterator sparse-material-column-iterator))

@@ -198,6 +198,7 @@
 
 
 (defun to-matrix (frame &key (element-type t) (key #'identity))
+  (declare (optimize (debug 3)))
   (let* ((column-count (column-count frame))
          (row-count (row-count frame))
          (row-index 0)
