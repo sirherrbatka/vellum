@@ -1,10 +1,10 @@
-# What is Vellum?
+* What is Vellum?
 Vellum is an data frame library build for Common Lisp. It is designed to be easy to both learn and use, practical and reasonably efficient. Note that this software is in beta quality at the moment.
 
-# Mindset
+* Mindset
 The main goal of the Vellum was to create lispy data frame library, and therefore it should come with no surprise that the design is very different from a more famous Pandas for python. However, I hope to demonstrate that Vellum is a very accesible library.
 
-# Header + Columns = Data Frame
+* Header + Columns = Data Frame
 Data Frame is composed from header and columns. Header can be thought of as a data schema, containing column names, column types and predicates for stored values and is a required to create table. Let's construct an empty data frame.
 
 #+BEGIN_SRC common-lisp
@@ -23,7 +23,7 @@ You may be under impression that there has to be a better way to it. You would b
                                   (:alias second-column :type fixnum))))
 #+END_SRC
 
-# Read and write data
+* Read and write data
 Freshly constructed data frame is obviously empty. However, meaning of empty is somewhat blurred in vellum. Data frames are sparse in concept, meaning that they lack a natural bound. This means that although, you can locate the last non empty row...
 
 #+BEGIN_SRC common-lisp
@@ -49,7 +49,7 @@ Furthermore, VELLUM:AT is actually a setfable place which means that you can eve
 
 If one would want to, he could fill the content of the data frame in a loop. But that would be awkaward, wouldn't it? I suspect that you would prefer some sort of a batch method that would be handier.
 
-# TRANFORM and BODY
+* TRANFORM and BODY
 This is where the TRANSFORM function and BODY macro combination comes in. The intent is to construct simple to use and universal facility to perform all kinds of row operations in a handy way. It is easy to demonstrate this on a example For instance, let's say that we want to calculate body mass index from weight and height. Formula is simple enough: weight (in kilograms) divided by height (in meters) squared. Given that our data frame already contains weight, height and BMI columns, code becomes...
 
 #+BEGIN_SRC common-lisp
