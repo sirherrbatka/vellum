@@ -421,17 +421,17 @@
 (defmethod make-table ((class (eql 'standard-table))
                        &optional (header (vellum.header:header)))
   (check-type header vellum.header:standard-header)
-  (make 'standard-table
-        :header header
-        :columns (iterate
-                   (with columns = (~> header
-                                       vellum.header:column-count
-                                       make-array))
-                   (for i from 0 below (vellum.header:column-count header))
-                   (setf (aref columns i)
-                         (vellum.column:make-sparse-material-column
-                          :element-type (vellum.header:column-type header i)))
-                   (finally (return columns)))))
+  (iterate
+    (with columns = (~> header
+                        vellum.header:column-count
+                        make-array))
+    (for i from 0 below (vellum.header:column-count header))
+    (setf (aref columns i)
+          (vellum.column:make-sparse-material-column
+           :element-type (vellum.header:column-type header i)))
+    (finally (return (make 'standard-table
+                           :header header
+                           :columns columns)))))
 
 
 (defmethod select ((frame standard-table) &key rows columns)
