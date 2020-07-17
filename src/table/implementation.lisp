@@ -418,8 +418,8 @@
   (cl-ds.alg.meta:apply-aggregation-function range function all))
 
 
-(defmethod make-table ((class (eql 'standard-table))
-                       &optional (header (vellum.header:header)))
+(defmethod make-table* ((class (eql 'standard-table))
+                        &optional (header (vellum.header:header)))
   (check-type header vellum.header:standard-header)
   (iterate
     (with columns = (~> header
