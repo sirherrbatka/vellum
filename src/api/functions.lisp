@@ -248,11 +248,11 @@
   (bind ((pairs (batches params 2))
          (row-count (row-count table))
          (names (flatten (mapcar #'first pairs)))
-         (result (vellum.table:make-table 'vellum.table:standard-table
-                                          (apply #'vellum.header:make-header
-                                                 'vellum.header:standard-header
-                                                 (mapcar (curry #'list :alias)
-                                                         names)))))
+         (result (vellum.table:make-table
+                  :header (apply #'vellum.header:make-header
+                                 'vellum.header:standard-header
+                                 (mapcar (curry #'list :alias)
+                                         names)))))
     (iterate
       (for i from 0)
       (for (name (aggregator-constructor . params)) in pairs)
@@ -282,12 +282,12 @@
                              (predicate vellum.header:constantly-t))
   (declare (optimize (speed 3)))
   (bind ((column-count (column-count table))
-         (result (vellum.table:make-table 'vellum.table:standard-table
-                                          (vellum.header:make-header
-                                           'vellum.header:standard-header
-                                           `(:predicate ,predicate
-                                             :alias ,alias
-                                             :type ,type)))))
+         (result (vellum.table:make-table
+                  :header (vellum.header:make-header
+                           'vellum.header:standard-header
+                           `(:predicate ,predicate
+                             :alias ,alias
+                             :type ,type)))))
     (declare (type fixnum column-count))
     (~> (transform (hstack table (list result) :isolate nil)
                      (lambda (&rest _) (declare (ignore _))
