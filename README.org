@@ -91,3 +91,58 @@ Notice that this time I've left the original frame untouched. Other keyword argu
 #+END_SRC
 
 This won't work if your data source insists on driving reading data. If API has just MAP-DATA function and no iterator you may think that you are screwed. Don't worry, there is also TRANSFORMATION that construct sort of transform iterator that you can move on your own. More of that later.
+
+* Columns manipulation
+Usually, BMI would not be present in the data frame from the start and must be somehow added. Vellum does not make it needlessly complex. Simply use NEW-COLUMNS function.
+
+#+BEGIN_SRC common-lisp
+  (defparameter *table*
+    (alexandria:with-input-from-file (stream "bmi data.txt")
+      (vellum:new-columns (vellum:transform (vellum:make-table :columns '((:alias weight)
+                                                                          (:alias height)))
+                                            (vellum:body (weight height)
+                                              (let ((line (read-line stream nil nil)))
+                                                (if (null line)
+                                                    (vellum:finish-transformation)
+                                                    (destructuring-bind (new-weight new-height) (parse-data-line line)
+                                                        (setf weight new-weight
+                                                              height new-height))))))
+                        '(:alias bmi))))
+#+END_SRC
+
+Let's admit, this is getting a little bit nested. From now one I will use threading macro ~> from serapeum. By using this macro we are getting somewhat more undertandable form that does the exact same thing.
+
+#+BEGIN_SRC common-lisp
+  (defparameter *table*
+    (alexandria:with-input-from-file (stream "bmi data.txt")
+      (serapeum:~>
+       (vellum:make-table :columns '((:alias weight) (:alias height)))
+       (vellum:transform (vellum:body (weight height)
+                           (let ((line (read-line stream nil nil)))
+                             (if (null line)
+                                 (vellum:finish-transformation)
+                                 (destructuring-bind (new-weight new-height) (parse-data-line line)
+                                     (setf weight new-weight
+                                           height new-height))))))
+       (vellum:new-columns '(:alias bmi))))
+#+END_SRC
+
+Either way, it is impossible to change number of columns in the table in a destructive way. This is by design as vellum headers are immutable as well.
+
+Selecting subset of the columns is equally important to adding new columns. To do this in Vellum we should use VELLUM:SELECT function. Now, this function is slightly more complex, and it is all because of the input. For instance, to select just a single column…
+
+#+BEGIN_SRC common-lisp
+  (defparameter *table* (vellum:make-table :columns '((:alias first-colum)
+                                                      (:alias second-column)
+                                                      (:alias third-column))))
+  (defparameter *just-second-and-third* (vellum:select *table*
+                                          :columns '(:v 1 2)))
+  (defparameter *just-second-and-third* (vellum:select *table*
+                                          :columns '(:v second-column :v third-column)))
+  (defparameter *just-second-and-third* (vellum:select *table*
+                                          :columns '(:take-from second-column :take-to third-column)))
+  (defparameter *just-second-and-third* (vellum:select *table*
+                                          :columns '(:take-from 1 :take-to 2)))
+#+END_SRC
+
+All four ways to select second and third columns are equally valid. :V keyword argument designates a single value, either by integer or by column alias. Pair of :TAKE-FROM and :TAKE-TO allows to select range of columns, again either by desiganting column number or column alias. Selecting by range is probably not all that useful in the context of columns, however the exact same syntax is used for :ROWS where it really it is in it's element.
