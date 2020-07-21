@@ -1,6 +1,6 @@
 (in-package #:vellum.table)
 
-(prove:plan 44)
+(prove:plan 50)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -58,7 +58,7 @@
   (prove:is (vellum:at *replica* 2 0) 4)
 
   (defparameter *concatenated-table* (vellum:vstack *table*
-                                                   (list *replica*)))
+                                                    (list *replica*)))
   (prove:is (column-count *concatenated-table*) 4)
   (prove:is (row-count *concatenated-table*) 6)
 
@@ -89,5 +89,52 @@
   (prove:is (at *sub-table* 0 0) 4)
   (prove:is (at *sub-table* 1 0) 6)
   (prove:is (at *sub-table* 2 0) 2))
+
+(let* ((element-count 252529)
+       (source (~> (make-array element-count)
+                   (map-into (lambda ()
+                               (vector (random most-positive-fixnum)
+                                       (random most-positive-fixnum))))))
+       (pairs (cl-ds.alg:to-hash-table source
+                                       :hash-table-key #'first-elt
+                                       :hash-table-value (rcurry #'aref 1)))
+       (table (vellum:to-table source
+                               :columns '((:alias first-column)
+                                          (:alias second-column))))
+       (first-even-count (count-if #'evenp source :key #'first-elt))
+       (second-even-count (count-if #'evenp source :key (rcurry #'aref 1)))
+       (frame-first-even-count 0)
+       (null-counts 0)
+       (mismatch-count 0)
+       (frame-second-even-count 0))
+  (prove:is (row-count table) element-count)
+  (vellum:transform table
+                    (vellum:body (first-column second-column)
+                      (when (evenp first-column)
+                        (incf frame-first-even-count))
+                      (when (evenp second-column)
+                        (incf frame-second-even-count))))
+  (prove:is frame-first-even-count first-even-count)
+  (prove:is frame-second-even-count second-even-count)
+  (vellum:transform table
+                    (vellum:body (first-column second-column)
+                      (when (evenp first-column)
+                        (vellum:drop-row)))
+                    :in-place t)
+  (setf frame-first-even-count 0)
+  (vellum:transform table
+                    (vellum:body (first-column second-column)
+                      (when (evenp first-column)
+                        (incf frame-first-even-count))
+                      (when (eq :null second-column)
+                        (incf null-counts))))
+  (prove:is frame-first-even-count 0)
+  (prove:is null-counts 0)
+  (vellum:transform table
+                    (vellum:body (first-column second-column)
+                      (unless (= second-column (gethash first-column pairs))
+                        (incf mismatch-count))))
+  (prove:is mismatch-count 0))
+
 
 (prove:finalize)
