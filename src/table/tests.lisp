@@ -1,6 +1,6 @@
 (in-package #:vellum.table)
 
-(prove:plan 50)
+(prove:plan 59377)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -136,5 +136,37 @@
                         (incf mismatch-count))))
   (prove:is mismatch-count 0))
 
+(let* ((element-count 64325)
+       (source (~> (make-array element-count)
+                   (map-into (lambda ()
+                               (list (random most-positive-fixnum)
+                                     (random most-positive-fixnum)
+                                     (random most-positive-fixnum))))))
+       (pairs (cl-ds.alg:to-hash-table source
+                                       :hash-table-key #'first
+                                       :hash-table-value #'rest))
+       (table (~> source
+                  (cl-ds.alg:on-each (rcurry #'coerce 'vector))
+                  (vellum:to-table :columns '((:alias first-column)
+                                              (:alias second-column)
+                                              (:alias third-columns)))))
+       (dropped (cl-ds.alg:to-hash-table
+                 (take 5000 (shuffle source))
+                 :hash-table-key #'first)))
+  (prove:is (vellum:row-count table) element-count)
+  (vellum:transform table
+                    (vellum:body (first-column)
+                      (when (gethash first-column dropped)
+                        (vellum:drop-row)))
+                    :in-place t)
+  (prove:is (vellum:row-count table) (- 64325 5000))
+  (iterate
+    (for i from 0 below (- 64325 5000))
+    (for first-column = (vellum:at table i 0))
+    (for second-column = (vellum:at table i 1))
+    (for third-column = (vellum:at table i 2))
+    (prove:is (list second-column third-column)
+              (gethash first-column pairs)
+              :test #'equal)))
 
 (prove:finalize)
