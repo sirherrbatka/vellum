@@ -6,7 +6,8 @@
   :version "0.0.0"
   :license "BSD simplified"
   :author "Marek Kochanowicz"
-  :depends-on (:prove :cl-data-frames)
+  :depends-on (:prove :vellum)
+  :defsystem-depends-on (:prove-asdf)
   :serial T
   :pathname "src"
   :components ((:module "column"

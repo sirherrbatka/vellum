@@ -1,6 +1,6 @@
 (in-package #:vellum.table)
 
-(prove:plan 59377)
+(prove:plan 42126)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -142,6 +142,10 @@
                                (list (random most-positive-fixnum)
                                      (random most-positive-fixnum)
                                      (random most-positive-fixnum))))))
+       (indexes (~> (cl-ds.alg:zip #'list source (cl-ds:iota-range))
+                    (cl-ds.alg:to-hash-table :hash-table-value #'second
+                                             :hash-table-key #'first
+                                             :test 'equal)))
        (pairs (cl-ds.alg:to-hash-table source
                                        :hash-table-key #'first
                                        :hash-table-value #'rest))
@@ -151,7 +155,7 @@
                                               (:alias second-column)
                                               (:alias third-columns)))))
        (dropped (cl-ds.alg:to-hash-table
-                 (take 5000 (shuffle source))
+                 (take 50300 (shuffle source))
                  :hash-table-key #'first)))
   (prove:is (vellum:row-count table) element-count)
   (vellum:transform table
@@ -159,12 +163,20 @@
                       (when (gethash first-column dropped)
                         (vellum:drop-row)))
                     :in-place t)
-  (prove:is (vellum:row-count table) (- 64325 5000))
+  (prove:is (vellum:row-count table) (- 64325 50300))
   (iterate
-    (for i from 0 below (- 64325 5000))
+    (for i from 0 below (- 64325 50300))
     (for first-column = (vellum:at table i 0))
     (for second-column = (vellum:at table i 1))
     (for third-column = (vellum:at table i 2))
+    (for index = (gethash (list first-column
+                                second-column
+                                third-column)
+                          indexes))
+    (for p-index previous index)
+    (prove:isnt index nil)
+    (unless (null p-index)
+      (prove:ok (> index p-index)))
     (prove:is (list second-column third-column)
               (gethash first-column pairs)
               :test #'equal)))
