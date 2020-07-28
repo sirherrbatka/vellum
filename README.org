@@ -263,3 +263,6 @@ As hinted before, Vellum is designed to be easy to use with other libraries. For
 #+END_SRC
 
 Postmodern is really nice library, but doquery insists on driving it's own iteration. As you can see that's not a big deal. For libraries that present us with iterator-like interface you can simply use TRANSFORM directly. Just don't forget to pass NIL as :END and call VELLUM:FINISH-TRANSFORMATION from the body form. I already showed you how.
+
+** The future
+I've actually already added integration with postmodern into the Vellum, as well as support for CSV files. Unfortunatly this part of library leaves a lot to be desired and therefore I'll decided to skip it from the README. For now at least! If you want to hep me improve vellum, I welcome your assistance!
