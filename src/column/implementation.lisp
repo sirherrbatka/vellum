@@ -406,9 +406,9 @@
                                        next-index))
                       (the fixnum (incf c-index)))
                     (map-nulls level-1 next-index)))))))
-    (if (zerop shift)
-        (map-leaf root 0)
-        (map-subtree root shift 0))
+    (cond ((cl-ds.meta:null-bucket-p root) nil)
+          ((zerop shift) (map-leaf root 0))
+          (t (map-subtree root shift 0)))
     (map-tail)))
 
 
