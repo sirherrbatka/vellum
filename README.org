@@ -66,7 +66,7 @@ This is where the TRANSFORM function and BODY macro combination comes in. The in
 
 BODY is a macro that will expand to a lambda form with a (special) variables coresponding to the columns designated and extra boilerplate code for putting those values back into the data frame. Keyword argument :in-place allows for destructive changes. You may think that this is a bad idea sometimes given that a stray condition will leave your data messed up and I am happy to inform you that this is not the case. TRANSFORM is an exception safe function that will alter content of the table only after completion. IN-PLACE defaults to NIL anyway though.
 
-Transform allows for a few extra tricks though. For instance, if we want to calculate BMI for individuals above certain height, we can do this by the rest of the rows. To demonstrate this idea:
+TRANSFORM allows for a few extra tricks though. For instance, if we want to calculate BMI for individuals above certain height, we can do this by the rest of the rows. To demonstrate this idea:
 
 #+BEGIN_SRC common-lisp
   (defparameter *above-170-only*
@@ -180,15 +180,21 @@ All four ways to select second and third columns are equally valid. :V keyword a
                                                       (:alias seventh-column)
                                                       (:alias eight-column)
                                                       (:alias nine-column))))
-  (defparameter *just-second-and-third* (vellum:select *table*
-                                          :columns '(:v 2 :v 3 :v 4 :v 7 :v 8 :v 9)))
-  (defparameter *just-second-and-third* (vellum:select *table*
-                                          :columns '(:take-from 2 :take-to 4 :take-from 7 :take-to 9)))
-  (defparameter *just-second-and-third* (vellum:select *table*
-                                          :columns '(:take-from 2 :skip-from 5 :skip-to 6 :take-to 9)))
+  (defparameter *columns-subset* (vellum:select *table*
+                                   :columns '(:v 2 :v 3 :v 4 :v 7 :v 8 :v 9)))
+  (defparameter *columns-subset* (vellum:select *table*
+                                   :columns '(:take-from 2 :take-to 4 :take-from 7 :take-to 9)))
+  (defparameter *columns-subset* (vellum:select *table*
+                                   :columns '(:take-from 2 :skip-from 5 :skip-to 6 :take-to 9)))
 #+END_SRC
 
 Depending on the specific use case each of those ways can be the most suitable and I don't intend to limit the user here.
+
 ** A few remarks about the inner representation and efficiency
+Vellum stores data in a column format, where each column is a sparse variant of a RRB trie. I've choose this type of representation for the efficient copy-on-write. Copy-on-write is important as it allows for exception safety in the transform function as well as reduces memory usage by allowing safe sharing of the common data bits. However, at the same time, data frames expose mutable interface. You could consider it to be unusual.
+
+In fact Vellum has concept of the ownership, meaning that each RRB trie node is owned by a data frame instance. If it happens that you are attempting to mutate node owned by the current data frame, mutation is allowed. Otherwise a new copy of the node is created, but owned by the current data frame. This prevents from spilling side effects outside of the data frame.
+
+This also means that constructing copy of the data frame can be optimized beyond a deep copy. REPLICA function will return a new instance of a data frame passed as the first argument. Changes performed on the returned data frame won't leak to the passed data frame. Additionally, if you pass T as the second argument (defaults to NIL) changes to the original data frame won't leak the new data frame. You probabbly won't be using REPLICA function all that often, but if you must keep a history of your data changes in your lisp process this trick can be quite useful.
 ** Riding on the cl-data-structures
 ** Integrating with other stuff
