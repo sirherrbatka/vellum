@@ -184,7 +184,7 @@ All four ways to select second and third columns are equally valid. :V keyword a
                                    :columns '(:v 2 :v 3 :v 4 :v 7 :v 8 :v 9)))
   (defparameter *columns-subset* (vellum:select *table*
                                    :columns '(:take-from 2 :take-to 4 :take-from 7 :take-to 9)))
-  (defparameter *columns-subset* (vellum:select *table*
+  (defparameter *columns-subset* (vellum:select *table*)
                                    :columns '(:take-from 2 :skip-from 5 :skip-to 6 :take-to 9)))
 #+END_SRC
 
@@ -195,6 +195,55 @@ Vellum stores data in a column format, where each column is a sparse variant of 
 
 In fact Vellum has concept of the ownership, meaning that each RRB trie node is owned by a data frame instance. If it happens that you are attempting to mutate node owned by the current data frame, mutation is allowed. Otherwise a new copy of the node is created, but owned by the current data frame. This prevents from spilling side effects outside of the data frame.
 
-This also means that constructing copy of the data frame can be optimized beyond a deep copy. REPLICA function will return a new instance of a data frame passed as the first argument. Changes performed on the returned data frame won't leak to the passed data frame. Additionally, if you pass T as the second argument (defaults to NIL) changes to the original data frame won't leak the new data frame. You probabbly won't be using REPLICA function all that often, but if you must keep a history of your data changes in your lisp process this trick can be quite useful.
+This also means that constructing copy of the data frame can be optimized beyond a deep copy. REPLICA function will return a new instance of a data frame passed as the first argument. Changes performed on the returned data frame won't leak to the passed data frame. Additionally, if you pass T as the second argument (defaults to NIL) changes to the original data frame won't leak the new data frame. You probabbly won't be using REPLICA function all that often, but if you want to keep a history of your data changes in your lisp process this trick can be quite useful.
+
 ** Riding on the cl-data-structures
+CL-data-structures is my other library. The name is misnomer as the library grew into a hulking abomination of feature creep. I want to eventually divide it into smaller pieces but it is usefull regardless. This is especially because of the ranges and algorithms implemented within. They work like Java Stream interface. Consider a common task of calculating average of column. To do it with cl-data-structures you will just…
+
+#+BEGIN_SRC common-lisp
+  (vellum:with-table (*table*)
+    (cl-ds.math:average *table* :key (vellum:body (column-name) column-name)))
+#+END_SRC
+
+Form passed as key is a very common pattern. Enough so that there is a shortening macro.
+
+#+BEGIN_SRC common-lisp
+  (vellum:with-table (*table*)
+    (cl-ds.math:average *table* :key (vellum:brr column-name)))
+#+END_SRC
+
+BRR stands for body row reference if you are wondering. The above code can be shortend further…
+
+#+BEGIN_SRC common-lisp
+  (vellum:pipeline (*table*)
+    (cl-ds.math:average :key (vellum:brr column-name)))
+#+END_SRC
+
+PIPELINE is called so because it is typically used to build longer control flows. For instance, by incorporating GROUP-BY.
+
+#+BEGIN_SRC common-lisp
+  (vellum:pipeline (*table*)
+    (cl-ds.alg:group-by :key (vellum:brr grouping-column-name))
+    (cl-ds.math:average :key (vellum:brr column-name)))
+#+END_SRC
+
+Besides GROUP-BY there are also other functions altering how aggregation is performed. For instance CL-DS.ALG:ARRAY-ELEMENTWISE will apply aggregation function indenpendently ofr each position in the array of the input and will return array as a result. Anyway, you probabbly would rather have GROUP-BY return a data frame instead of the cl-data-structures range. This will require just one more extra form.
+
+#+BEGIN_SRC common-lisp
+  (vellum:pipeline (*table*)
+    (cl-ds.alg:group-by :key (vellum:brr grouping-column-name))
+    (cl-ds.math:average :key (vellum:brr column-name))
+    (vellum:to-table :columns '((:alias group) (:alias aggregation-result))))
+#+END_SRC
+
+And if you simply want to write code that mimics MS Excel, you can do that as well by using AGGREGATE-ROWS macro.
+
+#+BEGIN_SRC common-lisp
+  (vellum:aggregate-rows *table*
+   :column1 ((cl-ds.math:average) :skip-nulls t)
+   :column2 ((cl-ds.math:average) :skip-nulls t)))
+#+END_SRC
+
+The above will construct new data frame containing two columns (with aliases :column1 and :column2) and one row, holding average of the column1 and column2 of the original table. The :SKIP-NULLS option prevents code from erroring out on the :NULL. It also improves performance somewhat.
+
 ** Integrating with other stuff
