@@ -227,7 +227,7 @@ PIPELINE is called so because it is typically used to build longer control flows
     (cl-ds.math:average :key (vellum:brr column-name)))
 #+END_SRC
 
-Besides GROUP-BY there are also other functions altering how aggregation is performed. For instance CL-DS.ALG:ARRAY-ELEMENTWISE will apply aggregation function indenpendently ofr each position in the array of the input and will return array as a result. Anyway, you probabbly would rather have GROUP-BY return a data frame instead of the cl-data-structures range. This will require just one more extra form.
+Besides GROUP-BY there are also other functions altering how aggregation is performed. For instance CL-DS.ALG:ARRAY-ELEMENTWISE will apply aggregation function indenpendently for each position in the array of the input and will return array as a result. Anyway, you probabbly would rather have GROUP-BY return a data frame instead of the cl-data-structures range. This will require just one more extra form.
 
 #+BEGIN_SRC common-lisp
   (vellum:pipeline (*table*)
@@ -241,9 +241,25 @@ And if you simply want to write code that mimics MS Excel, you can do that as we
 #+BEGIN_SRC common-lisp
   (vellum:aggregate-rows *table*
    :column1 ((cl-ds.math:average) :skip-nulls t)
-   :column2 ((cl-ds.math:average) :skip-nulls t)))
+   :column2 ((cl-ds.math:average) :skip-nulls t))
 #+END_SRC
 
 The above will construct new data frame containing two columns (with aliases :column1 and :column2) and one row, holding average of the column1 and column2 of the original table. The :SKIP-NULLS option prevents code from erroring out on the :NULL. It also improves performance somewhat.
 
 ** Integrating with other stuff
+As hinted before, Vellum is designed to be easy to use with other libraries. For instance, let's say you want to use postmodern to access postgres database where you are keeping your data safe and warm. To do so, you can do the following.
+
+#+BEGIN_SRC common-lisp
+  (defparameter *table* (vellum:make-table :columns '((:alias first-column) (:alias second-column)))
+  (postmodern:with-connection '("database" "username" "password" "localhost")
+    (let ((transformation (vellum.table:transformation *table* :in-place t :start 0)))
+      (vellum.header:set-row (vellum.table:standard-transformation-row transformation))
+      (postmodern:doquery (:select 'first_column 'second_column :from 'table)
+        (first_column second_column)
+        (vellum.table:transform-row (vellum:body (first-column second-column)
+                                      (setf first-colum first_column
+                                            second-column second_column))))
+      (vellum.table:transformation-result transformation)))
+#+END_SRC
+
+Postmodern is really nice library, but doquery insists on driving it's own iteration. As you can see that's not a big deal. For libraries that present us with iterator-like interface you can simply use TRANSFORM directly. Just don't forget to pass NIL as :END and call VELLUM:FINISH-TRANSFORMATION from the body form. I already showed you how.

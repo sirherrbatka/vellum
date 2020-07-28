@@ -21,6 +21,7 @@
    #:no-transformation
    #:fundamental-table
    #:standard-table
+   #:standard-transformation-row
    #:standard-table-range
    #:setfable-table-row
    #:iterator

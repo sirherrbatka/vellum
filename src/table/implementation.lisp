@@ -206,7 +206,7 @@
   (check-type end (or null non-negative-fixnum))
   (when (~> frame column-count zerop)
     (return-from transform
-      (if in-place frame (cl-ds.utils:quasi-clone* frame))))
+      (if in-place frame (cl-ds.utils:clone frame))))
   (with-table (frame)
     (let* ((done nil)
            (transformation (transformation frame :start start
