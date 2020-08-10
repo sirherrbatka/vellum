@@ -1,16 +1,16 @@
 ** What is Vellum?
-Vellum is an data frame library build for Common Lisp. It is designed to be easy to both learn and use (especially in interactive fashion), practical and reasonably efficient. Note that this software is in beta quality at the moment.
+Vellum is a data frame library build for Common Lisp. It is designed to be easy to both learn and use (especially in interactive fashion), practical, and reasonably efficient. Note that this software is in beta quality at the moment.
 ** Why I made Vellum?
-Common Lisp is a fine language with exceptional interactivity, multiple implementations providing potential for acceptable performance, useful features like condition system and a stable standard base. This, in theory, makes is very much suited toward data processing and analysis. Although practice paints a less favorable picture, there are still use cases where Common Lisp could be considered to be a very good pick. Also, I simply like writing Lisp code.
+Common Lisp is a fine language with exceptional interactivity, multiple implementations providing the potential for acceptable performance, useful features like condition system, and a stable standard base. This, in theory, makes is very much suited toward data processing and analysis. Although practice paints a less favorable picture, there are still use cases where Common Lisp could be considered to be a very good pick. Also, I simply like writing Lisp code.
 
-Before Vellum existed I usually represented my data as vector-of-vectors (outer vector hold rows, inner vectors are rows). Then I would define accessors to obtain specific value from the data structure. This worked, but has a few distinct shortcomings. First of, it is not very flexible: I don't want to keep track what a column with specific number holds, i just want to refer to it by name. Secondly, I found vector-of-vectors difficult to read. After getting back to an old file I had to explain each individual line back to myself and this means that I am very likely to introduce mistakes If I have to change a thing. Higher level semantics would help with that. Finally, I often work with a very sparse, and rather large datasets. Enough so actually that I may simply run out of memory to represent all of my giganulls.
+Before Vellum existed I usually represented my data as vector-of-vectors (outer vector hold rows, inner vectors are rows). Then I would define accessors to obtain specific value from the data structure. This works but has a few distinct shortcomings. First off, it is not very flexible: I don't want to keep track of what a column with a specific number holds, I just want to refer to it by name. Secondly, I found vector-of-vectors difficult to read. After getting back to an old file I had to explain each individual line back to myself and this means that I am very likely to introduce mistakes If I have to change a thing. Higher-level semantics would help with that. Finally, I often work with a very sparse, and rather large datasets. Enough so actually that I may simply run out of memory to represent all of my giganulls.
 
-None of the above issue alone is substential enough to be considered a real problem. However in combination, and especially in an interactive programming context when you want to get your code running as soon as possible, they really add up to a frustrating enviorement. I needed a nice, easy to use data frame library. Vellum is a such library for me, and I sincerely hope that it is an usefull tool for you as well!
+None of the above issues alone is substantial enough to be considered a real problem. However, in combination, and especially in an interactive programming context; when you want to get your code running as soon as possible, they really add up to a frustrating environment. I needed a nice, easy to use data frame library. Vellum is a such library for me, and I sincerely hope that it is a useful tool for you as well!
 ** Mindset
-The main goal of the Vellum was to create lispy data frame library, and therefore it should come with no surprise that the design is very different from a more famous Pandas for python. Although I attempted to emulate R lang workflow, Common Lisp with all of it awesomness lacks some of the R features (namely first class expressions and enviorements) therefore the end result can be considered to be quite a bit unique. You are probabbly thinking that this is probabbly not a good thing. However, I hope to demonstrate that Vellum is a very accesible library.
+The main goal of the Vellum was to create a lispy data frame library, and therefore it should come with no surprise that the design is very different from a more famous Pandas for python. Although I attempted to emulate R lang workflow, Common Lisp, even with all of its awesomeness, lacks some of the R features (namely first-class expressions and environments) therefore the end result can be considered to be quite a bit unique. You are probably considering this is a drawback. However, I hope to demonstrate that Vellum is a very accessible library.
 
 ** Header + Columns = Data Frame
-Data Frame is composed from header and columns. Header can be thought of as a data schema, containing column names, column types and predicates for stored values and is a required to create table. Let's construct an empty data frame.
+Data Frame is composed of header and columns. The header can be thought of as a data schema, containing column names, column types, and predicates for stored values and is required to create a table. Let's construct an empty data frame.
 
 #+BEGIN_SRC common-lisp
   (defparameter *table*
@@ -29,13 +29,13 @@ You may be under impression that there has to be a better way to it. You would b
 #+END_SRC
 
 ** Read and write data
-Freshly constructed data frame is obviously empty. However, meaning of empty is somewhat blurred in vellum. Data frames are sparse in concept, meaning that they lack a natural bound. This means that although, you can locate the last non empty row...
+A freshly constructed data frame is obviously empty. However, the meaning of empty is somewhat blurred in vellum. Data frames are sparse in concept, meaning that they lack a natural bound. This means that although, you can locate the last non-empty row...
 
 #+BEGIN_SRC common-lisp
 (print (vellum:row-count *table*)) ; => 0
 #+END_SRC
 
-But a attempt to get non-existing data won't signal error.
+But an attempt to get non-existing data won't signal error.
 
 #+BEGIN_SRC common-lisp
 (print (vellum:at *table* 5 'first-column)) ; => :NULL
@@ -52,10 +52,10 @@ Furthermore, VELLUM:AT is actually a setfable place which means that you can eve
 (print (vellum:row-count *table*)) ; => 6
 #+END_SRC
 
-If one would want to, he could fill the content of the data frame in a loop. But that would be awkaward, wouldn't it? I suspect that you would prefer some sort of a batch method that would be handier.
+If one would want to, he could fill the content of the data frame in a loop. But that would be awkward, wouldn't it? I suspect that you would prefer some sort of a batch method that would be handier.
 
 ** TRANSFORM and BODY
-This is where the TRANSFORM function and BODY macro combination comes in. The intent is to construct simple to use and universal facility to perform all kinds of row operations in a handy way. It is easy to demonstrate this on a example For instance, let's say that we want to calculate body mass index from weight and height. Formula is simple enough: weight (in kilograms) divided by height (in meters) squared. Given that our data frame already contains weight, height and BMI columns, code becomes...
+This is where the TRANSFORM function and BODY macro combination comes in. The intent is to construct simple to use and universal facility to perform all kinds of row operations in a handy way. It is easy to demonstrate this on an example For instance, let's say that we want to calculate body mass index from weight and height. The formula is simple enough: weight (in kilograms) divided by height (in meters) squared. Given that our data frame already contains weight, height, and BMI columns, code becomes...
 
 #+BEGIN_SRC common-lisp
   (vellum:transform *table*
@@ -64,9 +64,9 @@ This is where the TRANSFORM function and BODY macro combination comes in. The in
                     :in-place t)
 #+END_SRC
 
-BODY is a macro that will expand to a lambda form with a (special) variables coresponding to the columns designated and extra boilerplate code for putting those values back into the data frame. Keyword argument :in-place allows for destructive changes. You may think that this is a bad idea sometimes given that a stray condition will leave your data messed up and I am happy to inform you that this is not the case. TRANSFORM is an exception safe function that will alter content of the table only after completion. IN-PLACE defaults to NIL anyway though.
+BODY is a macro that will expand to a lambda form with a (special) variables corresponding to the columns designated and extra boilerplate code for putting those values back into the data frame. Keyword argument :in-place allows for destructive changes. You may think that this is a bad idea sometimes given that a stray condition will leave your data messed up and I am happy to inform you that this is not the case. TRANSFORM is an exception-safe function that will alter the content of the table only after completion. IN-PLACE defaults to NIL anyway though.
 
-TRANSFORM allows for a few extra tricks though. For instance, if we want to calculate BMI for individuals above certain height, we can do this by the rest of the rows. To demonstrate this idea:
+TRANSFORM allows for a few extra tricks though. For instance, if we want to calculate BMI for individuals above a certain height, we can do this by using DROP-ROW. To demonstrate this idea:
 
 #+BEGIN_SRC common-lisp
   (defparameter *above-170-only*
@@ -95,9 +95,9 @@ Notice that this time I've left the original frame untouched. Other keyword argu
                                             bmi (/ weight (* height height))))))))))
 #+END_SRC
 
-This won't work if your data source insists on driving reading data. If API has just MAP-DATA function and no iterator you may think that you are screwed. Don't worry, there is also TRANSFORMATION that construct sort of transform iterator that you can move on your own. More of that later.
+This won't work if your data source insists on driving reading data. If API has just MAP-DATA function and no iterator you may think that you are screwed. Don't worry, there is also TRANSFORMATION that construct a sort of transform iterator that you can move on your own. More of that later.
 
-One more thing: you can actually use different name from :alias in the column. This comes in handy when alias is a reserved symbol or perhaps even more importantly, when there is simply no alias to begin with. In such case the following will do the trick.
+One more thing: you can actually use a different name from :alias in the column. This comes in handy when the alias is a reserved symbol or perhaps even more relevant when there is simply no alias, to begin with. In such case, the following will do the trick.
 
 #+BEGIN_SRC common-lisp
     (defparameter *table*
@@ -133,7 +133,7 @@ Usually, BMI would not be present in the data frame from the start and must be s
                           '(:alias bmi))))
 #+END_SRC
 
-Let's admit it: this is getting a little bit nested. From now one I will use threading macro ~> from serapeum. By using this macro we are getting somewhat more undertandable form that does the exact same thing.
+Let's admit it: this is getting a little bit nested. From now one I will use threading macro ~> from serapeum. By using this macro we are getting a somewhat more understandable form that does the exact same thing.
 
 #+BEGIN_SRC common-lisp
   (defparameter *table*
@@ -150,9 +150,9 @@ Let's admit it: this is getting a little bit nested. From now one I will use thr
        (vellum:new-columns '(:alias bmi))))
 #+END_SRC
 
-Either way, it is impossible to change number of columns in the table in a destructive way. This is by design as vellum headers are immutable as well.
+Either way, it is impossible to change the number of columns in the table in a destructive way. This is by design as vellum headers are immutable as well.
 
-Selecting subset of the columns is equally important to adding new columns. To do this in Vellum we should use VELLUM:SELECT function. Now, this function is slightly more complex, and it is all because of the input. For instance, to select just a single column…
+Selecting a subset of the columns is equally important to add new columns. To do this in Vellum we should use VELLUM:SELECT function. Now, this function is slightly more complex, and it is all because of the input. For instance, to select just a single column…
 
 #+BEGIN_SRC common-lisp
   (defparameter *table* (vellum:make-table :columns '((:alias first-colum)
@@ -168,7 +168,7 @@ Selecting subset of the columns is equally important to adding new columns. To d
                                           :columns '(:take-from 1 :take-to 2)))
 #+END_SRC
 
-All four ways to select second and third columns are equally valid. :V keyword argument designates a single value, either by integer or by column alias. Pair of :TAKE-FROM and :TAKE-TO allows to select range of columns, again either by desiganting column number or column alias. Selecting by range is probably not all that useful in the context of columns, however the exact same syntax is used for :ROWS where it really it is in it's element. Anyway, the other worth knowing trick you can do is to combine selection forms. For instance, if you have 10 columns, and want just select columns 2, 3, 4, 7, 8 and 9 you can do the following.
+All four ways to select second and third columns are equally valid. :V keyword argument designates a single value, either by an integer or by column alias. Pair of :TAKE-FROM and :TAKE-TO allows us to select a range of columns, again either by designating column number or column alias. Selecting by range is probably not all that useful in the context of columns, however, the exact same syntax is used for :ROWS where it really it is in it's element. Anyway, the other worth knowing trick you can do is to combine selection forms. For instance, if you have 10 columns, and want just select columns 2, 3, 4, 7, 8, and 9 you can do the following.
 
 #+BEGIN_SRC common-lisp
   (defparameter *table* (vellum:make-table :columns '((:alias first-colum)
@@ -191,28 +191,28 @@ All four ways to select second and third columns are equally valid. :V keyword a
 Depending on the specific use case each of those ways can be the most suitable and I don't intend to limit the user here.
 
 ** A few remarks about the inner representation and efficiency
-Vellum stores data in a column format, where each column is a sparse variant of a RRB trie. I've choose this type of representation for the efficient copy-on-write. Copy-on-write is important as it allows for exception safety in the transform function as well as reduces memory usage by allowing safe sharing of the common data bits. However, at the same time, data frames expose mutable interface. You could consider it to be unusual.
+Vellum stores data in a column format, where each column is a sparse variant of an RRB trie. I've chosen this type of representation for efficient copy-on-write. Copy-on-write is important as it allows for exception safety in the transform function as well as reduces memory usage by allowing safe sharing of the common data bits. However, at the same time, data frames expose a mutable interface. You could consider it to be unusual.
 
-In fact Vellum has concept of the ownership, meaning that each RRB trie node is owned by a data frame instance. If it happens that you are attempting to mutate node owned by the current data frame, mutation is allowed. Otherwise a new copy of the node is created, but owned by the current data frame. This prevents from spilling side effects outside of the data frame.
+In fact, Vellum has a concept of ownership, meaning that each RRB trie node is owned by a data frame instance. If it happens that you are attempting to mutate a node owned by the current data frame, mutating is allowed. Otherwise, a new copy of the node is created but owned by the current data frame. This prevents spilling side effects outside of the data frame.
 
-This also means that constructing copy of the data frame can be optimized beyond a deep copy. REPLICA function will return a new instance of a data frame passed as the first argument. Changes performed on the returned data frame won't leak to the passed data frame. Additionally, if you pass T as the second argument (defaults to NIL) changes to the original data frame won't leak the new data frame. You probabbly won't be using REPLICA function all that often, but if you want to keep a history of your data changes in your lisp process this trick can be quite useful.
+This also means that constructing a copy of the data frame can be optimized beyond a deep copy. REPLICA function will return a new instance of a data frame passed as the first argument. Changes performed on the returned data frame won't leak to the passed data frame. Additionally, if you pass T as the second argument (defaults to NIL) changes to the original data frame won't leak the new data frame. You probably won't be using REPLICA function all that often, but if you want to keep a history of your data changes in your lisp process this trick can be quite useful.
 
 ** Riding on the cl-data-structures
-CL-data-structures is my other library. The name is misnomer as the library grew into a hulking abomination of feature creep. I want to eventually divide it into smaller pieces but it is usefull regardless. This is especially because of the ranges and algorithms implemented within. They work like Java Stream interface. Consider a common task of calculating average of column. To do it with cl-data-structures you will just…
+CL-data-structures is my other library. The name is a misnomer as the library grew into a hulking abomination of feature creep. I want to eventually divide it into smaller pieces but it is useful regardless. This is especially because of the ranges and algorithms implemented within. They work like Java Stream interface. Consider a common task of calculating the average of column. To do it with cl-data-structures you will just…
 
 #+BEGIN_SRC common-lisp
   (vellum:with-table (*table*)
     (cl-ds.math:average *table* :key (vellum:body (column-name) column-name)))
 #+END_SRC
 
-Form passed as key is a very common pattern. Enough so that there is a shortening macro.
+Form passed as a :KEY is a very common pattern. Enough so that there is a shortening macro.
 
 #+BEGIN_SRC common-lisp
   (vellum:with-table (*table*)
     (cl-ds.math:average *table* :key (vellum:brr column-name)))
 #+END_SRC
 
-BRR stands for body row reference if you are wondering. The above code can be shortend further…
+BRR stands for body row reference if you are wondering. The above code can be shortened further…
 
 #+BEGIN_SRC common-lisp
   (vellum:pipeline (*table*)
@@ -227,7 +227,7 @@ PIPELINE is called so because it is typically used to build longer control flows
     (cl-ds.math:average :key (vellum:brr column-name)))
 #+END_SRC
 
-Besides GROUP-BY there are also other functions altering how aggregation is performed. For instance CL-DS.ALG:ARRAY-ELEMENTWISE will apply aggregation function indenpendently for each position in the array of the input and will return array as a result. Anyway, you probabbly would rather have GROUP-BY return a data frame instead of the cl-data-structures range. This will require just one more extra form.
+Besides GROUP-BY there are also other functions altering how aggregation is performed. For instance CL-DS.ALG:ARRAY-ELEMENTWISE will apply aggregation function independently for each position in the array of the input and will return array as a result. Anyway, you probably would rather have GROUP-BY return a data frame instead of the cl-data-structures range. This will require just one more extra form.
 
 #+BEGIN_SRC common-lisp
   (vellum:pipeline (*table*)
@@ -244,10 +244,10 @@ And if you simply want to write code that mimics MS Excel, you can do that as we
    :column2 ((cl-ds.math:average) :skip-nulls t))
 #+END_SRC
 
-The above will construct new data frame containing two columns (with aliases :column1 and :column2) and one row, holding average of the column1 and column2 of the original table. The :SKIP-NULLS option prevents code from erroring out on the :NULL. It also improves performance somewhat.
+The above will construct a new data frame containing two columns (with aliases :column1 and :column2) and one row, holding the average of the column1 and column2 of the original table. The :SKIP-NULLS option prevents code from erroring out on the :NULL. It also improves performance somewhat.
 
 ** Integrating with other stuff
-As hinted before, Vellum is designed to be easy to use with other libraries. For instance, let's say you want to use postmodern to access postgres database where you are keeping your data safe and warm. To do so, you can do the following.
+As hinted before, Vellum is designed to be easy to use with other libraries. For instance, let's say you want to use postmodern to access the postgres database where you are keeping your data safe and warm. To do so, you can do the following.
 
 #+BEGIN_SRC common-lisp
   (defparameter *table* (vellum:make-table :columns '((:alias first-column) (:alias second-column)))
@@ -262,7 +262,7 @@ As hinted before, Vellum is designed to be easy to use with other libraries. For
       (vellum.table:transformation-result transformation)))
 #+END_SRC
 
-Postmodern is really nice library, but doquery insists on driving it's own iteration. As you can see that's not a big deal. For libraries that present us with iterator-like interface you can simply use TRANSFORM directly. Just don't forget to pass NIL as :END and call VELLUM:FINISH-TRANSFORMATION from the body form. I already showed you how.
+Postmodern is a really nice library, but doquery insists on driving its own iteration. As you can see that's not a big deal. For libraries that present us with an iterator-like interface, you can simply use TRANSFORM directly. Just don't forget to pass NIL as :END and call VELLUM:FINISH-TRANSFORMATION from the body form. I already showed you how.
 
 ** The future
-I've actually already added integration with postmodern into the Vellum, as well as support for CSV files. Unfortunatly this part of library leaves a lot to be desired and therefore I'll decided to skip it from the README. For now at least! If you want to hep me improve vellum, I welcome your assistance!
+I've actually already added integration with postmodern into the Vellum, as well as support for CSV files. Unfortunately, this part of the library leaves a lot to be desired and therefore I'll decide to skip it from the README. For now at least! If you want to help me improve vellum, I welcome your assistance!
