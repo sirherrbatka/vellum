@@ -102,7 +102,7 @@ Notice that this time I've left the original frame untouched. Other keyword argu
 
 This won't work if your data source insists on driving reading data. If API has just MAP-DATA function and no iterator you may think that you are screwed. Don't worry, there is also TRANSFORMATION that construct a sort of transform iterator that you can move on your own. More of that later.
 
-One more thing: you can actually use a different name from :alias in the column. This comes in handy when the alias is a reserved symbol or perhaps even more relevant when there is simply no alias, to begin with. In such case, the following will do the trick.
+One more thing: you can actually use name different from :alias in the column. This comes in handy when the alias is a reserved symbol or (perhaps even more often) when there is simply no alias, to begin with. In such case, the following will do the trick.
 
 #+BEGIN_SRC common-lisp
     (defparameter *table*
