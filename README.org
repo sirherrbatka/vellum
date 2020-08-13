@@ -1,6 +1,6 @@
 ** What is Vellum?
-Vellum is a data frame library build for Common Lisp. It is designed to be easy to both learn and use (especially in interactive fashion), practical, and reasonably efficient. Note that this software is in beta quality at the moment.
-
+   Vellum is a data frame library build for Common Lisp. It is designed to be easy to both learn and use (especially in interactive fashion), practical, and reasonably efficient. Note that this software is in beta quality at the moment.
+   
 ** Why I made Vellum?
 Common Lisp is a fine language with exceptional interactivity, multiple implementations providing the potential for acceptable performance, useful features like condition system, and a stable standard base. This, in theory, makes is very much suited toward data processing and analysis. Although practice paints a less favorable picture, there are still use cases where Common Lisp could be considered to be a very good pick. Also, I simply like writing Lisp code.
 
@@ -85,19 +85,20 @@ TRANSFORM allows for a few extra tricks though. For instance, if we want to calc
 Notice that this time I've left the original frame untouched. Other keyword arguments for the transform functions are :START (the first row that should be touched, defaults to 0) and :END (1+ the last row that should be touched, defaults to the ROW-COUNT). It is possible to pass NIL as :END which will mean that the programmer decided to terminate transform manually. This is quite handy when populating an empty data frame...
 
 #+BEGIN_SRC common-lisp
-    (defparameter *table*
-      (alexandria:with-input-from-file (stream "bmi data.txt")
-        (vellum:transform (vellum:make-table :columns '((:alias weight)
-                                                        (:alias bmi)
-                                                        (:alias height)))
-                          (vellum:body (weight height bmi)
-                            (let ((line (read-line stream nil nil)))
-                              (if (null line)
-                                  (vellum:finish-transformation)
-                                  (destructuring-bind ((new-weight new-height) (parse-data-line line))
-                                      (setf weight new-weight
-                                            height new-height
-                                            bmi (/ weight (* height height))))))))))
+  (defparameter *table*
+    (alexandria:with-input-from-file (stream "bmi data.txt")
+      (vellum:transform (vellum:make-table :columns '((:alias weight)
+                                                      (:alias bmi)
+                                                      (:alias height)))
+                        (vellum:body (weight height bmi)
+                          (let ((line (read-line stream nil nil)))
+                            (if (null line)
+                                (vellum:finish-transformation)
+                                (destructuring-bind ((new-weight new-height) (parse-data-line line))
+                                    (setf weight new-weight
+                                          height new-height
+                                          bmi (/ weight (* height height)))))))
+                        :end nil)))
 #+END_SRC
 
 This won't work if your data source insists on driving reading data. If API has just MAP-DATA function and no iterator you may think that you are screwed. Don't worry, there is also TRANSFORMATION that construct a sort of transform iterator that you can move on your own. More of that later.
@@ -105,19 +106,20 @@ This won't work if your data source insists on driving reading data. If API has 
 One more thing: you can actually use name different from :alias in the column. This comes in handy when the alias is a reserved symbol or (perhaps even more often) when there is simply no alias, to begin with. In such case, the following will do the trick.
 
 #+BEGIN_SRC common-lisp
-    (defparameter *table*
-      (alexandria:with-input-from-file (stream "bmi data.txt")
-        (vellum:transform (vellum:make-table :columns '((:alias weight)
-                                                        (:alias bmi)
-                                                        (:alias height)))
-                          (vellum:body ((weight-but-different 0) height bmi)
-                            (let ((line (read-line stream nil nil)))
-                              (if (null line)
-                                  (vellum:finish-transformation)
-                                  (destructuring-bind ((new-weight new-height) (parse-data-line line))
-                                      (setf weight-but-different new-weight
-                                            height new-height
-                                            bmi (/ weight-but-different (* height height))))))))))
+  (defparameter *table*
+    (alexandria:with-input-from-file (stream "bmi data.txt")
+      (vellum:transform (vellum:make-table :columns '((:alias weight)
+                                                      (:alias bmi)
+                                                      (:alias height)))
+                        (vellum:body ((weight-but-different 0) height bmi)
+                          (let ((line (read-line stream nil nil)))
+                            (if (null line)
+                                (vellum:finish-transformation)
+                                (destructuring-bind ((new-weight new-height) (parse-data-line line))
+                                    (setf weight-but-different new-weight
+                                          height new-height
+                                          bmi (/ weight-but-different (* height height)))))))
+                        :end nil)))
 #+END_SRC
 
 ** Columns manipulation
@@ -134,7 +136,8 @@ Usually, BMI would not be present in the data frame from the start and must be s
                                                     (vellum:finish-transformation)
                                                     (destructuring-bind (new-weight new-height) (parse-data-line line)
                                                         (setf weight new-weight
-                                                              height new-height))))))
+                                                              height new-height)))))
+                                            :end nil)
                           '(:alias bmi))))
 #+END_SRC
 
@@ -151,7 +154,8 @@ Let's admit it: this is getting a little bit nested. From now one I will use thr
                                  (vellum:finish-transformation)
                                  (destructuring-bind (new-weight new-height) (parse-data-line line)
                                      (setf weight new-weight
-                                           height new-height))))))
+                                           height new-height)))))
+                         :end nil)
        (vellum:new-columns '(:alias bmi))))
 #+END_SRC
 
