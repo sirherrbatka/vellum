@@ -459,3 +459,10 @@
              :format-arguments (list column)
              :value column))
     (aref columns column)))
+
+
+(defmethod erase! ((frame standard-table)
+                   (row integer)
+                   column)
+  (~> (column-at frame column)
+      (cl-ds:erase! row)))

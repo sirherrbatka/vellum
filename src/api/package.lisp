@@ -38,6 +38,7 @@
   vellum.header:column-type
   vellum.header:header
   vellum.table:at
+  vellum.table:erase!
   vellum.table:column-count
   vellum.table:drop-row
   vellum.table:finish-transformation

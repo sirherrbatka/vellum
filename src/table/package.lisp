@@ -26,6 +26,7 @@
    #:setfable-table-row
    #:iterator
    #:drop-row
+   #:erase!
    #:nullify
    #:remove-nulls
    #:row-count

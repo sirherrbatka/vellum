@@ -277,7 +277,7 @@
            :column position
            :value value
            :format-control "Setting content of the column (column ~a) to :null is not allowed. Use ERASE! instead."
-           :format-arguments position))
+           :format-arguments (list position)))
   (bind (((:values result status) (call-next-method)))
     (values result status)))
 
