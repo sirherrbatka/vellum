@@ -213,8 +213,7 @@
                        &optional (field-predicate constantly-t))
   (declare (type simple-vector output)
            (type character escape quote separator)
-           (type string line)
-           (optimize (speed 3) (safety 0) (debug 0)))
+           (type string line))
   (do-line (line path output char frame)
       (field-char
        (if (null char)
