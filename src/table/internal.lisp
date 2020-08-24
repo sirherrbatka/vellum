@@ -54,7 +54,11 @@
            (type function function)
            (optimize (speed 3) (safety 0)))
   (cl-ds.utils:with-slots-for (transformation standard-transformation)
-    (let* ((prev-control (ensure-function *transform-control*))
+    (bind ((prev-control (ensure-function *transform-control*))
+           ((:flet move-iterator ())
+            (incf count)
+            (vellum.column:move-iterator iterator 1)
+            (vellum.column:move-iterator marker-iterator 1))
            (*transform-control*
              (lambda (operation)
                (cond ((eq operation :drop)
@@ -64,9 +68,7 @@
                         (setf (vellum.column:iterator-at iterator i) :null))
                       (setf (vellum.column:iterator-at marker-iterator 0) t
                             dropped t)
-                      (incf count)
-                      (vellum.column:move-iterator iterator 1)
-                      (vellum.column:move-iterator marker-iterator 1)
+                      (move-iterator)
                       (return-from transform-row-impl transformation))
                     ((eq operation :nullify)
                      (iterate
@@ -75,9 +77,7 @@
                        (setf (vellum.column:iterator-at iterator i) :null)))
                     (t (funcall prev-control operation))))))
       (funcall function)
-      (incf count)
-      (vellum.column:move-iterator iterator 1)
-      (vellum.column:move-iterator marker-iterator 1)
+      (move-iterator)
       transformation)))
 
 
