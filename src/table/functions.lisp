@@ -1,4 +1,4 @@
-(in-package #:vellum.table)
+(cl:in-package #:vellum.table)
 
 
 (defun finish-transformation ()
@@ -22,3 +22,14 @@
                                         columns)
                                  (vellum.header:header))))
   (make-table* class header))
+
+
+(defun hstack (frames &key (isolate t))
+  (let ((list (cl-ds.alg:to-list frames)))
+    (hstack* (first list) (rest list)
+             :isolate isolate)))
+
+
+(defun vstack (frames)
+  (let ((list (cl-ds.alg:to-list frames)))
+    (vstack* (first list) (rest list))))

@@ -1,4 +1,4 @@
-(in-package #:vellum.table)
+(cl:in-package #:vellum.table)
 
 
 (defmethod at ((frame standard-table) (row integer) column)
@@ -31,7 +31,7 @@
   (~> frame header (vellum.header:column-type column)))
 
 
-(defmethod vstack ((frame standard-table) more-frames)
+(defmethod vstack* ((frame standard-table) more-frames)
   (let* ((new-columns
            (cl-ds.utils:transform
                 (lambda (column &aux (new (cl-ds:replica column t)))
@@ -66,7 +66,7 @@
     new-frame))
 
 
-(defmethod hstack ((frame standard-table) more-frames &key (isolate t))
+(defmethod hstack* ((frame standard-table) more-frames &key (isolate t))
   (cl-ds:across more-frames
                 (lambda (x) (check-type x standard-table)))
   (let* ((all-frames (~>> (cl-ds.alg:to-list more-frames)

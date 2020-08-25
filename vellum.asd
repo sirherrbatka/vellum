@@ -49,6 +49,7 @@
                              (:file "types")
                              (:file "conditions")
                              (:file "functions")
+                             (:file "docstring")
                              (:file "to-table")
                              (:file "internal")
                              (:file "implementation")))

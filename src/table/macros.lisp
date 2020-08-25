@@ -1,4 +1,4 @@
-(in-package #:vellum.table)
+(cl:in-package #:vellum.table)
 
 
 (defmacro with-table ((table) &body body)

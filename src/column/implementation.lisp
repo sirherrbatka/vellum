@@ -1,4 +1,4 @@
-(in-package #:vellum.column)
+(cl:in-package #:vellum.column)
 
 
 (defmethod column-type ((column sparse-material-column))

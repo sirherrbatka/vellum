@@ -1,4 +1,4 @@
-(in-package #:vellum.table)
+(cl:in-package #:vellum.table)
 
 
 (cl-ds.alg.meta:define-aggregation-function

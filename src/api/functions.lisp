@@ -1,4 +1,4 @@
-(in-package #:vellum)
+(cl:in-package #:vellum)
 
 
 (defun empty-column (header-class &rest row-parameters)
@@ -13,7 +13,7 @@
        (apply #'vellum:make-header _ columns)
        (vellum.table:make-table (type-of table))
        list
-       (hstack table)))
+       (hstack* table)))
 
 
 (defun empty-table (&key (header (vellum.header:header)))
@@ -189,12 +189,12 @@
 
 
 (defun add-columns (frame &rest column-specs)
-  (vellum:hstack frame
-                (mapcar (lambda (x)
-                          (apply #'vellum:empty-column
-                                 (~> frame vellum.table:header class-of)
-                                 x))
-                        column-specs)))
+  (vellum:hstack* frame
+                  (mapcar (lambda (x)
+                            (apply #'vellum:empty-column
+                                   (~> frame vellum.table:header class-of)
+                                   x))
+                          column-specs)))
 
 
 (defun to-matrix (frame &key (element-type t) (key #'identity))
@@ -289,7 +289,7 @@
                              :alias ,alias
                              :type ,type)))))
     (declare (type fixnum column-count))
-    (~> (transform (hstack table (list result) :isolate nil)
+    (~> (transform (hstack* table (list result) :isolate nil)
                      (lambda (&rest _) (declare (ignore _))
                        (cl-ds.utils:cases ((null skip-nulls))
                          (iterate

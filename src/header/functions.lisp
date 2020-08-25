@@ -1,4 +1,4 @@
-(in-package #:vellum.header)
+(cl:in-package #:vellum.header)
 
 
 (declaim (inline validate-active-row))

@@ -1,4 +1,4 @@
-(in-package #:vellum.column)
+(cl:in-package #:vellum.column)
 
 
 (defclass fundamental-column (cl-ds:traversable)

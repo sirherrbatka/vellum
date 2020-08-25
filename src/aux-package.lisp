@@ -1,10 +1,10 @@
-(in-package #:cl-user)
+(cl:in-package #:cl-user)
 
 (defpackage :vellum.aux-package
   (:use #:cl)
   (:export #:rexport))
 
-(in-package :vellum.aux-package)
+(cl:in-package :vellum.aux-package)
 
 (defmacro rexport (package &body symbols)
   (alexandria:with-gensyms (!package)

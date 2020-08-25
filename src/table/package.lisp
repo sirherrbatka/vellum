@@ -1,4 +1,4 @@
-(in-package #:cl-user)
+(cl:in-package #:cl-user)
 
 
 (defpackage vellum.table
@@ -12,29 +12,31 @@
    #:column-count
    #:column-name
    #:column-type
-   #:finish-transformation
-   #:header
-   #:transformation
-   #:transform-row
-   #:transformation-result
-   #:hstack
-   #:no-transformation
-   #:fundamental-table
-   #:standard-table
-   #:standard-transformation-row
-   #:standard-table-range
-   #:setfable-table-row
-   #:iterator
    #:drop-row
    #:erase!
+   #:finish-transformation
+   #:fundamental-table
+   #:header
+   #:hstack
+   #:hstack*
+   #:iterator
+   #:make-table
+   #:make-table*
+   #:no-transformation
    #:nullify
    #:remove-nulls
    #:row-count
-   #:make-table
-   #:make-table*
+   #:select
+   #:setfable-table-row
+   #:standard-table
+   #:standard-table-range
+   #:standard-transformation-row
    #:to-table
    #:transform
+   #:transform-row
+   #:transformation
+   #:transformation-result
    #:vmask
    #:vstack
-   #:select
+   #:vstack*
    #:with-table))

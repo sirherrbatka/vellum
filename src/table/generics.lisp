@@ -1,9 +1,9 @@
-(in-package #:vellum.table)
+(cl:in-package #:vellum.table)
 
 
-(defgeneric hstack (frame more-frames &key isolate))
+(defgeneric hstack* (frame more-frames &key isolate))
 
-(defgeneric vstack (frame more-frames))
+(defgeneric vstack* (frame more-frames))
 
 (defgeneric select (frame &key columns rows))
 
