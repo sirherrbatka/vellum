@@ -39,6 +39,7 @@
   vellum.header:standard-header
   vellum.header:with-header
   vellum.table:*transform-in-place*
+  vellum.table:*current-row*
   vellum.table:at
   vellum.table:column-count
   vellum.table:drop-row

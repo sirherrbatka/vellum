@@ -11,6 +11,10 @@
                 (more-frames "Traversable object presenting more of the data frames."))))
 
   (function
+   vstack*
+   (:description "Concatenates multiple frames column-wise."))
+
+  (function
    nullify
    (:description "Should be called from dynamic environment established in the callback passed to the TRANSFORM. Deletes all values in the current row, leaving :NULLs."))
 

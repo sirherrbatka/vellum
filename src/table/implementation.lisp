@@ -218,11 +218,11 @@
                      (t (funcall *transform-control* operation))))))
       (vellum.header:set-row row)
       (iterate
-        (declare (type fixnum i))
-        (for i from start)
+        (declare (type fixnum *current-row*))
+        (for *current-row* from start)
         (until (or done
                    (and (not (null end))
-                        (>= i end))))
+                        (>= *current-row* end))))
         (transform-row-impl transformation function))
       (transformation-result transformation))))
 
@@ -258,8 +258,9 @@
 (defmethod vellum.header:row-at ((header vellum.header:standard-header)
                                  (row table-row)
                                  position)
-  (vellum.header:row-at header row (vellum.header:alias-to-index header
-                                                                 position)))
+  (vellum.header:row-at header row
+                        (vellum.header:alias-to-index header
+                                                      position)))
 
 
 (defmethod (setf vellum.header:row-at) (new-value
@@ -273,15 +274,15 @@
 
 
 (defmethod vellum.header:row-at ((header vellum.header:standard-header)
-                                (row table-row)
-                                position)
+                                 (row table-row)
+                                 (position integer))
   (~> row read-iterator (vellum.column:iterator-at position)))
 
 
 (defmethod (setf vellum.header:row-at) (new-value
                                        (header vellum.header:standard-header)
                                        (row setfable-table-row)
-                                       position)
+                                       (position integer))
   (setf (~> row read-iterator (vellum.column:iterator-at position))
         new-value))
 

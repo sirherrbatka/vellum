@@ -5,6 +5,7 @@
   (:use #:cl #:vellum.aux-package)
   (:nicknames #:vellum.table)
   (:export
+   #:*current-row*
    #:*table*
    #:*transform-in-place*
    #:at
