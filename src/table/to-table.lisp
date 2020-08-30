@@ -65,3 +65,39 @@
                             :header-class header-class
                             :columns columns
                             :header header)))
+
+
+(defmethod to-table ((input array)
+                     &key (class 'vellum.table:standard-table)
+                       (key #'identity)
+                       (header-class 'vellum.header:standard-header)
+                       (columns '())
+                       (body nil)
+                       (header (apply #'vellum.header:make-header
+                                      header-class
+                                      columns)))
+  (unless (= 2 (array-rank input))
+    (error 'cl-ds:invalid-argument-value
+           :argument 'range
+           :value input
+           :format-control "TO-TABLE works only on 2 dimensional arrays."))
+  (let* ((number-of-columns (length columns))
+         (columns (make-array (length columns)))
+         (table (make class
+                      :header header
+                      :columns columns)))
+    (iterate
+      (for i from 0 below number-of-columns)
+      (setf (aref columns i)
+            (vellum.column:make-sparse-material-column
+             :element-type (vellum.header:column-type header i))))
+    (transform table
+               (lambda (&rest ignored)
+                 (unless (< *current-row* (array-dimension input 0))
+                   (finish-transformation))
+                 (iterate
+                   (for i from 0 below number-of-columns)
+                   (setf (vellum.header:rr i) (funcall key (aref input *current-row* i))))
+                 (unless (null body)
+                   (apply body ignored)))
+               :in-place t)))
