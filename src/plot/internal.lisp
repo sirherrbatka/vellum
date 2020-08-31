@@ -14,12 +14,10 @@
                 (t content)))))))
 
 
-(defgeneric plotly-mode (geometrics)
-  (:method ((geometrics points-geometrics))
-    (if (~> geometrics mapping label)
-        "markers+text"
-        "markers"))
-  (:method ((geometrics line-geometrics))
+(defgeneric plotly-mode (geometrics mapping)
+  (:method ((geometrics points-geometrics) mapping)
+    (if (label mapping) "markers+text" "markers"))
+  (:method ((geometrics line-geometrics) mapping)
     "lines"))
 
 
@@ -33,9 +31,9 @@
 (defun plotly-format (stream field-name field-value)
   (format stream "'~a': ~a, ~%" field-name
           (etypecase field-value
-            (symbol (symbol-name field-value))
+            (symbol (format nil "'~a'" (symbol-name field-value)))
             (list (format nil "[~{~a~^, ~}]" field-value))
-            (double-float (coerce field-value 'single-float))
+            (double-float (format nil "~F" field-value))
             (string (format nil "'~a'" field-value))
             (integer field-value))))
 
@@ -55,7 +53,7 @@
 
 (defun plotly-generate-data (stack)
   (bind ((geometrics (geometrics-layer stack))
-         (mapping (mapping geometrics))
+         (mapping (mapping-layer stack))
          (data (data-layer stack))
          (aesthetics (aesthetics-layer stack))
          (x (x mapping))
@@ -69,7 +67,7 @@
       (format stream "{")
       (plotly-format stream "x" (plotly-extract-data data x))
       (plotly-format stream "y" (plotly-extract-data data y))
-      (plotly-format stream "mode" (plotly-mode geometrics))
+      (plotly-format stream "mode" (plotly-mode geometrics mapping))
       (plotly-format stream "type" (plotly-type geometrics))
       (format stream "marker: {")
       (plotly-format-no-nulls stream "size" size)
@@ -84,12 +82,23 @@
 
 
 (defun plotly-generate-layout (stack)
-  (bind ((aesthetics (aesthetics-layer stack)))
+  (bind ((aesthetics (aesthetics-layer stack))
+         (mapping (mapping-layer stack)))
     (with-output-to-string (stream)
       (format stream "{")
       (plotly-format-no-nulls stream "title"
                               (label aesthetics))
-      (format stream "}"))))
+      (format stream "xaxis: {")
+      (format stream "title: {")
+      (plotly-format-no-nulls stream "text" (x mapping))
+      (format stream "},~%")
+      (format stream "},~%")
+      (format stream "yaxis: {")
+      (format stream "title: {")
+      (plotly-format-no-nulls stream "text" (y mapping))
+      (format stream "},~%")
+      (format stream "}~%")
+      (format stream "}~%"))))
 
 
 (defun plotly-visualize (stack stream)

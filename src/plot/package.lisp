@@ -8,4 +8,5 @@
    #:aesthetics
    #:points
    #:line
+   #:mapping
    #:add))

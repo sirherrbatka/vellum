@@ -12,16 +12,30 @@
         :size size))
 
 
+(defun mapping (&key x y color shape size label label-position)
+  (make 'mapping-layer
+        :x x
+        :y y
+        :label label
+        :label-position label-position
+        :color color
+        :shape shape
+        :size size))
+
+
 (defun scale ()
   cl-ds.utils:todo)
 
 
-(defun points (mapping)
-  (make 'points-geometrics :mapping mapping))
+(defun points ()
+  (make 'points-geometrics))
 
 
-(defun line (mapping)
-  (make 'line-geometrics :mapping mapping))
+(defun line ()
+  (make 'line-geometrics))
+
+
+(defun mapping ())
 
 
 (defun boxes ()

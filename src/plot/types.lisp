@@ -4,6 +4,8 @@
 (defclass stack-of-layers ()
   ((%data :reader data-layer
           :initarg :data-layer)
+   (%mapping :reader mapping-layer
+             :initarg :mapping-layer)
    (%aesthetics :reader aesthetics-layer
                 :initarg :aesthetics-layer)
    (%scale :reader scale-layer
@@ -18,6 +20,7 @@
                  :initarg :coordinates-layer))
   (:default-initargs
    :data-layer nil
+   :mapping-layer nil
    :facets-layer nil
    :aesthetics-layer nil
    :scale-layer nil
@@ -45,6 +48,23 @@
 
 (defclass boxes-geometrics (geometrics-layer)
   ())
+
+
+(defclass mapping-layer (fundamental-layer)
+  ((%x :initarg :x
+       :reader x)
+   (%y :initarg :y
+       :reader y)
+   (%color :initarg :color
+           :reader color)
+   (%shape :initarg :shape
+           :reader shape)
+   (%label :initarg :label
+           :reader label)
+   (%label-position :initarg :label-position
+                    :reader label-position)
+   (%size :initarg :size
+          :reader size)))
 
 
 (defclass aesthetics-layer (fundamental-layer)

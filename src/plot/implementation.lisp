@@ -4,6 +4,7 @@
 (defmethod cl-ds.utils:cloning-information append
     ((stack stack-of-layers))
   `((:data-layer data-layer)
+    (:mapping-layer mapping-layer)
     (:aesthetics-layer aesthetics-layer)
     (:scale-layer scale-layer)
     (:geometrics-layer geometrics-layer)
@@ -26,6 +27,10 @@
 
 (defmethod layer-category ((layer aesthetics-layer))
   :aesthetics-layer)
+
+
+(defmethod layer-category ((layer mapping-layer))
+  :mapping-layer)
 
 
 (defmethod add ((stack stack-of-layers)
