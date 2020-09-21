@@ -7,6 +7,8 @@
    #:visualize
    #:aesthetics
    #:points
+   #:stack
    #:line
    #:mapping
+   #:heatmap
    #:add))

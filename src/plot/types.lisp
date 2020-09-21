@@ -38,6 +38,10 @@
              :reader mapping)))
 
 
+(defclass heatmap-geometrics (geometrics-layer)
+  ())
+
+
 (defclass points-geometrics (geometrics-layer)
   ())
 
@@ -55,6 +59,8 @@
        :reader x)
    (%y :initarg :y
        :reader y)
+   (%z :initarg :z
+       :reader z)
    (%color :initarg :color
            :reader color)
    (%shape :initarg :shape

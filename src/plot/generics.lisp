@@ -11,6 +11,7 @@
 (defgeneric coordinates-layer (stack))
 (defgeneric x (layer))
 (defgeneric y (layer))
+(defgeneric z (layer))
 (defgeneric color (layer))
 (defgeneric shape (layer))
 (defgeneric size (layer))

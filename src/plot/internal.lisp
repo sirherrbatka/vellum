@@ -2,28 +2,34 @@
 
 
 (defun plotly-extract-data (table column)
-  (vellum.table:with-table (table)
-    (cl-ds.alg:to-list
-     table
-     :key (lambda (&rest ignored)
-            (declare (ignore ignored))
-            (let ((content (vellum.header:rr column)))
-              (typecase content
-                (double-float (coerce content 'single-float))
-                (string (format nil "'~a'" content))
-                (t content)))))))
+  (if (null column)
+      nil
+      (vellum.table:with-table (table)
+        (cl-ds.alg:to-list
+         table
+         :key (lambda (&rest ignored)
+                (declare (ignore ignored))
+                (let ((content (vellum.header:rr column)))
+                  (typecase content
+                    (double-float (coerce content 'single-float))
+                    (string (format nil "'~a'" content))
+                    (t content))))))))
 
 
 (defgeneric plotly-mode (geometrics mapping)
   (:method ((geometrics points-geometrics) mapping)
     (if (label mapping) "markers+text" "markers"))
   (:method ((geometrics line-geometrics) mapping)
-    "lines"))
+    (if (label mapping) "markers+lines" "lines"))
+  (:method ((geometrics heatmap-geometrics) mapping)
+    nil))
 
 
 (defgeneric plotly-type (geometrics)
   (:method ((geometrics points-geometrics))
     "scatter")
+  (:method ((geometrics heatmap-geometrics))
+    "heatmap")
   (:method ((geometrics line-geometrics))
     "scatter"))
 
@@ -58,6 +64,7 @@
          (aesthetics (aesthetics-layer stack))
          (x (x mapping))
          (y (y mapping))
+         (z (z mapping))
          (color (color mapping))
          (shape (shape mapping))
          (label (label mapping))
@@ -67,11 +74,14 @@
       (format stream "{")
       (plotly-format stream "x" (plotly-extract-data data x))
       (plotly-format stream "y" (plotly-extract-data data y))
-      (plotly-format stream "mode" (plotly-mode geometrics mapping))
+      (unless (null z)
+        (plotly-format stream "z" (plotly-extract-data data z)))
+      (plotly-format-no-nulls stream "mode"
+                              (plotly-mode geometrics mapping))
       (plotly-format stream "type" (plotly-type geometrics))
       (format stream "marker: {")
-      (plotly-format-no-nulls stream "size" size)
-      (plotly-format-no-nulls stream "text" label)
+      (plotly-format-no-nulls stream "size" (plotly-extract-data data size))
+      (plotly-format-no-nulls stream "text" (plotly-extract-data data label))
       (plotly-format-no-nulls stream "textposition" label-position)
       (format stream "},")
       (unless (null aesthetics)

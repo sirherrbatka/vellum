@@ -100,4 +100,5 @@
                    (setf (vellum.header:rr i) (funcall key (aref input *current-row* i))))
                  (unless (null body)
                    (apply body ignored)))
+               :end nil
                :in-place t)))

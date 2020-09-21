@@ -12,10 +12,11 @@
         :size size))
 
 
-(defun mapping (&key x y color shape size label label-position)
+(defun mapping (&key x y z color shape size label label-position)
   (make 'mapping-layer
         :x x
         :y y
+        :z z
         :label label
         :label-position label-position
         :color color
@@ -35,7 +36,8 @@
   (make 'line-geometrics))
 
 
-(defun mapping ())
+(defun heatmap ()
+  (make 'heatmap-geometrics))
 
 
 (defun boxes ()
@@ -49,3 +51,6 @@
 (defun coordinates ()
   cl-ds.utils:todo)
 
+
+(defun stack (data-layer &rest layers)
+  (reduce #'add layers :initial-value data-layer))

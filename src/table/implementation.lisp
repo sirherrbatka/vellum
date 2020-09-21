@@ -200,7 +200,7 @@
                         (in-place *transform-in-place*)
                         (start 0)
                         (end (row-count frame)))
-  (declare (optimize (speed 3)))
+  (declare (optimize (debug 3)))
   (ensure-functionf function)
   (check-type start non-negative-fixnum)
   (check-type end (or null non-negative-fixnum))
@@ -214,7 +214,8 @@
            (row (standard-transformation-row transformation))
            (*transform-control*
              (lambda (operation)
-               (cond ((eq operation :finish) (setf done t))
+               (cond ((eq operation :finish)
+                      (setf done t))
                      (t (funcall *transform-control* operation))))))
       (vellum.header:set-row row)
       (iterate
