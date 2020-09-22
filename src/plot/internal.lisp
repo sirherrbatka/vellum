@@ -37,9 +37,9 @@
 (defun plotly-format (stream field-name field-value)
   (format stream "'~a': ~a, ~%" field-name
           (etypecase field-value
-            (symbol (format nil "'~a'" (symbol-name field-value)))
+            (symbol (format nil "'~(~a~)'" (symbol-name field-value)))
             (list (format nil "[~{~a~^, ~}]" field-value))
-            (double-float (format nil "~F" field-value))
+            (float (format nil "~F" field-value))
             (string (format nil "'~a'" field-value))
             (integer field-value))))
 
@@ -91,22 +91,44 @@
       (format stream "}"))))
 
 
+(defun plotly-format-axis (stream axis)
+  (when axis
+    (plotly-format-no-nulls stream "scaleanchor" (scale-anchor axis))
+    (plotly-format-no-nulls stream "range" (range axis))
+    (plotly-format-no-nulls stream "constrain" (constrain axis))
+    (plotly-format-no-nulls stream "scaleratio" (scale-ratio axis))
+    (plotly-format-no-nulls stream "ticklen" (tick-length axis))
+    (plotly-format-no-nulls stream "dtick" (dtick axis))))
+
+
 (defun plotly-generate-layout (stack)
   (bind ((aesthetics (aesthetics-layer stack))
+         (xaxis (x aesthetics))
+         (yaxis (y aesthetics))
          (mapping (mapping-layer stack)))
     (with-output-to-string (stream)
       (format stream "{")
+      (plotly-format-no-nulls stream "height"
+                              (height aesthetics))
+      (plotly-format-no-nulls stream "width"
+                              (width aesthetics))
       (plotly-format-no-nulls stream "title"
                               (label aesthetics))
       (format stream "xaxis: {")
       (format stream "title: {")
-      (plotly-format-no-nulls stream "text" (x mapping))
+      (if (and xaxis (label xaxis))
+          (plotly-format-no-nulls stream "text" (label xaxis))
+          (plotly-format-no-nulls stream "text" (x mapping)))
       (format stream "},~%")
+      (plotly-format-axis stream xaxis)
       (format stream "},~%")
       (format stream "yaxis: {")
       (format stream "title: {")
-      (plotly-format-no-nulls stream "text" (y mapping))
+      (if (and yaxis (label yaxis))
+          (plotly-format-no-nulls stream "text" (label yaxis))
+          (plotly-format-no-nulls stream "text" (y mapping)))
       (format stream "},~%")
+      (plotly-format-axis stream yaxis)
       (format stream "}~%")
       (format stream "}~%"))))
 

@@ -73,11 +73,32 @@
           :reader size)))
 
 
+(defclass axis ()
+  ((%label :initarg :label
+           :reader label)
+   (%scale-anchor :initarg :scale-anchor
+                  :reader scale-anchor)
+   (%scale-ratio :initarg :scale-ratio
+                 :reader scale-ratio)
+   (%constrain :initarg :constrain
+               :reader constrain)
+   (%tick-length :initarg :tick-length
+                 :reader tick-length)
+   (%range :initarg :range
+           :reader range)
+   (%dtick :initarg :dtick
+           :reader dtick)))
+
+
 (defclass aesthetics-layer (fundamental-layer)
   ((%x :initarg :x
        :reader x)
    (%y :initarg :y
        :reader y)
+   (%height :initarg :height
+            :reader height)
+   (%width :initarg :width
+           :reader width)
    (%color :initarg :color
            :reader color)
    (%shape :initarg :shape

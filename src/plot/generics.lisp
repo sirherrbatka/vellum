@@ -19,3 +19,7 @@
 (defgeneric visualize (backend stack destination))
 (defgeneric add (stack layer))
 (defgeneric layer-category (layer))
+(defgeneric height (layer))
+(defgeneric width (layer))
+(defgeneric x-dtick (layer))
+(defgeneric y-dtick (layer))

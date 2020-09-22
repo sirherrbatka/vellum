@@ -11,4 +11,5 @@
    #:line
    #:mapping
    #:heatmap
+   #:axis
    #:add))
