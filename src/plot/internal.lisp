@@ -57,9 +57,8 @@
       (plotly-format-no-nulls stream field-b value-b)))
 
 
-(defun plotly-generate-data (stack)
-  (bind ((geometrics (geometrics-layer stack))
-         (mapping (mapping-layer stack))
+(defun plotly-generate-data (stack geometrics)
+  (bind ((mapping (read-mapping geometrics))
          (data (data-layer stack))
          (aesthetics (aesthetics-layer stack))
          (x (x mapping))
@@ -105,7 +104,10 @@
   (bind ((aesthetics (aesthetics-layer stack))
          (xaxis (x aesthetics))
          (yaxis (y aesthetics))
-         (mapping (mapping-layer stack)))
+         (geometrics (geometrics-layers stack))
+         (mapping (if (endp geometrics)
+                      nil
+                      (read-mapping (first geometrics)))))
     (with-output-to-string (stream)
       (format stream "{")
       (plotly-format-no-nulls stream "height"
@@ -134,8 +136,9 @@
 
 
 (defun plotly-visualize (stack stream)
-  (let ((layout (plotly-generate-layout stack))
-        (data (plotly-generate-data stack)))
+  (let* ((layout (plotly-generate-layout stack))
+         (geometrics (geometrics-layers stack))
+         (data (mapcar (curry #'plotly-generate-data stack) geometrics)))
     (format stream "<html>~%")
     (format stream "<head>~%")
     (format stream "<script src='https://cdn.plot.ly/plotly-latest.min.js'></script></head>~%")
@@ -143,7 +146,7 @@
     (format stream
             "<div id='plotDiv'><!-- Plotly chart will be drawn inside this DIV --></div>~%")
     (format stream "<script type='text/javascript'>~%")
-    (format stream "Plotly.newPlot('plotDiv', [~a], ~a);~%"
+    (format stream "Plotly.newPlot('plotDiv', [~{~a~^,~}], ~a);~%"
             data
             layout)
     (format stream "</script>~%")

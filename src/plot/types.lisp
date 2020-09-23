@@ -4,14 +4,12 @@
 (defclass stack-of-layers ()
   ((%data :reader data-layer
           :initarg :data-layer)
-   (%mapping :reader mapping-layer
-             :initarg :mapping-layer)
    (%aesthetics :reader aesthetics-layer
                 :initarg :aesthetics-layer)
    (%scale :reader scale-layer
            :initarg :scale-layer)
-   (%geometrics :reader geometrics-layer
-                :initarg :geometrics-layer)
+   (%geometrics :reader geometrics-layers
+                :initarg :geometrics-layers)
    (%statistics :reader statistics-layer
                 :initarg :statistics-layer)
    (%facets-layer :reader facets-layer
@@ -20,11 +18,10 @@
                  :initarg :coordinates-layer))
   (:default-initargs
    :data-layer nil
-   :mapping-layer nil
    :facets-layer nil
    :aesthetics-layer nil
    :scale-layer nil
-   :geometrics-layer nil
+   :geometrics-layers (list)
    :statistics-layer nil
    :coordinates-layer nil))
 
@@ -35,7 +32,7 @@
 
 (defclass geometrics-layer (fundamental-layer)
   ((%mapping :initarg :mapping
-             :reader mapping)))
+             :reader read-mapping)))
 
 
 (defclass heatmap-geometrics (geometrics-layer)
@@ -54,7 +51,7 @@
   ())
 
 
-(defclass mapping-layer (fundamental-layer)
+(defclass mapping ()
   ((%x :initarg :x
        :reader x)
    (%y :initarg :y

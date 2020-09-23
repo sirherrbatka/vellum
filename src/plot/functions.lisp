@@ -31,16 +31,19 @@
   cl-ds.utils:todo)
 
 
-(defun points ()
-  (make 'points-geometrics))
+(defun points (mapping)
+  (make 'points-geometrics
+        :mapping mapping))
 
 
-(defun line ()
-  (make 'line-geometrics))
+(defun line (mapping)
+  (make 'line-geometrics
+        :mapping mapping))
 
 
-(defun heatmap ()
-  (make 'heatmap-geometrics))
+(defun heatmap (mapping)
+  (make 'heatmap-geometrics
+        :mapping mapping))
 
 
 (defun boxes ()

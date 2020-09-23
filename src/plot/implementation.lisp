@@ -4,10 +4,9 @@
 (defmethod cl-ds.utils:cloning-information append
     ((stack stack-of-layers))
   `((:data-layer data-layer)
-    (:mapping-layer mapping-layer)
     (:aesthetics-layer aesthetics-layer)
     (:scale-layer scale-layer)
-    (:geometrics-layer geometrics-layer)
+    (:geometrics-layers geometrics-layers)
     (:statistics-layer statistics-layer)
     (:facets-layer facets-layer)
     (:coordinates-layer coordinates-layer)))
@@ -38,6 +37,13 @@
   (cl-ds.utils:quasi-clone stack
                            (layer-category layer)
                            layer))
+
+
+(defmethod add ((stack stack-of-layers)
+                (layer geometrics-layer))
+  (cl-ds.utils:quasi-clone
+   stack
+   :geometrics-layers (cons layer (geometrics-layers stack))))
 
 
 (defmethod visualize ((backend (eql :plotly))
