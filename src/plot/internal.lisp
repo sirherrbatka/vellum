@@ -16,8 +16,9 @@
 
 
 (defmacro value (content)
-  `(unless (null ,content)
-     (json-format *json-stream* ,content)))
+  `(let ((result (ignore-errors ,content)))
+     (unless (null result)
+       (json-format *json-stream* result))))
 
 
 (defmacro object (&body content)
@@ -159,12 +160,9 @@
     (with-output-to-string (stream)
       (json (stream)
         (object
-          (plotly-format-no-nulls "height"
-                                  (height aesthetics))
-          (plotly-format-no-nulls "width"
-                                  (width aesthetics))
-          (plotly-format-no-nulls "title"
-                                  (label aesthetics))
+          (slot "height" (value (height aesthetics)))
+          (slot "width" (value (width aesthetics)))
+          (slot "title" (value (label aesthetics)))
           (slot "xaxis"
                 (plotly-format-axis (and mapping (x mapping))
                                     xaxis))
