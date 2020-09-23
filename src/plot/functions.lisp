@@ -31,18 +31,21 @@
   cl-ds.utils:todo)
 
 
-(defun points (mapping)
+(defun points (&key mapping aesthetics)
   (make 'points-geometrics
+        :aesthetics aesthetics
         :mapping mapping))
 
 
-(defun line (mapping)
+(defun line (&key mapping aesthetics)
   (make 'line-geometrics
+        :aesthetics aesthetics
         :mapping mapping))
 
 
-(defun heatmap (mapping)
+(defun heatmap (&key mapping aesthetics)
   (make 'heatmap-geometrics
+        :aesthetics aesthetics
         :mapping mapping))
 
 

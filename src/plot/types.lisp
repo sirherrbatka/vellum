@@ -32,7 +32,9 @@
 
 (defclass geometrics-layer (fundamental-layer)
   ((%mapping :initarg :mapping
-             :reader read-mapping)))
+             :reader read-mapping)
+   (%aesthetics :initarg :aesthetics
+                :reader read-aesthetics)))
 
 
 (defclass heatmap-geometrics (geometrics-layer)
