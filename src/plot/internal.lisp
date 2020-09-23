@@ -1,6 +1,37 @@
 (cl:in-package #:vellum.plot)
 
 
+(defvar *json-stream*)
+(defvar *depth* 0)
+
+
+(defmacro slot (name content)
+  (with-gensyms (!output)
+    `(let ((*depth* (1+ *depth*))
+           (,!output (with-output-to-string (*json-stream*)
+                       ,content)))
+       (unless (emptyp ,!output)
+         (format *json-stream* "'~a': ~a" ,name ,!output)
+         (format *json-stream* ",~%")))))
+
+
+(defmacro value (content)
+  `(unless (null ,content)
+     (json-format *json-stream* ,content)))
+
+
+(defmacro object (&body content)
+  `(progn
+     (format *json-stream* "{")
+     ,@content
+     (format *json-stream* "}")))
+
+
+(defmacro json ((stream) &body body)
+  `(let ((*json-stream* ,stream))
+     ,@body))
+
+
 (defun plotly-extract-data (table column)
   (if (null column)
       nil
@@ -34,6 +65,16 @@
     "scatter"))
 
 
+(defun json-format (stream field-value)
+  (format stream "~a"
+          (etypecase field-value
+            (symbol (format nil "'~(~a~)'" (symbol-name field-value)))
+            (list (format nil "[~{~a~^, ~}]" field-value))
+            (float (format nil "~F" field-value))
+            (string (format nil "'~a'" field-value))
+            (integer field-value))))
+
+
 (defun plotly-format (stream field-name field-value)
   (format stream "'~a': ~a, ~%" field-name
           (etypecase field-value
@@ -44,11 +85,11 @@
             (integer field-value))))
 
 
-(defun plotly-format-no-nulls (stream field-name field-value)
+(defun plotly-format-no-nulls (field-name field-value)
   (if (null field-value)
       nil
       (progn
-        (plotly-format stream field-name field-value)
+        (plotly-format *json-stream* field-name field-value)
         t)))
 
 
@@ -70,41 +111,41 @@
          (label-position (label-position aesthetics))
          (size (size mapping)))
     (with-output-to-string (stream)
-      (format stream "{")
-      (plotly-format stream "x" (plotly-extract-data data x))
-      (plotly-format stream "y" (plotly-extract-data data y))
-      (unless (null z)
-        (plotly-format stream "z" (plotly-extract-data data z)))
-      (plotly-format-no-nulls stream "mode"
-                              (plotly-mode geometrics mapping))
-      (plotly-format stream "type" (plotly-type geometrics))
-      (format stream "line: {")
-      (cond
-        (color (plotly-format-no-nulls stream "color" (plotly-extract-data data color)))
-        (aesthetics (plotly-format-no-nulls stream "color" (color aesthetics))))
-      (format stream "},")
-      (format stream "marker: {")
-      (cond
-        (color (plotly-format-no-nulls stream "color" (plotly-extract-data data color)))
-        (aesthetics (plotly-format-no-nulls stream "color" (color aesthetics))))
-      (plotly-format-no-nulls stream "size" (plotly-extract-data data size))
-      (plotly-format-no-nulls stream "text" (plotly-extract-data data label))
-      (plotly-format-no-nulls stream "textposition" label-position)
-      (format stream "},")
-      ;; should also handle shape here
-      (unless (null aesthetics)
-        (plotly-format-no-nulls stream "name" (label aesthetics)))
-      (format stream "}"))))
+      (json (stream)
+        (object
+         (slot "x" (value (plotly-extract-data data x)))
+         (slot "y" (value (plotly-extract-data data y)))
+         (unless (null z)
+           (slot "z" (value (plotly-extract-data data z))))
+         (slot "mode" (value (plotly-mode geometrics mapping)))
+         (slot "type" (value (plotly-type geometrics)))
+         (slot "name" (value (label aesthetics)))
+         (slot "marker"
+               (object
+                #1=(cond
+                     (color (slot "color" (value (plotly-extract-data data color))))
+                     (aesthetics (slot "color" (value (color aesthetics)))))
+                (slot "size" (value (plotly-extract-data data size)))
+                (slot "text" (value (plotly-extract-data data label)))
+                (slot "textposition" (value label-position))))
+         (slot "list" (object #1#)))))))
 
 
-(defun plotly-format-axis (stream axis)
+(defun plotly-format-axis (mapping axis)
   (when axis
-    (plotly-format-no-nulls stream "scaleanchor" (scale-anchor axis))
-    (plotly-format-no-nulls stream "range" (range axis))
-    (plotly-format-no-nulls stream "constrain" (constrain axis))
-    (plotly-format-no-nulls stream "scaleratio" (scale-ratio axis))
-    (plotly-format-no-nulls stream "ticklen" (tick-length axis))
-    (plotly-format-no-nulls stream "dtick" (dtick axis))))
+    (object
+      (slot "title"
+            (object
+              (cond ((and axis (label axis))
+                     (plotly-format-no-nulls "text" (label axis)))
+                    (mapping
+                     (plotly-format-no-nulls "text" mapping)))))
+      (slot "scaleanchor" (value (scale-anchor axis)))
+      (slot "range" (value (range axis)))
+      (slot "constrain" (value (constrain axis)))
+      (slot "scaleratio" (value (scale-ratio axis)))
+      (slot "ticklen" (value (tick-length axis)))
+      (slot "dtick" (value (dtick axis))))))
 
 
 (defun plotly-generate-layout (stack)
@@ -116,32 +157,20 @@
                       nil
                       (read-mapping (first geometrics)))))
     (with-output-to-string (stream)
-      (format stream "{")
-      (plotly-format-no-nulls stream "height"
-                              (height aesthetics))
-      (plotly-format-no-nulls stream "width"
-                              (width aesthetics))
-      (plotly-format-no-nulls stream "title"
-                              (label aesthetics))
-      (format stream "xaxis: {")
-      (format stream "title: {")
-      (cond ((and xaxis (label xaxis))
-             (plotly-format-no-nulls stream "text" (label xaxis)))
-            (mapping
-             (plotly-format-no-nulls stream "text" (x mapping))))
-      (format stream "},~%")
-      (plotly-format-axis stream xaxis)
-      (format stream "},~%")
-      (format stream "yaxis: {")
-      (format stream "title: {")
-      (cond ((and yaxis (label yaxis))
-             (plotly-format-no-nulls stream "text" (label yaxis)))
-            (mapping 
-             (plotly-format-no-nulls stream "text" (y mapping))))
-      (format stream "},~%")
-      (plotly-format-axis stream yaxis)
-      (format stream "}~%")
-      (format stream "}~%"))))
+      (json (stream)
+        (object
+          (plotly-format-no-nulls "height"
+                                  (height aesthetics))
+          (plotly-format-no-nulls "width"
+                                  (width aesthetics))
+          (plotly-format-no-nulls "title"
+                                  (label aesthetics))
+          (slot "xaxis"
+                (plotly-format-axis (and mapping (x mapping))
+                                    xaxis))
+          (slot "yaxis"
+                (plotly-format-axis (and mapping (y mapping))
+                                    yaxis)))))))
 
 
 (defun plotly-visualize (stack stream)
