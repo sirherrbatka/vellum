@@ -79,12 +79,14 @@
                               (plotly-mode geometrics mapping))
       (plotly-format stream "type" (plotly-type geometrics))
       (format stream "line: {")
-      (unless (null aesthetics)
-        (plotly-format-no-nulls stream "color" (color aesthetics)))
+      (cond
+        (color (plotly-format-no-nulls stream "color" (plotly-extract-data data color)))
+        (aesthetics (plotly-format-no-nulls stream "color" (color aesthetics))))
       (format stream "},")
       (format stream "marker: {")
-      (unless (null aesthetics)
-        (plotly-format-no-nulls stream "color" (color aesthetics)))
+      (cond
+        (color (plotly-format-no-nulls stream "color" (plotly-extract-data data color)))
+        (aesthetics (plotly-format-no-nulls stream "color" (color aesthetics))))
       (plotly-format-no-nulls stream "size" (plotly-extract-data data size))
       (plotly-format-no-nulls stream "text" (plotly-extract-data data label))
       (plotly-format-no-nulls stream "textposition" label-position)
