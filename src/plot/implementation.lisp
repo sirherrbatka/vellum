@@ -28,10 +28,6 @@
   :aesthetics-layer)
 
 
-(defmethod layer-category ((layer mapping-layer))
-  :mapping-layer)
-
-
 (defmethod add ((stack stack-of-layers)
                 (layer fundamental-layer))
   (cl-ds.utils:quasi-clone stack
