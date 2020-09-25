@@ -200,7 +200,6 @@
                         (in-place *transform-in-place*)
                         (start 0)
                         (end (row-count frame)))
-  (declare (optimize (debug 3)))
   (ensure-functionf function)
   (check-type start non-negative-fixnum)
   (check-type end (or null non-negative-fixnum))

@@ -16,7 +16,7 @@
 
 
 (defun mapping (&key x y z color shape size label label-position)
-  (make 'mapping-layer
+  (make 'mapping
         :x x
         :y y
         :z z

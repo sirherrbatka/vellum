@@ -16,7 +16,6 @@
 (-> iterator-at (sparse-material-column-iterator integer) t)
 (declaim (inline iterator-at))
 (defun iterator-at (iterator column)
-  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (ensure-column-initialization iterator column)
   (bind ((buffers (read-buffers iterator))
          (offset (offset (index iterator))))
@@ -25,7 +24,6 @@
 
 
 (defun (setf iterator-at) (new-value iterator column)
-  (declare (optimize (speed 3)))
   (check-type column integer)
   (check-type iterator sparse-material-column-iterator)
   (ensure-column-initialization iterator column)
@@ -69,7 +67,6 @@
 
 (-> move-iterator-to (sparse-material-column-iterator non-negative-fixnum) t)
 (defun move-iterator-to (iterator new-index)
-  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (bind ((index (access-index iterator))
          (new-depth (~> new-index
                         integer-length
@@ -140,7 +137,6 @@
 
 (-> move-iterator (sparse-material-column-iterator non-negative-fixnum) t)
 (defun move-iterator (iterator times)
-  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (move-iterator-to iterator (+ (sparse-material-column-iterator-index iterator)
                                 times)))
 
@@ -235,11 +231,12 @@
               0))
     (setf (cl-ds.dicts.srrb:access-tree column) (or (first-elt stack)
                                                     cl-ds.meta:null-bucket))
-    (for index-bound = (cl-ds.dicts.srrb:scan-index-bound column))
-    (setf (cl-ds.dicts.srrb:access-tree-index-bound column) index-bound
-          (cl-ds.dicts.srrb:access-index-bound column)
-          (* #1=cl-ds.common.rrb:+maximum-children-count+
-             (1+ (ceiling index-bound #1#))))))
+    (for tree-index-bound = (* #1=cl-ds.common.rrb:+maximum-children-count+
+                               (ceiling (cl-ds.dicts.srrb:scan-index-bound column)
+                                        #1#)))
+    (for index-bound = (+ #1# tree-index-bound))
+    (setf (cl-ds.dicts.srrb:access-tree-index-bound column) tree-index-bound
+          (cl-ds.dicts.srrb:access-index-bound column) index-bound)))
 
 
 (defmethod cl-ds.meta:make-bucket ((operation cl-ds.meta:grow-function)
@@ -340,9 +337,7 @@
          (tail-mask (the fixnum (cl-ds.dicts.srrb:access-tail-mask container)))
          (tail (the (or null simple-vector) (cl-ds.dicts.srrb:access-tail container)))
          ((:flet map-tail ())
-          (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)
-                             (compilation-speed 0))
-                   (type function function))
+          (declare (type function function))
           (iterate
             (declare (type fixnum i))
             (for i from 0 below (integer-length tail-mask))
@@ -351,9 +346,7 @@
                 (funcall function :null)))
           (return-from cl-ds:across container))
          ((:labels map-leaf (leaf index))
-          (declare (optimize (speed 3) (safety 0) (debug 0)
-                             (space 0) (compilation-speed 0))
-                   (type cl-ds.common.rrb:sparse-rrb-node leaf)
+          (declare (type cl-ds.common.rrb:sparse-rrb-node leaf)
                    (type fixnum index)
                    (type function function))
           (iterate
@@ -366,9 +359,7 @@
                 (funcall function (cl-ds.common.rrb:sparse-nref leaf i))
                 (funcall function :null))))
          ((:labels map-nulls (level index))
-          (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)
-                             (compilation-speed 0))
-                   (type function function)
+          (declare (type function function)
                    (type fixnum level))
           (iterate
             (declare (type fixnum i in))
@@ -380,9 +371,7 @@
                                         (the fixnum (* cl-ds.common.rrb:+bit-count+ level)))))
             (funcall function :null)))
          ((:labels map-subtree (subtree level index))
-          (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)
-                             (compilation-speed 0))
-                   (type cl-ds.common.rrb:sparse-rrb-node subtree)
+          (declare (type cl-ds.common.rrb:sparse-rrb-node subtree)
                    (type function function)
                    (type fixnum level))
           (let ((level-1 (1- level))

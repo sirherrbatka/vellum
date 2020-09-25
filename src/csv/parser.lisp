@@ -28,7 +28,6 @@
 
 (-> rollback (csv-parsing-state-frame) (or null csv-parsing-state-frame))
 (defun rollback (frame)
-  (declare (optimize (speed 3) (safety 0)))
   (let ((new-frame frame)
         (old-frame (csv-parsing-state-frame-previous-frame frame)))
     (declare (type csv-parsing-state-frame new-frame)
@@ -49,8 +48,7 @@
 
 (declaim (notinline new-frame))
 (defun new-frame (old-frame function)
-  (declare (type csv-parsing-state-frame old-frame)
-           (optimize (speed 3) (safety 0)))
+  (declare (type csv-parsing-state-frame old-frame))
   (cl-ds.utils:with-slots-for (old-frame csv-parsing-state-frame)
     (make-csv-parsing-state-frame
      :callback function

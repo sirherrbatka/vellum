@@ -19,7 +19,6 @@
 
 (-> truncate-mask (integer) fixnum)
 (defun truncate-mask (mask)
-  (declare (optimize (speed 3) (safety 0)))
   (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
 
 
@@ -38,8 +37,6 @@
                sparse-material-column)
     t)
 (defun pad-stack (iterator depth index new-depth stack column)
-  (declare (optimize (speed 3) (safety 1) (debug 1)
-                     (compilation-speed 0) (space 0)))
   (iterate
     (declare (type fixnum j byte offset depth-difference))
     (with depth-difference = (- new-depth depth))
@@ -64,7 +61,6 @@
 
 (-> pad-stacks (sparse-material-column-iterator fixnum) t)
 (defun pad-stacks (iterator new-depth)
-  (declare (optimize (speed 3) (safety 0) (compilation-speed 0) (space 0) (debug 0)))
   (iterate
     (declare (type fixnum index i length)
              (type (simple-array fixnum (*)) depths)
@@ -86,7 +82,6 @@
 
 (-> ensure-column-initialization (sparse-material-column-iterator fixnum) t)
 (defun ensure-column-initialization (iterator column)
-  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0)))
   (bind ((status (read-initialization-status iterator))
          (length (length status)))
     (declare (type (simple-array boolean (*)) status)
@@ -117,7 +112,6 @@
 (-> initialize-iterator-column (fixnum t iterator-stack iterator-buffer fixnum boolean)
     t)
 (defun initialize-iterator-column (index column stack buffer shift touched)
-  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (let ((column-root (column-root column)))
     (unless touched
       (loop :for i :from 0 :below (length stack)
@@ -129,7 +123,6 @@
 
 (-> initialize-iterator-columns (sparse-material-column-iterator) t)
 (defun initialize-iterator-columns (iterator)
-  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (iterate
     (declare (type fixnum i))
     (with index = (access-index iterator))
@@ -148,8 +141,7 @@
 
 
 (defun index-promoted (old-index new-index)
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0))
-           (type fixnum old-index new-index))
+  (declare (type fixnum old-index new-index))
   (not (eql (ceiling (the fixnum (1+ old-index))
                      cl-ds.common.rrb:+maximum-children-count+)
             (ceiling (the fixnum (1+ new-index))
@@ -382,7 +374,6 @@
                                                  fixnum)
     t)
 (defun move-to-existing-column (state from to from-mask to-mask column-index)
-  (declare (optimize (speed 3) (safety 0) (debug 0)))
   (assert (< to from))
   (assert (= (logcount to-mask) (integer-length to-mask)))
   (assert (= (logcount from-mask) (integer-length from-mask)))
@@ -412,7 +403,7 @@
                                real-from-mask))
            (new-to-mask (logior real-to-mask shifted-from-mask))
            (new-to-size (logcount new-to-mask)))
-      (declare (type simple-vector from-content)
+      (declare (type (simple-array * (*)) from-content)
                (type fixnum taken free-space real-from-size
                      real-from-mask real-to-mask new-to-mask new-to-size))
       (assert (= real-to-mask (logand real-to-mask to-mask)))
@@ -449,7 +440,7 @@
                  (new-content (make-array
                                new-content-size
                                :element-type element-type)))
-            (declare (type simple-vector new-content)
+            (declare (type (simple-array * (*)) new-content)
                      (type fixnum new-content-size))
             (assert (>= new-content-size new-to-size))
             (assert (>= new-to-size real-to-size))
@@ -491,7 +482,7 @@
                                            :type element-type))
                       (new-content (cl-ds.common.rrb:sparse-rrb-node-content
                                     new-from)))
-                 (declare (type simple-vector new-content))
+                 (declare (type (simple-array * (*)) new-content))
                  (iterate
                    (declare (type fixnum i j))
                    (for i from shifted-count)
@@ -611,8 +602,7 @@
 
 
 (defun update-parents (state column)
-  (declare (optimize (speed 3) (safety 1))
-           (type concatenation-state state))
+  (declare (type concatenation-state state))
   (with-concatenation-state (state)
     (iterate
       (declare (type fixnum mask))
@@ -659,8 +649,7 @@
                           &aux (columns
                                 (~>> iterator read-columns
                                      (remove-if #'null _ :key #'column-root))))
-  (declare (optimize (speed 3) (debug 0) (safety 0))
-           (type simple-vector columns))
+  (declare (type simple-vector columns))
   (when (emptyp columns)
     (return-from concatenate-trees nil))
   (bind ((depth (the fixnum
@@ -762,8 +751,7 @@
 
 (defun move-stack (depth new-index stack &aux (node (aref stack 0)))
   (declare (type fixnum depth new-index)
-           (type iterator-stack stack)
-           (optimize (speed 3) (safety 0)))
+           (type iterator-stack stack))
   (when (null node)
     (return-from move-stack nil))
   (iterate outer
@@ -789,8 +777,7 @@
 
 
 (defun move-stacks (iterator new-index new-depth)
-  (declare (type fixnum new-depth new-index)
-           (optimize (speed 3) (safety 0)))
+  (declare (type fixnum new-depth new-index))
   (pad-stacks iterator new-depth)
   (iterate
     (declare (type (simple-array fixnum (*)) depths)
@@ -842,8 +829,7 @@
 
 
 (defun make-leaf (iterator column old-node change buffer)
-  (declare (type simple-vector buffer)
-           (optimize (speed 3) (safety 0) (debug 0)))
+  (declare (type simple-vector buffer))
   (unless (null old-node)
     (iterate
       (declare (type fixnum i))
@@ -891,7 +877,6 @@
 
 
 (defun change-leafs (iterator)
-  (declare (optimize (speed 3) (safety 0)))
   (let* ((initialization-status (read-initialization-status iterator))
          (depths (read-depths iterator))
          (stacks (read-stacks iterator))
@@ -946,7 +931,6 @@
 
 (-> reduce-stack (sparse-material-column-iterator fixnum fixnum iterator-stack sparse-material-column) t)
 (defun reduce-stack (iterator index depth stack column)
-  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (iterate
     (declare (type fixnum i bits))
     (with tag = (cl-ds.common.abstract:read-ownership-tag column))
@@ -970,7 +954,6 @@
 (-> fill-buffer (fixnum iterator-buffer iterator-stack) t)
 (defun fill-buffer (depth buffer stack)
   (declare (type fixnum depth)
-           (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0))
            (type iterator-stack stack)
            (type iterator-buffer buffer))
   (let ((node (aref stack depth)))
@@ -990,7 +973,6 @@
 (declaim (notinline fill-buffers))
 (-> fill-buffers (sparse-material-column-iterator) t)
 (defun fill-buffers (iterator)
-  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (let ((depths (read-depths iterator))
         (initialization-status (read-initialization-status iterator))
         (buffers (read-buffers iterator))
@@ -1005,7 +987,6 @@
 (declaim (notinline reduce-stacks))
 (-> reduce-stacks (sparse-material-column-iterator) t)
 (defun reduce-stacks (iterator)
-  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (let ((initialization-status (read-initialization-status iterator))
         (depths (read-depths iterator))
         (stacks (read-stacks iterator))
@@ -1021,7 +1002,6 @@
 (declaim (notinline clear-changes))
 (-> clear-changes (sparse-material-column-iterator) t)
 (defun clear-changes (iterator)
-  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (iterate
     (declare (type simple-vector changes)
              (type fixnum i length)
@@ -1044,7 +1024,6 @@
 (declaim (notinline clear-buffers))
 (-> clear-buffers (sparse-material-column-iterator) t)
 (defun clear-buffers (iterator)
-  (declare (optimize (speed 3) (safety 0) (debug 0) (compilation-speed 0) (space 0)))
   (iterate
     (declare (type fixnum length i))
     (with buffers = (read-buffers iterator))
