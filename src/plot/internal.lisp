@@ -122,8 +122,9 @@
                         (let ((,!number
                                 (if (integerp ,axis)
                                     ,axis
-                                    (vellum.header:alias-to-index (vellum.table:header data)
-                                                                  ,axis))))
+                                    (~> data
+                                        vellum.table:header
+                                        (vellum.header:alias-to-index ,axis)))))
                           (if-let ((table-content (gethash ,!number table)))
                             (setf ,axis (car table-content))
                             (let* ((,!data (plotly-extract-data data ,axis))
