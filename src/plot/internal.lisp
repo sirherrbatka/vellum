@@ -103,9 +103,10 @@
       (plotly-format-no-nulls stream field-b value-b)))
 
 
-(defun plotly-generate-data/impl (stack geometrics table x-name y-name z-name)
-  (let* ((mapping (read-mapping geometrics))
+(defun plotly-generate-data/impl (stack geometrics index.table)
+  (bind ((mapping (read-mapping geometrics))
          (data (data-layer stack))
+         (table (cdr index.table))
          (aesthetics (read-aesthetics geometrics))
          (x (x mapping))
          (y (y mapping))
@@ -115,33 +116,49 @@
          (label (label mapping))
          (label-position (label-position aesthetics))
          (size (size mapping)))
-    (macrolet ((set-name (axis name)
-                 `(if (null ,axis)
-                      (setf ,name nil)
-                      (if-let ((table-content (gethash ,axis table)))
-                        (setf ,name (car table-content))
-                        (setf (gethash ,axis table) (cons ,name (plotly-extract-data data ,axis)))))))
-      (set-name x x-name)
-      (set-name y y-name)
-      (set-name z z-name))
+    (macrolet ((set-name (axis)
+                 (with-gensyms (!number !data !index)
+                     `(unless (null ,axis)
+                        (let ((,!number
+                                (if (integerp ,axis)
+                                    ,axis
+                                    (vellum.header:alias-to-index (vellum.table:header data)
+                                                                  ,axis))))
+                          (if-let ((table-content (gethash ,!number table)))
+                            (setf ,axis (car table-content))
+                            (let* ((,!data (plotly-extract-data data ,axis))
+                                  (,!index (incf (car index.table))))
+                              (unless (null ,!data)
+                                (setf ,axis (format nil "v~a" ,!index)
+                                      (gethash ,!number table)
+                                      (cons ,axis (with-output-to-string (*json-stream*)
+                                                    (value ,!data))))))))))))
+      (set-name x)
+      (set-name y)
+      (set-name z)
+      (set-name size)
+      (set-name label)
+      (set-name color))
     (values
      (with-output-to-string (stream)
        (json (stream)
          (object
-           (slot "x" (var x-name))
-           (slot "y" (var y-name))
+           (slot "x" (var x))
+           (slot "y" (var y))
            (unless (null z)
-             (slot "z" (var z-name)))
+             (slot "z" (var z)))
            (slot "mode" (value (plotly-mode geometrics mapping)))
            (slot "type" (value (plotly-type geometrics)))
            (slot "name" (value (label aesthetics)))
            (slot "marker"
                  (object
                    #1=(cond
-                        (color (slot "color" (value (plotly-extract-data data color))))
+                        (color (slot "color" (var color)))
                         (aesthetics (slot "color" (value (color aesthetics)))))
-                   (slot "size" (value (plotly-extract-data data size)))
-                   (slot "text" (value (plotly-extract-data data label)))
+                   (when size
+                     (slot "size" (var size)))
+                   (when label
+                     (slot "text" (var label)))
                    (slot "textposition" (value label-position))))
            (slot "list" (object #1#))))))))
 
@@ -149,15 +166,14 @@
 (defun plotly-generate-data (stack)
   (iterate
     (with geometrics = (geometrics-layers stack))
-    (with table = (make-hash-table :test 'equal))
-    (for i from 0)
+    (with index.table = (cons 0 (make-hash-table)))
     (for g in geometrics)
-    (for x-name = (format nil "x~a" i))
-    (for y-name = (format nil "y~a" i))
-    (for z-name = (format nil "z~a" i))
-    (collect (plotly-generate-data/impl stack g table x-name y-name z-name)
+    (collect (plotly-generate-data/impl stack g index.table)
       into data-forms)
-    (finally (return (values data-forms (hash-table-values table))))))
+    (finally (return (values data-forms
+                             (~> index.table
+                                 cdr
+                                 hash-table-values))))))
 
 
 (defun plotly-format-axis (mapping axis)
@@ -211,7 +227,7 @@
     (format stream "<script type='text/javascript'>~%")
     (iterate
       (for (name . value) in variables)
-      (format stream "var ~a = [~{~a~^, ~}];~%" name value))
+      (format stream "var ~a = ~a;~%~%" name value))
     (format stream "Plotly.newPlot('plotDiv', [~{~a~^,~}], ~a);~%"
             data-forms
             layout)
