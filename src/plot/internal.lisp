@@ -21,6 +21,10 @@
        (json-format *json-stream* result))))
 
 
+(defun var (content)
+  (format *json-stream* "~a" content))
+
+
 (defmacro object (&body content)
   `(progn
      (format *json-stream* "{")
@@ -99,8 +103,8 @@
       (plotly-format-no-nulls stream field-b value-b)))
 
 
-(defun plotly-generate-data (stack geometrics)
-  (bind ((mapping (read-mapping geometrics))
+(defun plotly-generate-data/impl (stack geometrics table x-name y-name z-name)
+  (let* ((mapping (read-mapping geometrics))
          (data (data-layer stack))
          (aesthetics (read-aesthetics geometrics))
          (x (x mapping))
@@ -111,25 +115,49 @@
          (label (label mapping))
          (label-position (label-position aesthetics))
          (size (size mapping)))
-    (with-output-to-string (stream)
-      (json (stream)
-        (object
-         (slot "x" (value (plotly-extract-data data x)))
-         (slot "y" (value (plotly-extract-data data y)))
-         (unless (null z)
-           (slot "z" (value (plotly-extract-data data z))))
-         (slot "mode" (value (plotly-mode geometrics mapping)))
-         (slot "type" (value (plotly-type geometrics)))
-         (slot "name" (value (label aesthetics)))
-         (slot "marker"
-               (object
-                #1=(cond
-                     (color (slot "color" (value (plotly-extract-data data color))))
-                     (aesthetics (slot "color" (value (color aesthetics)))))
-                (slot "size" (value (plotly-extract-data data size)))
-                (slot "text" (value (plotly-extract-data data label)))
-                (slot "textposition" (value label-position))))
-         (slot "list" (object #1#)))))))
+    (macrolet ((set-name (axis name)
+                 `(if (null ,axis)
+                      (setf ,name nil)
+                      (if-let ((table-content (gethash ,axis table)))
+                        (setf ,name (car table-content))
+                        (setf (gethash ,axis table) (cons ,name (plotly-extract-data data ,axis)))))))
+      (set-name x x-name)
+      (set-name y y-name)
+      (set-name z z-name))
+    (values
+     (with-output-to-string (stream)
+       (json (stream)
+         (object
+           (slot "x" (var x-name))
+           (slot "y" (var y-name))
+           (unless (null z)
+             (slot "z" (var z-name)))
+           (slot "mode" (value (plotly-mode geometrics mapping)))
+           (slot "type" (value (plotly-type geometrics)))
+           (slot "name" (value (label aesthetics)))
+           (slot "marker"
+                 (object
+                   #1=(cond
+                        (color (slot "color" (value (plotly-extract-data data color))))
+                        (aesthetics (slot "color" (value (color aesthetics)))))
+                   (slot "size" (value (plotly-extract-data data size)))
+                   (slot "text" (value (plotly-extract-data data label)))
+                   (slot "textposition" (value label-position))))
+           (slot "list" (object #1#))))))))
+
+
+(defun plotly-generate-data (stack)
+  (iterate
+    (with geometrics = (geometrics-layers stack))
+    (with table = (make-hash-table :test 'equal))
+    (for i from 0)
+    (for g in geometrics)
+    (for x-name = (format nil "x~a" i))
+    (for y-name = (format nil "y~a" i))
+    (for z-name = (format nil "z~a" i))
+    (collect (plotly-generate-data/impl stack g table x-name y-name z-name)
+      into data-forms)
+    (finally (return (values data-forms (hash-table-values table))))))
 
 
 (defun plotly-format-axis (mapping axis)
@@ -172,9 +200,8 @@
 
 
 (defun plotly-visualize (stack stream)
-  (let* ((layout (plotly-generate-layout stack))
-         (geometrics (geometrics-layers stack))
-         (data (mapcar (curry #'plotly-generate-data stack) geometrics)))
+  (bind ((layout (plotly-generate-layout stack))
+         ((:values data-forms variables) (plotly-generate-data stack)))
     (format stream "<html>~%")
     (format stream "<head>~%")
     (format stream "<script src='https://cdn.plot.ly/plotly-latest.min.js'></script></head>~%")
@@ -182,8 +209,11 @@
     (format stream
             "<div id='plotDiv'><!-- Plotly chart will be drawn inside this DIV --></div>~%")
     (format stream "<script type='text/javascript'>~%")
+    (iterate
+      (for (name . value) in variables)
+      (format stream "var ~a = [~{~a~^, ~}];~%" name value))
     (format stream "Plotly.newPlot('plotDiv', [~{~a~^,~}], ~a);~%"
-            data
+            data-forms
             layout)
     (format stream "</script>~%")
     (format stream "</body>")

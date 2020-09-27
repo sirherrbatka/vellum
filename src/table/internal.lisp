@@ -51,8 +51,7 @@
 
 (defun transform-row-impl (transformation function)
   (declare (type standard-transformation transformation)
-           (type function function)
-           (optimize (speed 3) (safety 0)))
+           (type function function))
   (cl-ds.utils:with-slots-for (transformation standard-transformation)
     (bind ((prev-control (ensure-function *transform-control*))
            ((:flet move-iterator ())
