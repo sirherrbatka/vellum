@@ -17,7 +17,8 @@
   (declare (optimize (speed 0)))
   (make 'stack-of-layers
         :data-layer data
-        (layer-category layer) layer))
+        (layer-category layer)
+        layer))
 
 
 (defmethod layer-category ((layer geometrics-layer))

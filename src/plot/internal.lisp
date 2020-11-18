@@ -127,7 +127,7 @@
                                         (vellum.header:alias-to-index ,axis)))))
                           (if-let ((table-content (gethash ,!number table)))
                             (setf ,axis (car table-content))
-                            (let* ((,!data (plotly-extract-data data ,axis))
+                            (let ((,!data (plotly-extract-data data ,axis))
                                   (,!index (incf (car index.table))))
                               (unless (null ,!data)
                                 (setf ,axis (format nil "v~a" ,!index)

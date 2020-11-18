@@ -66,8 +66,8 @@
               (vellum.column:make-sparse-material-column
                :element-type (vellum.header:column-type header i))))
       (let* ((iterator (vellum.column:make-iterator columns))
-             (vellum.header:*row* (make 'vellum.table:setfable-table-row
-                                       :iterator iterator)))
+             (vellum.header:*row* (serapeum:box (make 'vellum.table:setfable-table-row
+                                                      :iterator iterator))))
         (cl-ds:traverse object
                         (lambda (content)
                           (iterate
