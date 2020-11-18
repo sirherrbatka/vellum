@@ -50,10 +50,13 @@
          by cl-ds.common.rrb:+bit-count+)
     (for offset = (ldb (byte cl-ds.common.rrb:+bit-count+ byte)
                        index))
-    (for node = (make-node
-                 iterator column (ash 1 offset)
-                 :tag tag
-                 :content (vector prev-node)))
+    (for node = (if (null prev-node)
+                    (make-node iterator column 0
+                               :tag tag)
+                    (make-node
+                     iterator column (ash 1 offset)
+                     :tag tag
+                     :content (vector prev-node))))
     (setf prev-node node
           (aref stack j) node))
   (aref stack 0))
@@ -439,6 +442,7 @@
                        new-to-size))
                  (new-content (make-array
                                new-content-size
+                               :initial-element cl-ds.meta:null-bucket
                                :element-type element-type)))
             (declare (type (simple-array * (*)) new-content)
                      (type fixnum new-content-size))
@@ -624,7 +628,7 @@
           (setf (node parents column index) nil)
           (let ((new-content (make-array (logcount mask)
                                          :element-type t
-                                         :initial-element nil)))
+                                         :initial-element cl-ds.meta:null-bucket)))
             (iterate
               (declare (type fixnum i content-position))
               (with content-position = 0)
@@ -637,9 +641,12 @@
               (setf (aref new-content content-position) child)
               (incf content-position))
             (if (and parent (cl-ds.common.abstract:acquire-ownership parent tag))
-                (setf (cl-ds.common.rrb:sparse-rrb-node-content parent)
-                      new-content
-                      (cl-ds.common.rrb:sparse-rrb-node-bitmask parent) mask)
+                (progn
+                  (assert new-content)
+                  (setf (cl-ds.common.rrb:sparse-rrb-node-content parent)
+                        new-content
+                        (cl-ds.common.rrb:sparse-rrb-node-bitmask parent)
+                        mask))
                 (let ((new-node (make-node iterator column-object mask
                                            :content new-content)))
                   (setf (node parents column index) new-node))))))))
@@ -996,7 +1003,10 @@
       (declare (type fixnum i))
       (for i from 0 below (length stacks))
       (when (aref initialization-status i)
-        (reduce-stack iterator index (aref depths i) (aref stacks i) (aref columns i))))))
+        (reduce-stack iterator index
+                      (aref depths i)
+                      (aref stacks i)
+                      (aref columns i))))))
 
 
 (declaim (notinline clear-changes))

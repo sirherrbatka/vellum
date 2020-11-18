@@ -28,13 +28,9 @@
     (if (eq column new-column)
         (setf (aref new-columns i)
               (cl-ds:replica new-column isolate))
-        (progn
-          (assert
-           (not (eq (cl-ds.common.abstract:read-ownership-tag column)
-                    (cl-ds.common.abstract:read-ownership-tag new-column))))
-          (assert
-           (not (eq (cl-ds.dicts.srrb:access-tree column)
-                    (cl-ds.dicts.srrb:access-tree new-column)))))))
+        (assert
+         (not (eq (cl-ds.common.abstract:read-ownership-tag column)
+                  (cl-ds.common.abstract:read-ownership-tag new-column))))))
   new-columns)
 
 
