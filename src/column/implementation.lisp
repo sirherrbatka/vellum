@@ -151,8 +151,9 @@
 
 (defmethod augment-iterator ((iterator sparse-material-column-iterator)
                              (column sparse-material-column))
-  (cl-ds.dicts.srrb:transactional-insert-tail!
-   column (cl-ds.common.abstract:read-ownership-tag column))
+  (~>> column
+       cl-ds.common.abstract:read-ownership-tag
+       (cl-ds.dicts.srrb:transactional-insert-tail! column))
   (let* ((max-shift cl-ds.common.rrb:+maximal-shift+)
          (shift (cl-ds.dicts.srrb:access-shift column))
          (max-children-count cl-ds.common.rrb:+maximum-children-count+)
