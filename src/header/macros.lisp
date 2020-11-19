@@ -7,7 +7,7 @@
      ,@body))
 
 
-(defmacro body ((&rest selected-columns) &body body)
+(defmacro body (selected-columns &body body)
   (bind ((gensyms (mapcar (lambda (x) (declare (ignore x)) (gensym))
                          selected-columns))
          (names (mapcar (lambda (x)

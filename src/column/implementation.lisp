@@ -153,28 +153,33 @@
                              (column sparse-material-column))
   (cl-ds.dicts.srrb:transactional-insert-tail!
    column (cl-ds.common.abstract:read-ownership-tag column))
-  (let ((max-shift cl-ds.common.rrb:+maximal-shift+)
-        (max-children-count cl-ds.common.rrb:+maximum-children-count+))
+  (let* ((max-shift cl-ds.common.rrb:+maximal-shift+)
+         (shift (cl-ds.dicts.srrb:access-shift column))
+         (max-children-count cl-ds.common.rrb:+maximum-children-count+)
+         (stacks (make-array max-shift :initial-element nil))
+         (buffers (make-array max-children-count
+                              :initial-element :null))
+         (changes (make-array max-children-count
+                              :element-type 'boolean
+                              :initial-element nil)))
     (make-sparse-material-column-iterator
      :index (index iterator)
      :initial-index (index iterator)
-     :touched (~>> iterator read-touched (into-vector-copy nil))
+     :touched (~>> iterator read-touched
+                   (into-vector-copy nil))
      :initialization-status (~>> iterator
                                  read-initialization-status
                                  (into-vector-copy nil))
-     :columns (~>> iterator read-columns (into-vector-copy column))
+     :columns (~>> iterator read-columns
+                   (into-vector-copy column))
      :changes (~>> iterator read-changes
-                   (into-vector-copy (make-array max-children-count
-                                                 :element-type 'boolean
-                                                 :initial-element nil)))
+                   (into-vector-copy changes))
      :stacks (~>> iterator read-stacks
-                  (into-vector-copy (make-array max-shift
-                                                :initial-element nil)))
+                  (into-vector-copy stacks))
      :buffers (~>> iterator read-buffers
-                   (into-vector-copy (make-array max-children-count
-                                                 :initial-element :null)))
+                   (into-vector-copy buffers))
      :depths (~>> iterator read-depths
-                  (into-vector-copy (cl-ds.dicts.srrb:access-shift column))))))
+                  (into-vector-copy shift)))))
 
 
 (defmethod make-iterator (columns &key (transformation #'identity))
@@ -447,7 +452,8 @@
    :buffers (~> iterator read-buffers copy-array)
    :changes (~> iterator read-changes copy-array)
    :touched (~> iterator read-touched copy-array)
-   :initialization-status (~> iterator read-initialization-status
+   :initialization-status (~> iterator
+                              read-initialization-status
                               copy-array)))
 
 
