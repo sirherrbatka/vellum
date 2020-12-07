@@ -46,6 +46,7 @@
   vellum.table:erase!
   vellum.table:finish-transformation
   vellum.table:hstack
+  vellum.table:make-table
   vellum.table:hstack*
   vellum.table:nullify
   vellum.table:remove-nulls

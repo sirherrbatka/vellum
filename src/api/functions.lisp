@@ -2,8 +2,8 @@
 
 
 (defun empty-column (header-class &rest row-parameters)
-  (~>> (make-header header-class row-parameters)
-       (vellum.table:make-table 'vellum.table:standard-table)))
+  (vellum.table:make-table :header (make-header header-class row-parameters)
+                           :columns row-parameters))
 
 
 (defun new-columns (table &rest columns)
