@@ -59,6 +59,9 @@
                                             header-class columns)))
   (vellum:with-header (header)
     (let* ((column-count (vellum.header:column-count header))
+           (function (if (null body)
+                         (constantly nil)
+                         (vellum:bind-row-closure body)))
            (columns (make-array column-count)))
       (iterate
         (for i from 0 below column-count)
@@ -74,8 +77,7 @@
                             (for i from 0 below column-count)
                             (setf (vellum.column:iterator-at iterator i)
                                   (funcall key (aref content i)))
-                            (unless (null body)
-                              (funcall body vellum.header:*row*))
+                            (funcall function)
                             (finally (vellum.column:move-iterator iterator 1)))))
         (vellum.column:finish-iterator iterator)
         (make class

@@ -15,11 +15,13 @@
      (header (apply #'vellum.header:make-header
                     header-class columns)))
 
-    (%iterator %row %body %class %columns %column-count %header)
+    (%iterator %function %row %class %columns %column-count %header)
 
     ((setf %header header
+           %function (if (null body)
+                         (constantly nil)
+                         (vellum:bind-row-closure body))
            %class class
-           %body body
            %column-count (vellum.header:column-count %header)
            %columns (make-array %column-count))
      (iterate
@@ -36,11 +38,9 @@
        (for i from 0 below %column-count)
        (setf (vellum.column:iterator-at %iterator i)
              (vellum.header:row-at %header row i)))
-     (let ((body %body))
-       (unless (null body)
-         (vellum.header:with-header (%header)
-           (let ((vellum.header:*row* (box %row)))
-             (funcall body %row)))))
+     (vellum.header:with-header (%header)
+       (let ((vellum.header:*row* (box %row)))
+         (funcall %function)))
      (vellum.column:move-iterator %iterator 1))
 
     ((vellum.column:finish-iterator %iterator)
