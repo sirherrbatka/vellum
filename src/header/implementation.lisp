@@ -231,9 +231,9 @@
     (unless (~> (column-predicate header column)
                 (funcall new-value))
       (error 'predicate-failed
-             :column-number index
+             :column-number column
              :format-arguments (list new-value column)
-             :value source))
+             :value new-value))
     (setf (aref row column) new-value)))
 
 
