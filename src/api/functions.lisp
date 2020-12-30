@@ -16,9 +16,6 @@
        (hstack* table)))
 
 
-(defun empty-table (&key (header (vellum.header:header)))
-  (vellum.table:make-table :class 'vellum.table:standard-table :header header))
-
 (defun order-by (table column comparator &rest columns-comparators)
   (let* ((content (make-array (row-count table)))
          (header (vellum.table:header table))

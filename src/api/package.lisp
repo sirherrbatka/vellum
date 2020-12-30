@@ -8,7 +8,6 @@
    #:copy-from
    #:copy-to
    #:empty-column
-   #:empty-table
    #:with-standard-header
    #:join
    #:pipeline
