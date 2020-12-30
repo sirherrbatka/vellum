@@ -63,3 +63,9 @@
 (defmethod cl-ds.utils:cloning-information append
     ((signature frame-range-mixin))
   '((:list-format read-list-format)))
+
+
+(defclass bind-row ()
+  ((%optimized-closure :initarg :optimized-closure
+                       :reader optimized-closure))
+  (:metaclass closer-mop:funcallable-standard-class))

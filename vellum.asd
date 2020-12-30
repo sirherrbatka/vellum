@@ -12,7 +12,7 @@
                 :local-time    :cl-postgres
                 :s-sql         :mcclim
                 :documentation-utils-extensions
-                :postmodern)
+                :postmodern    :closer-mop)
   :serial T
   :pathname "src"
   :components ((:file "aux-package")

@@ -309,3 +309,9 @@
     (collect (list :name (read-name signature)
                    :predicate (read-predicate signature)
                    :type (read-type signature)))))
+
+
+(defmethod bind-row-closure ((bind-row bind-row)
+                             &key (header (header)))
+  (funcall (optimized-closure bind-row)
+           header))

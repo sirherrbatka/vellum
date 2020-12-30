@@ -38,29 +38,51 @@
                       ,(symbol-name column)))
                    (t column)))))
     (with-gensyms (!arg)
-      `(lambda (&optional (,!header (vellum.header:header)))
-         (declare (ignorable ,!header))
-         (let ,(mapcar #'generate-column-index
-                generated
-                columns)
-           (lambda (&rest ,!arg)
-             (declare (ignore ,!arg))
-             (let* ((,!row (row))
-                    ,@(mapcar (lambda (name column)
-                                `(,name (row-at ,!header ,!row ,column)))
-                              names
-                              generated)
-                    ,@(mapcar #'list
-                              gensyms
-                              names))
-               (declare (ignorable ,!row))
-               (prog1 (progn ,@body)
-                 ,@(mapcar (lambda (column name gensym)
-                             `(unless (eql ,name ,gensym)
-                                (setf (row-at ,!header ,!row ,column) ,name)))
+      `(make-bind-row
+        (lambda (&optional (,!header (vellum.header:header)))
+          (declare (ignorable ,!header))
+          (let ,(mapcar #'generate-column-index
+                  generated
+                  columns)
+             (lambda (&rest ,!arg)
+               (declare (ignore ,!arg))
+               (let* ((,!row (row))
+                      ,@(mapcar (lambda (name column)
+                                  `(,name (row-at ,!header ,!row ,column)))
+                                names
+                                generated)
+                      ,@(mapcar #'list
+                                gensyms
+                                names))
+                 (declare (ignorable ,!row))
+                 (prog1 (progn ,@body)
+                   ,@(mapcar (lambda (column name gensym)
+                               `(unless (eql ,name ,gensym)
+                                  (setf (row-at ,!header ,!row ,column) ,name)))
+                             generated
+                             names
+                             gensyms))))))
+        (lambda (&rest ,!arg)
+          (declare (ignore ,!arg))
+          (let* (,@(mapcar #'generate-column-index
                            generated
+                           columns)
+                 (,!row (row))
+                 ,@(mapcar (lambda (name column)
+                             `(,name (row-at ,!header ,!row ,column)))
                            names
-                           gensyms)))))))))
+                           generated)
+                 ,@(mapcar #'list
+                           gensyms
+                           names))
+            (declare (ignorable ,!row))
+            (prog1 (progn ,@body)
+              ,@(mapcar (lambda (column name gensym)
+                          `(unless (eql ,name ,gensym)
+                             (setf (row-at ,!header ,!row ,column) ,name)))
+                        generated
+                        names
+                        gensyms))))))))
 
 
 (defmacro brr (column)

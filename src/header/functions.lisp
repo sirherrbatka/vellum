@@ -56,6 +56,6 @@
     (finally (return result))))
 
 
-(defun bind-row-closure (bind-row
-                         &key (header (vellum.header:header)))
-  (funcall bind-row header))
+(defun make-bind-row (optimized-closure non-optimized-closure)
+  (lret ((result (make 'bind-row :optimized-closure optimized-closure)))
+    (c2mop:set-funcallable-instance-function result non-optimized-closure)))
