@@ -32,14 +32,14 @@
   (:default-initargs :format-control "Can't convert ~a to type ~a."))
 
 
-(define-condition invalid-alias (cl-ds:invalid-value)
+(define-condition invalid-name (cl-ds:invalid-value)
   ())
 
 
-(define-condition alias-duplicated (cl-ds:operation-not-allowed)
-  ((%alias :initarg :alias
-           :reader alias))
-  (:default-initargs :format-control "Detected alias ~a duplication."))
+(define-condition name-duplicated (cl-ds:operation-not-allowed)
+  ((%name :initarg :name
+          :reader name))
+  (:default-initargs :format-control "Detected name ~a duplication."))
 
 
 (define-condition headers-incompatible (cl-ds:operation-not-allowed)

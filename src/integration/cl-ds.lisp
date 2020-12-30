@@ -45,7 +45,7 @@
   (cl-ds:across range
                 (lambda (data)
                   (push (append (pop definitions)
-                                (list :alias (car data)))
+                                (list :name (car data)))
                         result)))
   (nreverse result))
 

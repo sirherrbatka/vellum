@@ -10,13 +10,13 @@
       (iter:iterate
         (iter:with header = (vellum:header))
         (iter:for i from 0 below (vellum:column-count data-frame))
-        (iter:for alias = (or (ignore-errors (vellum.header:index-to-alias header i))
+        (iter:for name = (or (ignore-errors (vellum.header:index-to-name header i))
                               i))
         (formatting-column (clim-stream)
           (surrounding-output-with-border (clim-stream
                                            :shape :underline)
             (formatting-cell (clim-stream)
-              (princ alias clim-stream)))
+              (princ name clim-stream)))
           (vellum:transform data-frame
                            (vellum:bind-row ()
                              (formatting-cell (clim-stream)

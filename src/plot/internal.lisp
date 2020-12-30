@@ -119,7 +119,7 @@
                                     ,axis
                                     (~> data
                                         vellum.table:header
-                                        (vellum.header:alias-to-index ,axis)))))
+                                        (vellum.header:name-to-index ,axis)))))
                           (if-let ((table-content (gethash ,!number table)))
                             (setf ,axis (car table-content))
                             (let ((,!data (plotly-extract-data data ,axis))

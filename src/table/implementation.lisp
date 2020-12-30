@@ -24,7 +24,7 @@
 
 (defmethod column-name ((frame standard-table) (column integer))
   (~> frame header
-      (vellum.header:index-to-alias column)))
+      (vellum.header:index-to-name column)))
 
 
 (defmethod column-type ((frame standard-table) column)
@@ -258,16 +258,16 @@
 (defmethod vellum.header:row-at ((header vellum.header:standard-header)
                                  (row table-row)
                                  (position string))
-  (vellum.header:row-at header row (vellum.header:alias-to-index header
-                                                                 position)))
+  (vellum.header:row-at header row (vellum.header:name-to-index header
+                                                                position)))
 
 
 (defmethod vellum.header:row-at ((header vellum.header:standard-header)
                                  (row table-row)
                                  position)
   (vellum.header:row-at header row
-                        (vellum.header:alias-to-index header
-                                                      position)))
+                        (vellum.header:name-to-index header
+                                                     position)))
 
 
 (defmethod (setf vellum.header:row-at) (new-value
@@ -275,8 +275,8 @@
                                         (row setfable-table-row)
                                         position)
   (setf (vellum.header:row-at header row
-                             (vellum.header:alias-to-index header
-                                                           position))
+                             (vellum.header:name-to-index header
+                                                          position))
         new-value))
 
 
@@ -453,7 +453,7 @@
 
 (defmethod column-at ((frame standard-table) column)
   (~>> (header frame)
-       (vellum.header:alias-to-index _ column)
+       (vellum.header:name-to-index _ column)
        (column-at frame)))
 
 

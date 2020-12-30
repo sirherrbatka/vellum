@@ -391,9 +391,9 @@
     (when header
       (iterate
         (for column from 0 below column-count)
-        (for alias = (vellum.header:index-to-alias h column))
-        (when alias
-          (prin1 (symbol-name alias) output))
+        (for name = (vellum.header:index-to-name h column))
+        (when name
+          (prin1 name output))
         (unless (= (1+ column) column-count)
           (princ #\, output)))
       (terpri output))

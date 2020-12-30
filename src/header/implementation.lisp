@@ -1,34 +1,34 @@
 (cl:in-package #:vellum.header)
 
 
-(defmethod alias-to-index ((header standard-header)
-                           (alias string))
-  (let* ((aliases (read-column-aliases header))
-         (index (gethash alias aliases)))
+(defmethod name-to-index ((header standard-header)
+                          (name string))
+  (let* ((names (read-column-names header))
+         (index (gethash name names)))
     (when (null index)
       (error 'no-column
-             :bounds (hash-table-keys aliases)
-             :argument 'alias
-             :value alias
-             :format-arguments (list alias)))
+             :bounds (hash-table-keys names)
+             :argument 'name
+             :value name
+             :format-arguments (list name)))
     index))
 
 
-(defmethod alias-to-index ((header standard-header)
-                           (alias symbol))
-  (alias-to-index header (symbol-name alias)))
+(defmethod name-to-index ((header standard-header)
+                          (name symbol))
+  (name-to-index header (symbol-name name)))
 
 
 (defmethod column-signature ((header standard-header)
-                             (alias symbol))
-  (column-signature header (alias-to-index header alias)))
+                             (name symbol))
+  (column-signature header (name-to-index header name)))
 
 
 (defmethod initialize-instance :after ((object column-signature)
                                        &key &allow-other-keys)
-  (bind (((:slots %type %predicate %alias) object))
+  (bind (((:slots %type %predicate %name) object))
     (check-type %type (or list symbol))
-    (check-type %alias (or symbol string))
+    (check-type %name (or symbol string))
     (ensure-functionf %predicate)))
 
 
@@ -46,19 +46,19 @@
     (~> column-signatures (aref index))))
 
 
-(defmethod index-to-alias ((header standard-header)
-                           (index integer))
+(defmethod index-to-name ((header standard-header)
+                          (index integer))
   (check-type index non-negative-integer)
   (let* ((signature (column-signature header index))
-         (alias (read-alias signature)))
-    (if (null alias)
+         (name (read-name signature)))
+    (if (null name)
         (error 'no-column
                :bounds `(< 0 ,(~> header read-column-signatures length))
                :argument 'index
                :value index
-               :format-control "No alias for column ~a."
+               :format-control "No name for column ~a."
                :format-arguments (list index))
-        alias)))
+        name)))
 
 
 (defmethod make-header (class &rest columns)
@@ -68,24 +68,24 @@
                                  (lambda (c)
                                    (apply #'make signature-class c))
                                  columns))
-         (aliases (iterate
-                    (with result = (make-hash-table
-                                    :test 'equal
-                                    :size (length column-signatures)))
-                    (for column in-vector column-signatures)
-                    (for i from 0)
-                    (for alias = (read-alias column))
-                    (when (null alias) (next-iteration))
-                    (when (symbolp alias)
-                      (setf alias (symbol-name alias)))
-                    (check-type alias string)
-                    (unless (null (shiftf (gethash alias result) i))
-                      (error 'alias-duplicated
-                             :format-arguments (list alias)
-                             :alias alias))
-                    (finally (return result)))))
+         (names (iterate
+                  (with result = (make-hash-table
+                                  :test 'equal
+                                  :size (length column-signatures)))
+                  (for column in-vector column-signatures)
+                  (for i from 0)
+                  (for name = (read-name column))
+                  (when (null name) (next-iteration))
+                  (when (symbolp name)
+                    (setf name (symbol-name name)))
+                  (check-type name string)
+                  (unless (null (shiftf (gethash name result) i))
+                    (error 'name-duplicated
+                           :format-arguments (list name)
+                           :name name))
+                  (finally (return result)))))
     (setf (slot-value result '%column-signatures) column-signatures
-          (slot-value result '%column-aliases) aliases)
+          (slot-value result '%column-names) names)
     result))
 
 
@@ -242,7 +242,7 @@
                           (row vector)
                           (column symbol))
   (declare (type (array t (*)) row))
-  (setf (row-at header row (alias-to-index header column))
+  (setf (row-at header row (name-to-index header column))
         new-value))
 
 
@@ -251,31 +251,31 @@
                           (row vector)
                           (column string))
   (declare (type (array t (*)) row))
-  (setf (row-at header row (alias-to-index header column))
+  (setf (row-at header row (name-to-index header column))
         new-value))
 
 
 (defmethod row-at ((header standard-header)
                    (row vector)
                    (column symbol))
-  (~>> (alias-to-index header column)
+  (~>> (name-to-index header column)
        (row-at header row)))
 
 
 (defmethod row-at ((header standard-header)
                    (row vector)
                    (column string))
-  (~>> (alias-to-index header column)
+  (~>> (name-to-index header column)
        (row-at header row)))
 
 
 (defmethod concatenate-headers ((header standard-header)
                                 &rest more-headers)
   (push header more-headers)
-  (let* ((aliases (unique-aliases more-headers))
+  (let* ((names (unique-names more-headers))
          (signatures (apply #'concatenate 'vector
                             (mapcar #'read-column-signatures more-headers))))
-    (make 'standard-header :column-aliases aliases
+    (make 'standard-header :column-names names
                            :column-signatures signatures)))
 
 
@@ -284,28 +284,28 @@
   (bind ((selected (~> columns
                        (cl-ds.alg:on-each (curry #'column-signature header))
                        cl-ds.alg:to-vector))
-         (aliases (make-hash-table :size (length selected)
-                                   :test 'equal)))
+         (names (make-hash-table :size (length selected)
+                                 :test 'equal)))
     (declare (type vector selected))
     (iterate
       (for i from 0)
       (for s in-vector selected)
-      (for alias = (read-alias s))
-      (when (null alias) (next-iteration))
-      (when (symbolp alias)
-        (setf alias (symbol-name alias)))
-      (unless (null (shiftf (gethash alias aliases) i))
-        (error 'alias-duplicated
-               :format-arguments (list alias)
-               :alias alias)))
+      (for name = (read-name s))
+      (when (null name) (next-iteration))
+      (when (symbolp name)
+        (setf name (symbol-name name)))
+      (unless (null (shiftf (gethash name names) i))
+        (error 'name-duplicated
+               :format-arguments (list name)
+               :name name)))
     (make (class-of header)
           :column-signatures selected
-          :column-aliases aliases)))
+          :column-names names)))
 
 
 (defmethod column-specs ((header standard-header))
   (iterate
     (for signature in-vector (read-column-signatures header))
-    (collect (list :alias (read-alias signature)
+    (collect (list :name (read-name signature)
                    :predicate (read-predicate signature)
                    :type (read-type signature)))))

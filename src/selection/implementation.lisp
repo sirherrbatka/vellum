@@ -6,18 +6,19 @@
             stack-frame))
 
 
-(defun ensure-index (alias-or-index)
+(defun ensure-index (name-or-index)
   (handler-case
-      (if (integerp alias-or-index)
-          alias-or-index
-          (vellum.header:alias-to-index (vellum.header:header)
-                                        alias-or-index))
+      (if (integerp name-or-index)
+          name-or-index
+          (vellum.header:name-to-index (vellum.header:header)
+                                       name-or-index))
+    ;; the only case when this conditions can pop up is when we are selecting rows
     (vellum.header:no-header (e)
       (declare (ignore e))
-      (error 'alias-when-selecting-row
-             :value alias-or-index
+      (error 'name-when-selecting-row
+             :value name-or-index
              :format-control "Attempting to access row by a non-integer value: ~a"
-             :format-arguments `(,alias-or-index)))))
+             :format-arguments `(,name-or-index)))))
 
 
 (defmethod shared-initialize :after ((object bounded-selection-block)

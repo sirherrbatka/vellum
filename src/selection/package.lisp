@@ -5,6 +5,6 @@
   (:use #:cl #:vellum.aux-package)
   (:export
    #:fold-selection-input
-   #:alias-when-selecting-row
+   #:name-when-selecting-row
    #:selection-syntax-error
    #:next-position))

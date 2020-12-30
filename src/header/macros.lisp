@@ -29,11 +29,11 @@
          ((:flet generate-column-index (generated column))
           `(,generated
             ,(cond ((stringp column)
-                    `(vellum.header:alias-to-index
+                    `(vellum.header:name-to-index
                       ,!header
-                           ,column))
+                      ,column))
                    ((symbolp column)
-                    `(vellum.header:alias-to-index
+                    `(vellum.header:name-to-index
                       ,!header
                       ,(symbol-name column)))
                    (t column)))))
@@ -73,10 +73,10 @@
            (unless (eq ,!current-header ,!header)
              (setf ,!header ,!current-header
                    ,!index ,(cond ((stringp column)
-                                   `(vellum.header:alias-to-index ,!header
+                                   `(vellum.header:name-to-index ,!header
                                                                  ,column))
                                   ((symbolp column)
-                                   `(vellum.header:alias-to-index ,!header
+                                   `(vellum.header:name-to-index ,!header
                                                                  ,(symbol-name column)))
                                   (t column))))
            (row-at ,!header ,!row ,!index))))))

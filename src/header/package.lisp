@@ -5,36 +5,35 @@
   (:use #:cl #:vellum.aux-package)
   (:nicknames #:vellum.header)
   (:export
-   #:alias-to-index
-   #:no-header
-   #:invalid-alias
-   #:bind-row
-   #:brr
-   #:bind-row-closure
-   #:column-count
-   #:read-alias
-   #:column-signature
-   #:constantly-t
-   #:column-type
-   #:*row*
    #:*header*
+   #:*row*
+   #:bind-row
+   #:bind-row-closure
+   #:brr
+   #:column-count
    #:column-predicate
-   #:predicate-failed
+   #:column-signature
+   #:column-specs
+   #:column-type
    #:concatenate-headers
-   #:validated-frame-range-mixin
-   #:headers-incompatible
+   #:constantly-t
+   #:current-row-as-vector
    #:decorate
    #:forward-proxy-frame-range
    #:frame-range-mixin
-   #:column-specs
-   #:current-row-as-vector
    #:fundamental-header
    #:header
-   #:index-to-alias
-   #:make-header
-   #:no-column
-   #:unable-to-construct-row
+   #:headers-incompatible
+   #:index-to-name
    #:invalid-input-for-row
+   #:invalid-name
+   #:make-header
+   #:name-duplicated
+   #:name-to-index
+   #:no-column
+   #:no-header
+   #:predicate-failed
+   #:read-name
    #:row
    #:row-at
    #:rr
@@ -42,5 +41,7 @@
    #:set-row
    #:skip-row
    #:standard-header
+   #:unable-to-construct-row
+   #:validated-frame-range-mixin
    #:value
    #:with-header))

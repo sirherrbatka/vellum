@@ -1,9 +1,9 @@
 (cl:in-package #:vellum.header)
 
 
-(defgeneric alias-to-index (header alias))
+(defgeneric name-to-index (header name))
 
-(defgeneric index-to-alias (header index))
+(defgeneric index-to-name (header index))
 
 (defgeneric column-type (header column))
 

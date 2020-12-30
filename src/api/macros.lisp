@@ -34,7 +34,7 @@
 
 (defmacro aggregate-columns (table expression
                              &key
-                               alias
+                               name
                                skip-nulls
                                (type t)
                                (predicate 'vellum.header:constantly-t))
@@ -45,5 +45,5 @@
                           (list '() ,@body))
                          :skip-nulls ,skip-nulls
                          :type ,type
-                         :alias ,alias
+                         :name ,name
                          :predicate ,predicate)))

@@ -18,16 +18,16 @@ Data Frame is composed of header and columns. The header can be thought of as a 
   (defparameter *table*
     (vellum:make-table
      :header (vellum:make-header 'vellum.header:standard-header
-                                 '(:alias first-column)
-                                 '(:alias second-column :type fixnum))))
+                                 '(:name first-column)
+                                 '(:name second-column :type fixnum))))
 #+END_SRC
 
 You may be under impression that there has to be a better way to it. You would be correct.
 
 #+BEGIN_SRC common-lisp
   (defparameter *table*
-    (vellum:make-table :columns '((:alias first-column)
-                                  (:alias second-column :type fixnum))))
+    (vellum:make-table :columns '((:name first-column)
+                                  (:name second-column :type fixnum))))
 #+END_SRC
 
 ** Read and write data
@@ -87,9 +87,9 @@ Notice that this time I've left the original frame untouched. Other keyword argu
 #+BEGIN_SRC common-lisp
   (defparameter *table*
     (alexandria:with-input-from-file (stream "bmi data.txt")
-      (vellum:transform (vellum:make-table :columns '((:alias weight)
-                                                      (:alias bmi)
-                                                      (:alias height)))
+      (vellum:transform (vellum:make-table :columns '((:name weight)
+                                                      (:name bmi)
+                                                      (:name height)))
                         (vellum:bind-row (weight height bmi)
                           (let ((line (read-line stream nil nil)))
                             (if (null line)
@@ -103,14 +103,14 @@ Notice that this time I've left the original frame untouched. Other keyword argu
 
 This won't work if your data source insists on driving reading data. If API has just MAP-DATA function and no iterator you may think that you are screwed. Don't worry, there is also TRANSFORMATION that construct a sort of transform iterator that you can move on your own. More of that later.
 
-One more thing: you can actually use name different from :alias in the column. This comes in handy when the alias is a reserved symbol or (perhaps even more often) when there is simply no alias, to begin with. In such case, the following will do the trick.
+One more thing: you can actually use name different from :name in the column. This comes in handy when the name is a reserved symbol or (perhaps even more often) when there is simply no name, to begin with. In such case, the following will do the trick.
 
 #+BEGIN_SRC common-lisp
   (defparameter *table*
     (alexandria:with-input-from-file (stream "bmi data.txt")
-      (vellum:transform (vellum:make-table :columns '((:alias weight)
-                                                      (:alias bmi)
-                                                      (:alias height)))
+      (vellum:transform (vellum:make-table :columns '((:name weight)
+                                                      (:name bmi)
+                                                      (:name height)))
                         (vellum:bind-row ((weight-but-different 0) height bmi)
                           (let ((line (read-line stream nil nil)))
                             (if (null line)
@@ -128,8 +128,8 @@ Usually, BMI would not be present in the data frame from the start and must be s
 #+BEGIN_SRC common-lisp
   (defparameter *table*
     (alexandria:with-input-from-file (stream "bmi data.txt")
-      (vellum:new-columns (vellum:transform (vellum:make-table :columns '((:alias weight)
-                                                                          (:alias height)))
+      (vellum:new-columns (vellum:transform (vellum:make-table :columns '((:name weight)
+                                                                          (:name height)))
                                             (vellum:bind-row (weight height)
                                               (let ((line (read-line stream nil nil)))
                                                 (if (null line)
@@ -138,7 +138,7 @@ Usually, BMI would not be present in the data frame from the start and must be s
                                                         (setf weight new-weight
                                                               height new-height)))))
                                             :end nil)
-                          '(:alias bmi))))
+                          '(:name bmi))))
 #+END_SRC
 
 Let's admit it: this is getting a little bit nested. From now one I will use threading macro ~> from serapeum. By using this macro we are getting a somewhat more understandable form that does the exact same thing.
@@ -147,7 +147,7 @@ Let's admit it: this is getting a little bit nested. From now one I will use thr
   (defparameter *table*
     (alexandria:with-input-from-file (stream "bmi data.txt")
       (serapeum:~>
-       (vellum:make-table :columns '((:alias weight) (:alias height)))
+       (vellum:make-table :columns '((:name weight) (:name height)))
        (vellum:transform (vellum:bind-row (weight height)
                            (let ((line (read-line stream nil nil)))
                              (if (null line)
@@ -156,7 +156,7 @@ Let's admit it: this is getting a little bit nested. From now one I will use thr
                                      (setf weight new-weight
                                            height new-height)))))
                          :end nil)
-       (vellum:new-columns '(:alias bmi))))
+       (vellum:new-columns '(:name bmi))))
 #+END_SRC
 
 Either way, it is impossible to change the number of columns in the table in a destructive way. This is by design as vellum headers are immutable as well.
@@ -164,9 +164,9 @@ Either way, it is impossible to change the number of columns in the table in a d
 Selecting a subset of the columns is equally important to add new columns. To do this in Vellum we should use VELLUM:SELECT function. Now, this function is slightly more complex, and it is all because of the input. For instance, to select just a single column…
 
 #+BEGIN_SRC common-lisp
-  (defparameter *table* (vellum:make-table :columns '((:alias first-colum)
-                                                      (:alias second-column)
-                                                      (:alias third-column))))
+  (defparameter *table* (vellum:make-table :columns '((:name first-colum)
+                                                      (:name second-column)
+                                                      (:name third-column))))
   (defparameter *just-second-and-third* (vellum:select *table*
                                           :columns '(:v 1 :v 2)))
   (defparameter *just-second-and-third* (vellum:select *table*
@@ -177,18 +177,18 @@ Selecting a subset of the columns is equally important to add new columns. To do
                                           :columns '(:take-from 1 :take-to 2)))
 #+END_SRC
 
-All four ways to select second and third columns are equally valid. :V keyword argument designates a single value, either by an integer or by column alias. Pair of :TAKE-FROM and :TAKE-TO allows us to select a range of columns, again either by designating column number or column alias. Selecting by range is probably not all that useful in the context of columns, however, the exact same syntax is used for :ROWS where it really it is in it's element. Anyway, the other worth knowing trick you can do is to combine selection forms. For instance, if you have 10 columns, and want just select columns 2, 3, 4, 7, 8, and 9 you can do the following.
+All four ways to select second and third columns are equally valid. :V keyword argument designates a single value, either by an integer or by column name. Pair of :TAKE-FROM and :TAKE-TO allows us to select a range of columns, again either by designating column number or column name. Selecting by range is probably not all that useful in the context of columns, however, the exact same syntax is used for :ROWS where it really it is in it's element. Anyway, the other worth knowing trick you can do is to combine selection forms. For instance, if you have 10 columns, and want just select columns 2, 3, 4, 7, 8, and 9 you can do the following.
 
 #+BEGIN_SRC common-lisp
-  (defparameter *table* (vellum:make-table :columns '((:alias first-colum)
-                                                      (:alias second-column)
-                                                      (:alias third-column)
-                                                      (:alias fourth-column)
-                                                      (:alias fifth-column)
-                                                      (:alias sixth-column)
-                                                      (:alias seventh-column)
-                                                      (:alias eight-column)
-                                                      (:alias nine-column))))
+  (defparameter *table* (vellum:make-table :columns '((:name first-colum)
+                                                      (:name second-column)
+                                                      (:name third-column)
+                                                      (:name fourth-column)
+                                                      (:name fifth-column)
+                                                      (:name sixth-column)
+                                                      (:name seventh-column)
+                                                      (:name eight-column)
+                                                      (:name nine-column))))
   (defparameter *columns-subset* (vellum:select *table*
                                    :columns '(:v 2 :v 3 :v 4 :v 7 :v 8 :v 9)))
   (defparameter *columns-subset* (vellum:select *table*
@@ -242,7 +242,7 @@ Besides GROUP-BY there are also other functions altering how aggregation is perf
   (vellum:pipeline (*table*)
     (cl-ds.alg:group-by :key (vellum:brr grouping-column-name))
     (cl-ds.math:average :key (vellum:brr column-name))
-    (vellum:to-table :columns '((:alias group) (:alias aggregation-result))))
+    (vellum:to-table :columns '((:name group) (:name aggregation-result))))
 #+END_SRC
 
 And if you simply want to write code that mimics MS Excel, you can do that as well by using AGGREGATE-ROWS macro.
@@ -253,13 +253,13 @@ And if you simply want to write code that mimics MS Excel, you can do that as we
    :column2 ((cl-ds.math:average) :skip-nulls t))
 #+END_SRC
 
-The above will construct a new data frame containing two columns (with aliases :column1 and :column2) and one row, holding the average of the column1 and column2 of the original table. The :SKIP-NULLS option prevents code from erroring out on the :NULL. It also improves performance somewhat.
+The above will construct a new data frame containing two columns (with names :column1 and :column2) and one row, holding the average of the column1 and column2 of the original table. The :SKIP-NULLS option prevents code from erroring out on the :NULL. It also improves performance somewhat.
 
 ** Integrating with other stuff
 As hinted before, Vellum is designed to be easy to use with other libraries. For instance, let's say you want to use postmodern to access the postgres database where you are keeping your data safe and warm. To do so, you can do the following.
 
 #+BEGIN_SRC common-lisp
-  (defparameter *table* (vellum:make-table :columns '((:alias first-column) (:alias second-column))))
+  (defparameter *table* (vellum:make-table :columns '((:name first-column) (:name second-column))))
   (vellum:with-table (*table*)
     (postmodern:with-connection '("database" "username" "password" "localhost")
       (let ((transformation (vellum.table:transformation *table* (constantly nil) :in-place t :start 0))

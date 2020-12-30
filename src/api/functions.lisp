@@ -32,7 +32,7 @@
                                                    non-negative-integer))
                                  (if (or (symbolp x)
                                          (stringp x))
-                                     (vellum.header:alias-to-index header x)
+                                     (vellum.header:name-to-index header x)
                                      x)))
                        nreverse))
          (i 0))
@@ -58,9 +58,9 @@
             (for column-specs = (vellum.header:column-specs header))
             (for transformed-specs =
                  (mapcar (lambda (x)
-                           (let* ((alias (getf x :alias))
-                                  (new-alias (format nil "~a-~a" alias alias)))
-                             (list :alias new-alias
+                           (let* ((name (getf x :name))
+                                  (new-name (format nil "~a-~a" name name)))
+                             (list :name new-name
                                    :predicate (getf x :predicate)
                                    :type (getf x :type))))
                          column-specs))
@@ -216,7 +216,7 @@
          (columns-count (vellum.header:column-count header))
          ((:flet alter-column (index))
           (let* ((column (vellum.header:column-signature header index))
-                 (id (or (vellum.header:read-alias column)
+                 (id (or (vellum.header:read-name column)
                          index))
                  (new-params (find-if (lambda (x)
                                         (or (equal id x)
@@ -244,7 +244,7 @@
          (result (vellum.table:make-table
                   :header (apply #'vellum.header:make-header
                                  'vellum.header:standard-header
-                                 (mapcar (curry #'list :alias)
+                                 (mapcar (curry #'list :name)
                                          names)))))
     (iterate
       (for i from 0)
@@ -271,7 +271,7 @@
 
 (defun %aggregate-columns (table aggregator-constructor
                            &key (skip-nulls nil) (type t)
-                           alias
+                           name
                              (predicate vellum.header:constantly-t))
   (declare (optimize (speed 3)))
   (bind ((column-count (column-count table))
@@ -279,7 +279,7 @@
                   :header (vellum.header:make-header
                            'vellum.header:standard-header
                            `(:predicate ,predicate
-                             :alias ,alias
+                             :name ,name
                              :type ,type)))))
     (declare (type fixnum column-count))
     (~> (transform (hstack* table (list result) :isolate nil)

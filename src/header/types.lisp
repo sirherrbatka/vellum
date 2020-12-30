@@ -13,10 +13,10 @@
           :reader read-type)
    (%predicate :initarg :predicate
                :reader read-predicate)
-   (%alias :initarg :alias
-           :reader read-alias))
+   (%name :initarg :name
+          :reader read-name))
   (:default-initargs :type t
-                     :alias nil
+                     :name nil
                      :predicate constantly-t))
 
 
@@ -26,22 +26,22 @@
                             :reader read-column-signature-class)
    (%column-signatures :initarg :column-signatures
                        :reader read-column-signatures)
-   (%column-aliases :type hash-table
-                    :initarg :column-aliases
-                    :reader read-column-aliases)))
+   (%column-names :type hash-table
+                  :initarg :column-names
+                  :reader read-column-names)))
 
 
 (defmethod cl-ds.utils:cloning-information append
     ((header standard-header))
   '((:column-signature-class read-column-signature-class)
     (:column-signatures read-column-signatures)
-    (:column-aliases read-column-aliases)))
+    (:column-names read-column-names)))
 
 
 (defmethod cl-ds.utils:cloning-information append
     ((signature column-signature))
   '((:type read-type)
-    (:alias read-alias)
+    (:name read-name)
     (:predicate read-predicate)))
 
 
