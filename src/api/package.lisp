@@ -1,6 +1,6 @@
 (cl:in-package #:cl-user)
 
-(vellum-utils:def-fancy-package vellum
+(vellum.utils:def-fancy-package vellum
   (:use #:cl #:vellum.aux-package)
   (:nicknames #:vellum)
   (:export

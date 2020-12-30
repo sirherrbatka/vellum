@@ -1,9 +1,9 @@
 
-(cl:defpackage #:vellum-utils
+(cl:defpackage #:vellum.utils
   (:use #:cl)
   (:export #:def-fancy-package))
 
-(cl:in-package #:vellum-utils)
+(cl:in-package #:vellum.utils)
 
 (cl:defmacro def-fancy-package (package &rest options)
   (let ((reexports nil))
@@ -27,7 +27,7 @@
 
 (cl:in-package #:cl-user)
 
-(vellum-utils:def-fancy-package :vellum.aux-package
+(vellum.utils:def-fancy-package :vellum.aux-package
   (:use #:cl)
   (:reexport #:alexandria
              #:if-let
