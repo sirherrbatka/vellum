@@ -59,8 +59,8 @@ Furthermore, VELLUM:AT is actually a setfable place which means that you can eve
 
 If one would want to, he could fill the content of the data frame in a loop. But that would be awkward, wouldn't it? I suspect that you would prefer some sort of a batch method that would be handier.
 
-** TRANSFORM and BODY
-This is where the TRANSFORM function and BODY macro combination comes in. The intent is to construct simple to use and universal facility to perform all kinds of row operations in a handy way. It is easy to demonstrate this on an example For instance, let's say that we want to calculate body mass index from weight and height. The formula is simple enough: weight (in kilograms) divided by height (in meters) squared. Given that our data frame already contains weight, height, and BMI columns, code becomes...
+** TRANSFORM and BIND-ROW
+This is where the TRANSFORM function and BIND-ROW macro combination comes in. The intent is to construct simple to use and universal facility to perform all kinds of row operations in a handy way. It is easy to demonstrate this on an example For instance, let's say that we want to calculate body mass index from weight and height. The formula is simple enough: weight (in kilograms) divided by height (in meters) squared. Given that our data frame already contains weight, height, and BMI columns, code becomes...
 
 #+BEGIN_SRC common-lisp
   (vellum:transform *table*
@@ -69,7 +69,7 @@ This is where the TRANSFORM function and BODY macro combination comes in. The in
                     :in-place t)
 #+END_SRC
 
-BODY is a macro that will expand to a lambda form with a (special) variables corresponding to the columns designated and extra boilerplate code for putting those values back into the data frame. Keyword argument :in-place allows for destructive changes. You may think that this is a bad idea sometimes given that a stray condition will leave your data messed up and I am happy to inform you that this is not the case. TRANSFORM is an exception-safe function that will alter the content of the table only after completion. IN-PLACE defaults to NIL anyway though.
+BIND-ROW is a macro that will expand to a lambda form returning another lambda form with a variables corresponding to the columns designated and extra boilerplate code for putting those values back into the data frame. Keyword argument :in-place allows for destructive changes. You may think that this is a bad idea sometimes given that a stray condition will leave your data messed up and I am happy to inform you that this is not the case. TRANSFORM is an exception-safe function that will alter the content of the table only after completion. IN-PLACE defaults to NIL anyway though.
 
 TRANSFORM allows for a few extra tricks though. For instance, if we want to calculate BMI for individuals above a certain height, we can do this by using DROP-ROW. To demonstrate this idea:
 
@@ -211,7 +211,7 @@ CL-data-structures is my other library. The name is a misnomer as the library gr
 
 #+BEGIN_SRC common-lisp
   (vellum:with-table (*table*)
-    (cl-ds.math:average *table* :key (vellum:bind-row (column-name) column-name)))
+    (cl-ds.math:average *table* :key (vellum:bind-row-closure (vellum:bind-row (column-name) column-name))))
 #+END_SRC
 
 Form passed as a :KEY is a very common pattern. Enough so that there is a shortening macro.
@@ -277,7 +277,7 @@ As hinted before, Vellum is designed to be easy to use with other libraries. For
             (vellum.table:transformation-result transformation))))
 #+END_SRC
 
-Postmodern is a really nice library, but doquery insists on driving its own iteration. As you can see that's not a big deal. For libraries that present us with an iterator-like interface, you can simply use TRANSFORM directly. Just don't forget to pass NIL as :END and call VELLUM:FINISH-TRANSFORMATION from the body form. I already showed you how.
+Postmodern is a really nice library, but doquery insists on driving its own iteration. As you can see that's not a big deal. For libraries that present us with an iterator-like interface, you can simply use TRANSFORM directly. Just don't forget to pass NIL as :END and call VELLUM:FINISH-TRANSFORMATION from the BIND-ROW form. I already showed you how.
 
 ** The future
 I've actually already added integration with postmodern into the Vellum, as well as support for CSV files. Unfortunately, this part of the library leaves a lot to be desired and therefore I'll decide to skip it from the README. For now at least! If you want to help me improve vellum, I welcome your assistance!
