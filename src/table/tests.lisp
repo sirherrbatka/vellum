@@ -99,8 +99,8 @@
                                        :hash-table-key #'first-elt
                                        :hash-table-value (rcurry #'aref 1)))
        (table (vellum:to-table source
-                               :columns '((:alias first-column)
-                                          (:alias second-column))))
+                               :columns '((:name first-column)
+                                          (:name second-column))))
        (first-even-count (count-if #'evenp source :key #'first-elt))
        (second-even-count (count-if #'evenp source :key (rcurry #'aref 1)))
        (frame-first-even-count 0)
@@ -151,9 +151,9 @@
                                        :hash-table-value #'rest))
        (table (~> source
                   (cl-ds.alg:on-each (rcurry #'coerce 'vector))
-                  (vellum:to-table :columns '((:alias first-column)
-                                              (:alias second-column)
-                                              (:alias third-columns)))))
+                  (vellum:to-table :columns '((:name first-column)
+                                              (:name second-column)
+                                              (:name third-columns)))))
        (dropped (cl-ds.alg:to-hash-table
                  (take 50300 (shuffle source))
                  :hash-table-key #'first)))

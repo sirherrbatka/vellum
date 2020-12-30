@@ -43,7 +43,7 @@
       (for j from 0 below column-count)
       (for string = (or (ignore-errors
                          (~> header
-                             (vellum.header:index-to-alias j)
+                             (vellum.header:index-to-name j)
                              symbol-name))
                         (format nil "~a" j)))
       (setf (aref strings 0 j) string)

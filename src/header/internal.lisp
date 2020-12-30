@@ -1,7 +1,7 @@
 (cl:in-package #:vellum.header)
 
 
-(defun unique-aliases (headers)
+(defun unique-names (headers)
   (iterate
     (with result = (make-hash-table :test 'equal))
     (for offset in (~>> (cl-ds.utils:scan #'+ headers :key #'column-count
@@ -9,9 +9,9 @@
                         (cons 0)))
     (for header in headers)
     (iterate
-      (for (alias value) in-hashtable (read-column-aliases header))
-      (unless (null (shiftf (gethash alias result) (+ offset value)))
-        (error 'alias-duplicated
-               :alias alias
-               :format-arguments (list alias))))
+      (for (name value) in-hashtable (read-column-names header))
+      (unless (null (shiftf (gethash name result) (+ offset value)))
+        (error 'name-duplicated
+               :name name
+               :format-arguments (list name))))
     (finally (return result))))
