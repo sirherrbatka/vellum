@@ -1,6 +1,6 @@
 ** What is Vellum?
    Vellum is a data frame library build for Common Lisp. It is designed to be easy to both learn and use (especially in interactive fashion), practical, and reasonably efficient. Note that this software is in beta quality at the moment.
-   
+
 ** Why I made Vellum?
 Common Lisp is a fine language with exceptional interactivity, multiple implementations providing the potential for acceptable performance, useful features like condition system, and a stable standard base. This, in theory, makes is very much suited toward data processing and analysis. Although practice paints a less favorable picture, there are still use cases where Common Lisp could be considered to be a very good pick. Also, I simply like writing Lisp code.
 
@@ -64,7 +64,7 @@ This is where the TRANSFORM function and BODY macro combination comes in. The in
 
 #+BEGIN_SRC common-lisp
   (vellum:transform *table*
-                    (vellum:body (bmi weight height)
+                    (vellum:bind-row (bmi weight height)
                       (setf bmi (/ weight (* height height))))
                     :in-place t)
 #+END_SRC
@@ -76,7 +76,7 @@ TRANSFORM allows for a few extra tricks though. For instance, if we want to calc
 #+BEGIN_SRC common-lisp
   (defparameter *above-170-only*
     (vellum:transform *table*
-                      (vellum:body (bmi weight height)
+                      (vellum:bind-row (bmi weight height)
                         (if (<= height 1.7)
                             (vellum:drop-row)
                             (setf bmi (/ weight (* height height))))))))
@@ -90,7 +90,7 @@ Notice that this time I've left the original frame untouched. Other keyword argu
       (vellum:transform (vellum:make-table :columns '((:alias weight)
                                                       (:alias bmi)
                                                       (:alias height)))
-                        (vellum:body (weight height bmi)
+                        (vellum:bind-row (weight height bmi)
                           (let ((line (read-line stream nil nil)))
                             (if (null line)
                                 (vellum:finish-transformation)
@@ -111,7 +111,7 @@ One more thing: you can actually use name different from :alias in the column. T
       (vellum:transform (vellum:make-table :columns '((:alias weight)
                                                       (:alias bmi)
                                                       (:alias height)))
-                        (vellum:body ((weight-but-different 0) height bmi)
+                        (vellum:bind-row ((weight-but-different 0) height bmi)
                           (let ((line (read-line stream nil nil)))
                             (if (null line)
                                 (vellum:finish-transformation)
@@ -130,7 +130,7 @@ Usually, BMI would not be present in the data frame from the start and must be s
     (alexandria:with-input-from-file (stream "bmi data.txt")
       (vellum:new-columns (vellum:transform (vellum:make-table :columns '((:alias weight)
                                                                           (:alias height)))
-                                            (vellum:body (weight height)
+                                            (vellum:bind-row (weight height)
                                               (let ((line (read-line stream nil nil)))
                                                 (if (null line)
                                                     (vellum:finish-transformation)
@@ -148,7 +148,7 @@ Let's admit it: this is getting a little bit nested. From now one I will use thr
     (alexandria:with-input-from-file (stream "bmi data.txt")
       (serapeum:~>
        (vellum:make-table :columns '((:alias weight) (:alias height)))
-       (vellum:transform (vellum:body (weight height)
+       (vellum:transform (vellum:bind-row (weight height)
                            (let ((line (read-line stream nil nil)))
                              (if (null line)
                                  (vellum:finish-transformation)
@@ -211,7 +211,7 @@ CL-data-structures is my other library. The name is a misnomer as the library gr
 
 #+BEGIN_SRC common-lisp
   (vellum:with-table (*table*)
-    (cl-ds.math:average *table* :key (vellum:body (column-name) column-name)))
+    (cl-ds.math:average *table* :key (vellum:bind-row (column-name) column-name)))
 #+END_SRC
 
 Form passed as a :KEY is a very common pattern. Enough so that there is a shortening macro.
@@ -259,16 +259,22 @@ The above will construct a new data frame containing two columns (with aliases :
 As hinted before, Vellum is designed to be easy to use with other libraries. For instance, let's say you want to use postmodern to access the postgres database where you are keeping your data safe and warm. To do so, you can do the following.
 
 #+BEGIN_SRC common-lisp
-  (defparameter *table* (vellum:make-table :columns '((:alias first-column) (:alias second-column)))
-  (postmodern:with-connection '("database" "username" "password" "localhost")
-    (let ((transformation (vellum.table:transformation *table* :in-place t :start 0)))
-      (vellum.header:set-row (vellum.table:standard-transformation-row transformation))
-      (postmodern:doquery (:select 'first_column 'second_column :from 'table)
-        (first_column second_column)
-        (vellum.table:transform-row (vellum:body (first-column second-column)
-                                      (setf first-colum first_column
-                                            second-column second_column))))
-      (vellum.table:transformation-result transformation)))
+  (defparameter *table* (vellum:make-table :columns '((:alias first-column) (:alias second-column))))
+  (vellum:with-table (*table*)
+    (postmodern:with-connection '("database" "username" "password" "localhost")
+      (let ((transformation (vellum.table:transformation *table* (constantly nil) :in-place t :start 0))
+            (bind-row-closure nil)
+            (vellum.header:set-row (vellum.table:standard-transformation-row transformation))
+            (postmodern:doquery (:select 'first_column 'second_column :from 'table)
+                (first_column second_column)
+              (when (null bind-row-closure)
+                (setf bind-row-closure
+                      (~> (vellum:bind-row (first-column second-column)
+                            (setf first-colum first_column
+                                  second-column second_column))
+                          vellum.header:bind-row-closure))
+              (vellum.table:transform-row bind-row-closure)))
+            (vellum.table:transformation-result transformation))))
 #+END_SRC
 
 Postmodern is a really nice library, but doquery insists on driving its own iteration. As you can see that's not a big deal. For libraries that present us with an iterator-like interface, you can simply use TRANSFORM directly. Just don't forget to pass NIL as :END and call VELLUM:FINISH-TRANSFORMATION from the body form. I already showed you how.

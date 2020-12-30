@@ -8,7 +8,7 @@
    #:alias-to-index
    #:no-header
    #:invalid-alias
-   #:body
+   #:bind-row
    #:brr
    #:bind-row-closure
    #:column-count

@@ -83,6 +83,9 @@
            :format-control "TO-TABLE works only on 2 dimensional arrays."))
   (let* ((number-of-columns (length columns))
          (columns (make-array (length columns)))
+         (function (if body
+                       (vellum:bind-row-closure body :header header)
+                       (constantly nil)))
          (table (make class
                       :header header
                       :columns columns)))
@@ -92,13 +95,12 @@
             (vellum.column:make-sparse-material-column
              :element-type (vellum.header:column-type header i))))
     (transform table
-               (lambda (&rest ignored)
+               (vellum:bind-row ()
                  (unless (< *current-row* (array-dimension input 0))
                    (finish-transformation))
                  (iterate
                    (for i from 0 below number-of-columns)
                    (setf (vellum.header:rr i) (funcall key (aref input *current-row* i))))
-                 (unless (null body)
-                   (apply body ignored)))
+                 (funcall function))
                :end nil
                :in-place t)))

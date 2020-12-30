@@ -7,7 +7,7 @@
      ,@body))
 
 
-(defmacro body (selected-columns &body body)
+(defmacro bind-row (selected-columns &body body)
   (bind ((gensyms (mapcar (lambda (x) (declare (ignore x)) (gensym))
                          selected-columns))
          (names (mapcar (lambda (x)
@@ -39,6 +39,7 @@
                    (t column)))))
     (with-gensyms (!arg)
       `(lambda (&optional (,!header (vellum.header:header)))
+         (declare (ignorable ,!header))
          (let ,(mapcar #'generate-column-index
                 generated
                 columns)
@@ -52,6 +53,7 @@
                     ,@(mapcar #'list
                               gensyms
                               names))
+               (declare (ignorable ,!row))
                (prog1 (progn ,@body)
                  ,@(mapcar (lambda (column name gensym)
                              `(unless (eql ,name ,gensym)

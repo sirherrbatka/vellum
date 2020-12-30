@@ -18,8 +18,7 @@
             (formatting-cell (clim-stream)
               (princ alias clim-stream)))
           (vellum:transform data-frame
-                           (lambda (&rest ignore)
-                             (declare (ignore ignore))
+                           (vellum:bind-row ()
                              (formatting-cell (clim-stream)
                                (print (vellum:rr i) clim-stream)))
                            :in-place t))))))

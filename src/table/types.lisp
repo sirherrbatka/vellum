@@ -25,7 +25,8 @@
   iterator
   (columns #() :type simple-vector)
   (column-count 0 :type fixnum)
-  (count 0 :type fixnum))
+  (count 0 :type fixnum)
+  bind-row-closure)
 
 
 (cl-ds.utils:define-list-of-slots standard-transformation ()

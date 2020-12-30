@@ -17,9 +17,9 @@
 
 (defgeneric iterator (frame in-place))
 
-(defgeneric transformation (frame &key in-place start))
+(defgeneric transformation (frame bind-row &key in-place start))
 
-(defgeneric transform-row (transformation function))
+(defgeneric transform-row (transformation &optional bind-row-closure))
 
 (defgeneric transformation-result (transformation))
 

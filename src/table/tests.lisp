@@ -32,7 +32,7 @@
 
   (defparameter *replica*
     (vellum:transform *table*
-                     (vellum:body ()
+                     (vellum:bind-row ()
                        (setf (vellum:rr 0) (+ 1 (vellum:rr 0))))
                      :in-place nil))
 
@@ -45,7 +45,7 @@
   (prove:is (vellum:at *replica* 2 0) 4)
 
   (vellum:transform *table*
-                   (vellum:body ()
+                   (vellum:bind-row ()
                      (setf (vellum:rr 0) (* 2 (vellum:rr 0))))
                    :in-place t)
 
@@ -58,6 +58,7 @@
   (prove:is (vellum:at *replica* 2 0) 4)
 
   (defparameter *concatenated-table* (vellum:vstack (list *table* *replica*)))
+
   (prove:is (column-count *concatenated-table*) 4)
   (prove:is (row-count *concatenated-table*) 6)
 
@@ -108,7 +109,7 @@
        (frame-second-even-count 0))
   (prove:is (row-count table) element-count)
   (vellum:transform table
-                    (vellum:body (first-column second-column)
+                    (vellum:bind-row (first-column second-column)
                       (when (evenp first-column)
                         (incf frame-first-even-count))
                       (when (evenp second-column)
@@ -116,13 +117,13 @@
   (prove:is frame-first-even-count first-even-count)
   (prove:is frame-second-even-count second-even-count)
   (vellum:transform table
-                    (vellum:body (first-column second-column)
+                    (vellum:bind-row (first-column second-column)
                       (when (evenp first-column)
                         (vellum:drop-row)))
                     :in-place t)
   (setf frame-first-even-count 0)
   (vellum:transform table
-                    (vellum:body (first-column second-column)
+                    (vellum:bind-row (first-column second-column)
                       (when (evenp first-column)
                         (incf frame-first-even-count))
                       (when (eq :null second-column)
@@ -130,7 +131,7 @@
   (prove:is frame-first-even-count 0)
   (prove:is null-counts 0)
   (vellum:transform table
-                    (vellum:body (first-column second-column)
+                    (vellum:bind-row (first-column second-column)
                       (unless (= second-column (gethash first-column pairs))
                         (incf mismatch-count))))
   (prove:is mismatch-count 0))
@@ -158,7 +159,7 @@
                  :hash-table-key #'first)))
   (prove:is (vellum:row-count table) element-count)
   (vellum:transform table
-                    (vellum:body (first-column)
+                    (vellum:bind-row (first-column)
                       (when (gethash first-column dropped)
                         (vellum:drop-row)))
                     :in-place t)

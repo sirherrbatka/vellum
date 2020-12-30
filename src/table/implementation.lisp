@@ -56,7 +56,8 @@
                   :control-string "Inconsistent number of columns in the frames."))
          (cl-ds:traverse
           frame
-          (vellum.header:body ()
+          (lambda (&rest ignored)
+            (declare (ignore ignored))
             (iterate
               (for i from 0 below column-count)
               (setf (vellum.column:iterator-at iterator i)
@@ -102,7 +103,8 @@
       (return-from vmask
         (if in-place frame (cl-ds.utils:quasi-clone* frame))))
     (with-table (frame)
-      (let* ((transformation (transformation frame :in-place in-place))
+      (let* ((transformation (transformation frame (constantly nil)
+                                             :in-place in-place))
              (row (standard-transformation-row transformation)))
         (vellum.header:set-row row)
         (block out
@@ -126,6 +128,7 @@
 
 
 (defmethod transformation ((frame standard-table)
+                           bind-row
                            &key
                              (in-place *transform-in-place*)
                              (start 0))
@@ -137,6 +140,8 @@
                                             x
                                             (cl-ds.common.abstract:read-ownership-tag x)))
                                          (read-columns frame)))
+         (bind-row-closure (vellum.header:bind-row-closure
+                            bind-row :header (header frame)))
          (marker-column (vellum.column:make-sparse-material-column
                          :element-type 'boolean))
          (marker-iterator (make-iterator (vector marker-column)))
@@ -148,6 +153,7 @@
      :marker-iterator marker-iterator
      :marker-column marker-column
      :iterator iterator
+     :bind-row-closure bind-row-closure
      :column-count (length columns)
      :table frame
      :row row
@@ -157,12 +163,11 @@
 
 
 (defmethod transform-row ((object standard-transformation)
-                          function)
-  (ensure-functionf function)
+                          &optional (bind-row-closure (standard-transformation-bind-row-closure object)))
   (cl-ds.utils:with-slots-for (object standard-transformation)
     (with-table (table)
       (vellum.header:set-row row)
-      (transform-row-impl object function))))
+      (transform-row-impl object bind-row-closure))))
 
 
 (defmethod transformation-result ((object standard-transformation))
@@ -208,9 +213,10 @@
       (if in-place frame (cl-ds.utils:clone frame))))
   (with-table (frame)
     (let* ((done nil)
-           (function (vellum.header:bind-row-closure bind-row))
-           (transformation (transformation frame :start start
-                                                 :in-place in-place))
+           (transformation (transformation frame
+                                           bind-row
+                                           :start start
+                                           :in-place in-place))
            (row (standard-transformation-row transformation))
            (*transform-control*
              (lambda (operation)
@@ -224,7 +230,7 @@
         (until (or done
                    (and (not (null end))
                         (>= *current-row* end))))
-        (transform-row-impl transformation function))
+        (transform-row-impl transformation))
       (transformation-result transformation))))
 
 
