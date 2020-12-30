@@ -20,7 +20,7 @@
     ((setf %header header
            %function (if (null body)
                          (constantly nil)
-                         (vellum:bind-row-closure body))
+                         (vellum.header:bind-row-closure body))
            %class class
            %column-count (vellum.header:column-count %header)
            %columns (make-array %column-count))
@@ -84,7 +84,7 @@
   (let* ((number-of-columns (length columns))
          (columns (make-array (length columns)))
          (function (if body
-                       (vellum:bind-row-closure body :header header)
+                       (vellum.header:bind-row-closure body :header header)
                        (constantly nil)))
          (table (make class
                       :header header
@@ -95,7 +95,7 @@
             (vellum.column:make-sparse-material-column
              :element-type (vellum.header:column-type header i))))
     (transform table
-               (vellum:bind-row ()
+               (vellum.header:bind-row ()
                  (unless (< *current-row* (array-dimension input 0))
                    (finish-transformation))
                  (iterate
