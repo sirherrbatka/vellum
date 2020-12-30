@@ -56,5 +56,6 @@
     (finally (return result))))
 
 
-(defun bind-row-closure (bind-row &optional (header (vellum.header:header)))
+(defun bind-row-closure (bind-row
+                         &key (header (vellum.header:header)))
   (funcall bind-row header))
