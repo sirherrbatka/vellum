@@ -57,8 +57,7 @@
   (prove:is (vellum:at *replica* 1 0) 3)
   (prove:is (vellum:at *replica* 2 0) 4)
 
-  (defparameter *concatenated-table* (vellum:vstack *table*
-                                                    (list *replica*)))
+  (defparameter *concatenated-table* (vellum:vstack (list *table* *replica*)))
   (prove:is (column-count *concatenated-table*) 4)
   (prove:is (row-count *concatenated-table*) 6)
 
@@ -91,7 +90,7 @@
   (prove:is (at *sub-table* 2 0) 2))
 
 (let* ((element-count 252529)
-       (source (~> (make-array element-count)
+       (source (~> (make-list element-count)
                    (map-into (lambda ()
                                (vector (random most-positive-fixnum)
                                        (random most-positive-fixnum))))))

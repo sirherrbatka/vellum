@@ -26,6 +26,7 @@
    #:no-transformation
    #:nullify
    #:remove-nulls
+   #:bind-row-closure
    #:row-count
    #:select
    #:setfable-table-row

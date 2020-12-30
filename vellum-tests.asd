@@ -2,7 +2,7 @@
 
 
 (asdf:defsystem vellum-tests
-  :name "cl-data-frames"
+  :name "vellum tests"
   :version "0.0.0"
   :license "BSD simplified"
   :author "Marek Kochanowicz"

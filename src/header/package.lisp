@@ -10,6 +10,7 @@
    #:invalid-alias
    #:body
    #:brr
+   #:bind-row-closure
    #:column-count
    #:read-alias
    #:column-signature

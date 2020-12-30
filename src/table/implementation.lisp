@@ -195,12 +195,12 @@
             :columns (ensure-replicas columns new-columns))))))
 
 
-(defmethod transform ((frame standard-table) function
+(defmethod transform ((frame standard-table)
+                      bind-row
                       &key
                         (in-place *transform-in-place*)
                         (start 0)
                         (end (row-count frame)))
-  (ensure-functionf function)
   (check-type start non-negative-fixnum)
   (check-type end (or null non-negative-fixnum))
   (when (~> frame column-count zerop)
@@ -208,6 +208,7 @@
       (if in-place frame (cl-ds.utils:clone frame))))
   (with-table (frame)
     (let* ((done nil)
+           (function (vellum.header:bind-row-closure bind-row))
            (transformation (transformation frame :start start
                                                  :in-place in-place))
            (row (standard-transformation-row transformation))

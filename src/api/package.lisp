@@ -29,6 +29,7 @@
 (rexport :vellum
   cl-ds:replica
   vellum.header:body
+  vellum.header:bind-row-closure
   vellum.header:brr
   vellum.header:column-type
   vellum.header:decorate

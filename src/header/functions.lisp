@@ -54,3 +54,7 @@
     (for i from 0 below column-count)
     (setf (aref result i) (rr i row))
     (finally (return result))))
+
+
+(defun bind-row-closure (bind-row &optional (header (vellum.header:header)))
+  (funcall bind-row header))

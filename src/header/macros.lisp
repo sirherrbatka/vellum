@@ -23,41 +23,35 @@
                           selected-columns))
          (!row (gensym "ROW"))
          (!header (gensym "HEADER"))
-         (!current-header (gensym "HEADER"))
          (generated (mapcar (lambda (x) (declare (ignore x))
                               (gensym))
                             columns))
          ((:flet generate-column-index (generated column))
-          `(setf ,generated
-                 ,(cond ((stringp column)
-                         `(vellum.header:alias-to-index
-                           ,!header
+          `(,generated
+            ,(cond ((stringp column)
+                    `(vellum.header:alias-to-index
+                      ,!header
                            ,column))
-                        ((symbolp column)
-                         `(vellum.header:alias-to-index
-                           ,!header
-                           ,(symbol-name column)))
-                        (t column)))))
+                   ((symbolp column)
+                    `(vellum.header:alias-to-index
+                      ,!header
+                      ,(symbol-name column)))
+                   (t column)))))
     (with-gensyms (!arg)
-      `(let (,!header ,@generated)
-         (lambda (&rest ,!arg)
-           (declare (ignore ,!arg))
-           (let ((,!current-header (vellum.header:header)))
-             (unless (eq ,!current-header ,!header)
-               (setf ,!header ,!current-header)
-               ,@(mapcar #'generate-column-index
-                         generated
-                         columns))
+      `(lambda (&optional (,!header (vellum.header:header)))
+         (let ,(mapcar #'generate-column-index
+                generated
+                columns)
+           (lambda (&rest ,!arg)
+             (declare (ignore ,!arg))
              (let* ((,!row (row))
                     ,@(mapcar (lambda (name column)
                                 `(,name (row-at ,!header ,!row ,column)))
                               names
                               generated)
-                    ,@(mapcar (lambda (binding gensym)
-                                `(,gensym ,binding))
-                              names
-                              gensyms))
-               (declare (special ,@names))
+                    ,@(mapcar #'list
+                              gensyms
+                              names))
                (prog1 (progn ,@body)
                  ,@(mapcar (lambda (column name gensym)
                              `(unless (eql ,name ,gensym)
