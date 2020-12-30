@@ -262,18 +262,15 @@ As hinted before, Vellum is designed to be easy to use with other libraries. For
   (defparameter *table* (vellum:make-table :columns '((:name first-column) (:name second-column))))
   (vellum:with-table (*table*)
     (postmodern:with-connection '("database" "username" "password" "localhost")
-      (let ((transformation (vellum.table:transformation *table* (constantly nil) :in-place t :start 0))
-            (bind-row-closure nil)
+      (let ((transformation (vellum.table:transformation *table* nil :in-place t :start 0))
             (vellum.header:set-row (vellum.table:standard-transformation-row transformation))
             (postmodern:doquery (:select 'first_column 'second_column :from 'table)
                 (first_column second_column)
-              (when (null bind-row-closure)
-                (setf bind-row-closure
-                      (~> (vellum:bind-row (first-column second-column)
-                            (setf first-colum first_column
-                                  second-column second_column))
-                          vellum.header:bind-row-closure))
-              (vellum.table:transform-row bind-row-closure)))
+              (vellum.table:transform-row
+               transformation
+               (vellum:bind-row (first-column second-column)
+                 (setf first-colum first_column
+                       second-column second_column)))))
             (vellum.table:transformation-result transformation))))
 #+END_SRC
 
