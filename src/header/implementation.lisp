@@ -66,7 +66,9 @@
          (signature-class (read-column-signature-class result))
          (column-signatures (map 'vector
                                  (lambda (c)
-                                   (apply #'make signature-class c))
+                                   (apply #'make signature-class
+                                          (cond ((listp c) c)
+                                                ((atom c) `(:name ,c)))))
                                  columns))
          (names (iterate
                   (with result = (make-hash-table
