@@ -98,11 +98,6 @@
         t)))
 
 
-(defun plotly-format-pick (stream field-a value-a field-b value-b)
-  (or (plotly-format-no-nulls stream field-a value-a)
-      (plotly-format-no-nulls stream field-b value-b)))
-
-
 (defun plotly-generate-data/impl (stack geometrics index.table)
   (bind ((mapping (read-mapping geometrics))
          (data (data-layer stack))
