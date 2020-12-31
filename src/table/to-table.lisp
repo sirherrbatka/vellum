@@ -66,6 +66,21 @@
                             :columns columns
                             :header header)))
 
+(defmethod to-table ((input sequence)
+                     &key (key #'identity)
+                       (class 'vellum.table:standard-table)
+                       (header-class 'vellum.header:standard-header)
+                       (columns '())
+                       (body nil)
+                       (header (apply #'vellum.header:make-header
+                                      header-class
+                                      columns)))
+  (to-table (cl-ds:whole-range input)
+            :key key
+            :class class
+            :body body
+            :header header))
+
 
 (defmethod to-table ((input array)
                      &key (class 'vellum.table:standard-table)
