@@ -239,6 +239,14 @@
     (setf (aref row column) new-value)))
 
 
+(defmethod (setf row-at) :before
+    (new-value
+     (header standard-header)
+     row column)
+  (unless (eq new-value :null)
+    (make-value header new-value column)))
+
+
 (defmethod (setf row-at) (new-value
                           (header standard-header)
                           (row vector)
