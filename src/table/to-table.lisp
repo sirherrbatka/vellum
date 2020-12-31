@@ -66,6 +66,7 @@
                             :columns columns
                             :header header)))
 
+
 (defmethod to-table ((input sequence)
                      &key (key #'identity)
                        (class 'vellum.table:standard-table)
