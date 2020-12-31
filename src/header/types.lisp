@@ -23,11 +23,14 @@
 (defclass standard-header ()
   ((%column-signature-class :initarg :column-signature-class
                             :initform 'column-signature
+                            :documentation "What class column-signature will be?"
                             :reader read-column-signature-class)
    (%column-signatures :initarg :column-signatures
+                       :documentation "Vector holdsing column signatures."
                        :reader read-column-signatures)
    (%column-names :type hash-table
                   :initarg :column-names
+                  :documentation "Hash-table mapping names of the columns to their indexes."
                   :reader read-column-names)))
 
 
