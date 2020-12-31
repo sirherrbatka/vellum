@@ -317,3 +317,8 @@
                              &key (header (header)))
   (funcall (optimized-closure bind-row)
            header))
+
+
+(defmethod alter-header ((header standard-header) specification)
+  (check-type specification list)
+  cl-ds.utils:todo)

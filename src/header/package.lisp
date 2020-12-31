@@ -7,6 +7,7 @@
   (:export
    #:*header*
    #:*row*
+   #:alter-header
    #:bind-row
    #:bind-row-closure
    #:brr
