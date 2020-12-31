@@ -103,7 +103,7 @@
       (return-from vmask
         (if in-place frame (cl-ds.utils:quasi-clone* frame))))
     (with-table (frame)
-      (let* ((transformation (transformation frame (constantly nil)
+      (let* ((transformation (transformation frame nil
                                              :in-place in-place))
              (row (standard-transformation-row transformation)))
         (vellum.header:set-row row)
