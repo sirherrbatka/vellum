@@ -14,6 +14,7 @@
    #:column-predicate
    #:column-signature
    #:column-specs
+   #:check-predicate
    #:column-type
    #:concatenate-headers
    #:constantly-t

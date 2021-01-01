@@ -98,8 +98,7 @@
 
 
 (defmethod column-predicate ((header standard-header)
-                             (column integer))
-  (check-type column non-negative-integer)
+                             column)
   (~>> (column-signature header column)
        read-predicate))
 
@@ -193,63 +192,49 @@
 (defmethod make-value ((header standard-header)
                        source
                        index)
-  (unless (funcall (column-predicate header index)
-                   source)
-    (error 'predicate-failed
-           :column-number index
-           :format-arguments (list source index)
-           :value source))
   source)
 
 
 (defmethod row-at ((header standard-header)
-                   (row vector)
+                   (row sequence)
                    (column integer))
-  (declare (type (array t (*)) row))
   (check-type column non-negative-integer)
-  (let ((length (array-dimension row 0)))
+  (let ((length (length row)))
     (unless (< column length)
       (error 'no-column
              :bounds (iota length)
              :argument 'column
              :value column
              :format-arguments (list column)))
-    (aref row column)))
+    (elt row column)))
 
 
 (defmethod (setf row-at) (new-value
                           (header standard-header)
-                          (row vector)
+                          (row sequence)
                           (column integer))
   (declare (type (array t (*)) row))
   (check-type column non-negative-integer)
-  (let ((length (array-dimension row 0)))
+  (let ((length (length row)))
     (unless (< column length)
       (error 'no-column
              :bounds (iota length)
              :argument 'column
              :value column
              :format-arguments (list column)))
-    (unless (~> (column-predicate header column)
-                (funcall new-value))
-      (error 'predicate-failed
-             :column-number column
-             :format-arguments (list new-value column)
-             :value new-value))
-    (setf (aref row column) new-value)))
+     (setf (elt row column) new-value)))
 
 
 (defmethod (setf row-at) :before
     (new-value
      (header standard-header)
      row column)
-  (unless (eq new-value :null)
-    (make-value header new-value column)))
+  (check-predicate header column new-value))
 
 
 (defmethod (setf row-at) (new-value
                           (header standard-header)
-                          (row vector)
+                          (row sequence)
                           (column symbol))
   (declare (type (array t (*)) row))
   (setf (row-at header row (name-to-index header column))
@@ -258,7 +243,7 @@
 
 (defmethod (setf row-at) (new-value
                           (header standard-header)
-                          (row vector)
+                          (row sequence)
                           (column string))
   (declare (type (array t (*)) row))
   (setf (row-at header row (name-to-index header column))
@@ -266,14 +251,14 @@
 
 
 (defmethod row-at ((header standard-header)
-                   (row vector)
+                   (row sequence)
                    (column symbol))
   (~>> (name-to-index header column)
        (row-at header row)))
 
 
 (defmethod row-at ((header standard-header)
-                   (row vector)
+                   (row sequence)
                    (column string))
   (~>> (name-to-index header column)
        (row-at header row)))
@@ -325,3 +310,15 @@
                              &key (header (header)))
   (funcall (optimized-closure bind-row)
            header))
+
+
+(defmethod check-predicate ((header fundamental-header)
+                            column
+                            value)
+    (unless (funcall (column-predicate header column)
+                     value)
+      (let ((index (name-to-index header column)))
+        (error 'predicate-failed
+               :column-number index
+               :format-arguments (list value column)
+               :value value))))

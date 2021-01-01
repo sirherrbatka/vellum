@@ -11,6 +11,8 @@
 
 (defgeneric column-predicate (header column))
 
+(defgeneric check-predicate (header column value))
+
 (defgeneric make-header (class &rest columns))
 
 (defgeneric column-count (header))

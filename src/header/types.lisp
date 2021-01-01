@@ -20,7 +20,7 @@
                      :predicate constantly-t))
 
 
-(defclass standard-header ()
+(defclass standard-header (fundamental-header)
   ((%column-signature-class :initarg :column-signature-class
                             :initform 'column-signature
                             :reader read-column-signature-class)

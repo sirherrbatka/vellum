@@ -36,8 +36,10 @@
     ((row)
      (iterate
        (for i from 0 below %column-count)
+       (for value = (vellum.header:row-at %header row i))
+       (vellum.header:check-predicate %header i value)
        (setf (vellum.column:iterator-at %iterator i)
-             (vellum.header:row-at %header row i)))
+             value))
      (vellum.header:with-header (%header)
        (let ((vellum.header:*row* (box %row)))
          (funcall %function)))
