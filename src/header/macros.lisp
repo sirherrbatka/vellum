@@ -64,7 +64,8 @@
                              gensyms))))))
         (lambda (&rest ,!arg)
           (declare (ignore ,!arg))
-          (let* (,@(mapcar #'generate-column-index
+          (let* ((,!header (vellum.header:header))
+                 ,@(mapcar #'generate-column-index
                            generated
                            columns)
                  (,!row (row))

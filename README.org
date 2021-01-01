@@ -134,11 +134,11 @@ Instead of bothering with TRANSFORM just to create table, one can use either TO-
 The above will construct table with 3 columns: ANIMAL, CATEGORY1 and CATEGORY2 and 2 rows. The first row is :moose 1 2, the second row is :gazelle 3 4. CL-DS ranges sometimes can be more memory efficient then the plain vector/list of vectors/lists. CL-DS:XPR for instance can be used to construct a lazy generator. For instance, to table with 500 numbers, the following code can be used.
 
 #+BEGIN_SRC common-lisp
-(defparameter *table*
-  (vellum:to-table (cl-ds:xpr (:i 0)
-                     (when (< i 500)
-                       (cl-ds:send-recur (list i) :i (1+ i))))
-                   :columns '(iota)))
+  (defparameter *table*
+    (vellum:to-table (cl-ds:xpr (:i 0)
+                       (when (< i 500)
+                         (cl-ds:send-recur (list i) :i (1+ i))))
+                     :columns '(iota)))
 #+END_SRC
 
 Aleternatively, one can use simple CL-DS:XPR form, combined with the CL-DS.ALG:RESTRAIN-SIZE function.
@@ -152,7 +152,31 @@ Aleternatively, one can use simple CL-DS:XPR form, combined with the CL-DS.ALG:R
                      :columns '(iota)))
 #+END_SRC
 
-TO-TABLE is an CL-DS aggregation function, meaning that it can be used in conjuction with GROUP-BY and other layer functions.
+TO-TABLE is an CL-DS aggregation function, meaning that it can be used in conjuction with GROUP-BY and other layer functions. This makes certain operations very simple. For instance, if we have a list with some montly values, and we want to calculate 3 months average for the each data point...
+
+#+BEGIN_SRC common-lisp
+  (defparameter *monthly-numbers*
+    '(1000 5000 2000 3000
+      2130 150 4000 9000
+      1130 390 2000 1000
+      123 390 99 5000))
+
+  (defparameter *table*
+    (vellum:to-table
+     (cl-ds.alg:sliding-window *monthly-numbers*
+                               3)
+     :columns '(month-1 month month+1 avg)
+     :body (vellum:bind-row (avg)
+             (setf avg
+                   (cl-ds.math:average
+                    (cl-ds:xpr (:i 0)
+                      (when (< i 3)
+                        (cl-ds:send-recur (vellum:rr i)
+                                          :i (1+ i))))
+                    :sum 0.0)))))
+#+END_SRC
+
+But more on that later.
 
 ** Columns manipulation
 Usually, BMI would not be present in the data frame from the start and must be somehow added. Vellum does not make this needlessly complex. Simply use NEW-COLUMNS function.

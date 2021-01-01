@@ -20,7 +20,8 @@
     ((setf %header header
            %function (if (null body)
                          (constantly nil)
-                         (vellum.header:bind-row-closure body))
+                         (vellum.header:bind-row-closure
+                          body :header header))
            %class class
            %column-count (vellum.header:column-count %header)
            %columns (make-array %column-count))
@@ -35,7 +36,7 @@
 
     ((row)
      (iterate
-       (for i from 0 below %column-count)
+       (for i from 0 below (min (length row) %column-count))
        (for value = (vellum.header:row-at %header row i))
        (vellum.header:check-predicate %header i value)
        (setf (vellum.column:iterator-at %iterator i)
