@@ -62,6 +62,23 @@
                                               (funcall translate x))))))))
 
 
+(defun rs (&rest forms)
+  (make
+   'selector
+   :callback (lambda (translate limit &aux (position (1- limit)))
+               (~> forms
+                   (cl-ds.alg:multiplex
+                    :key (lambda (x)
+                           (typecase x
+                             (cl-ds:traversable x)
+                             (sequence x)
+                             (content (content x translate (1- position) limit))
+                             (atom (list x)))))
+                   (cl-ds.alg:on-each (lambda (x)
+                                        (setf position
+                                              (funcall translate x))))))))
+
+
 (define-condition name-when-selecting-row (cl-ds:invalid-value)
   ())
 

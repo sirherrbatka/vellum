@@ -4,8 +4,9 @@
 (defpackage #:vellum.selection
   (:use #:cl #:vellum.aux-package)
   (:export
+   #:address-range
    #:between
    #:content
-   #:s
-   #:address-range
-   #:name-when-selecting-row))
+   #:name-when-selecting-row
+   #:rs
+   #:s))
