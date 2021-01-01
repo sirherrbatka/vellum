@@ -4,7 +4,8 @@
 (defpackage #:vellum.selection
   (:use #:cl #:vellum.aux-package)
   (:export
-   #:fold-selection-input
-   #:name-when-selecting-row
-   #:selection-syntax-error
-   #:next-position))
+   #:between
+   #:content
+   #:s
+   #:address-range
+   #:name-when-selecting-row))

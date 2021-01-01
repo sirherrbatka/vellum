@@ -158,8 +158,7 @@ TO-TABLE is an CL-DS aggregation function, meaning that it can be used in conjuc
   (defparameter *monthly-numbers*
     '(1000 5000 2000 3000
       2130 150 4000 9000
-      1130 390 2000 1000
-      123 390 99 5000))
+      1130 390 2000 1000))
 
   (defparameter *table*
     (vellum:to-table
@@ -224,16 +223,16 @@ Selecting a subset of the columns is equally important to add new columns. To do
                                                       (:name second-column)
                                                       (:name third-column))))
   (defparameter *just-second-and-third* (vellum:select *table*
-                                          :columns '(:v 1 :v 2)))
+                                          :columns '(1 2)))
   (defparameter *just-second-and-third* (vellum:select *table*
-                                          :columns '(:v second-column :v third-column)))
+                                          :columns '(second-column third-column)))
   (defparameter *just-second-and-third* (vellum:select *table*
-                                          :columns '(:take-from second-column :take-to third-column)))
+                                          :columns (vellum:s (vellum:from :from 'second-column)))
   (defparameter *just-second-and-third* (vellum:select *table*
-                                          :columns '(:take-from 1 :take-to 2)))
+                                          :columns (vellum:s (vellum:from :from 1))))
 #+END_SRC
 
-All four ways to select second and third columns are equally valid. :V keyword argument designates a single value, either by an integer or by column name. Pair of :TAKE-FROM and :TAKE-TO allows us to select a range of columns, again either by designating column number or column name. Selecting by range is probably not all that useful in the context of columns, however, the exact same syntax is used for :ROWS where it really it is in it's element. Anyway, the other worth knowing trick you can do is to combine selection forms. For instance, if you have 10 columns, and want just select columns 2, 3, 4, 7, 8, and 9 you can do the following.
+All four ways to select second and third columns are equally valid. Selecting by range is probably not all that useful in the context of columns, however, the exact same syntax is used for :ROWS where it really it is in it's element.
 
 #+BEGIN_SRC common-lisp
   (defparameter *table* (vellum:make-table :columns '((:name first-colum)
@@ -246,14 +245,18 @@ All four ways to select second and third columns are equally valid. :V keyword a
                                                       (:name eight-column)
                                                       (:name nine-column))))
   (defparameter *columns-subset* (vellum:select *table*
-                                   :columns '(:v 2 :v 3 :v 4 :v 7 :v 8 :v 9)))
+                                   :columns '(2 3 4 7 8 9)))
   (defparameter *columns-subset* (vellum:select *table*
-                                   :columns '(:take-from 2 :take-to 4 :take-from 7 :take-to 9)))
-  (defparameter *columns-subset* (vellum:select *table*)
-                                   :columns '(:take-from 2 :skip-from 5 :skip-to 6 :take-to 9)))
+                                   :columns (alexandria:iota 6 :start 2)))
+  (defparameter *columns-subset* (vellum:select *table*
+                                   :columns (vellum:s (vellum:between :from 2 :to 10))))
+  (defparameter *columns-subset* (vellum:select *table*
+                                   :columns (vellum:s 2 (vellum:between :to 10))))
+  (defparameter *columns-subset* (vellum:select *table*
+                                   :columns (vellum:s '(2 3 4 7) (vellum:between :to 10))))
 #+END_SRC
 
-Depending on the specific use case each of those ways can be the most suitable and I don't intend to limit the user here.
+Depending on the specific use case each of those ways can be the most suitable.
 
 ** A few remarks about the inner representation and efficiency
 Vellum stores data in a column format, where each column is a sparse variant of an RRB trie. I've chosen this type of representation for efficient copy-on-write. Copy-on-write is important as it allows for exception safety in the transform function as well as reduces memory usage by allowing safe sharing of the common data bits. However, at the same time, data frames expose a mutable interface. You could consider it to be unusual.

@@ -81,28 +81,24 @@
 
 
 (defun select-columns (frame selection)
-  (let* ((header (header frame))
-         (columns (read-columns frame))
-         (column-count (length columns))
-         (column-indexes
-           (vellum.header:with-header ((header frame))
-             (iterate
-               (with result = (vect))
-               (with selection =
-                     (vellum.selection:fold-selection-input selection))
-               (for value = (vellum.selection:next-position selection))
-               (while (and value (< value column-count)))
-               (vector-push-extend value result)
-               (finally (return result)))))
-         (new-header (vellum.header:select-columns header column-indexes))
-         (new-columns (map 'vector (compose (rcurry #'cl-ds:replica t)
-                                            (curry #'aref columns))
-                           column-indexes)))
-    (declare (type simple-vector columns new-columns)
-             (optimize (debug 3)))
-    (cl-ds.utils:quasi-clone* frame
-      :header new-header
-      :columns new-columns)))
+  (vellum.header:with-header ((header frame))
+    (let* ((header (header frame))
+           (columns (read-columns frame))
+           (column-indexes
+             (~> selection
+                 (vellum.selection:address-range
+                  (lambda (x) (vellum.header:ensure-index header x))
+                  (column-count frame))
+                 cl-ds.alg:to-vector))
+           (new-header (vellum.header:select-columns header column-indexes))
+           (new-columns (map 'vector (compose (rcurry #'cl-ds:replica t)
+                                              (curry #'aref columns))
+                             column-indexes)))
+      (declare (type vector columns new-columns)
+               (optimize (debug 3)))
+      (cl-ds.utils:quasi-clone* frame
+        :header new-header
+        :columns new-columns))))
 
 
 (defun select-rows (frame selection)
@@ -122,17 +118,24 @@
           :columns new-columns)))
     (iterate
       (with selection =
-            (vellum.selection:fold-selection-input selection))
+            (vellum.selection:address-range
+             selection
+             (lambda (x)
+               (when (typep x '(or string symbol))
+                 (error 'vellum.selection:name-when-selecting-row
+                        :value x
+                        :format-control "Attempting to access row by a non-integer value: ~a"
+                        :format-arguments `(,x)))
+               x)
+             row-count))
       (with iterator = (make-iterator new-columns))
       (for source-iterator = (iterator frame t))
-      (for value = (vellum.selection:next-position selection))
-      (for previous-value previous value initially 0)
-      (while (and value (< value row-count)))
+      (for (values value more) = (cl-ds:consume-front selection))
+      (while more)
       (vellum.column:move-iterator-to source-iterator value)
       (iterate
         (declare (type fixnum column-index))
         (for column-index from 0 below column-count)
-        (for column = (aref new-columns column-index))
         (setf (vellum.column:iterator-at iterator column-index)
               (vellum.column:iterator-at source-iterator column-index)))
       (vellum.column:move-iterator iterator 1)

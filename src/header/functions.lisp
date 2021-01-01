@@ -59,3 +59,11 @@
 (defun make-bind-row (optimized-closure non-optimized-closure)
   (lret ((result (make 'bind-row :optimized-closure optimized-closure)))
     (c2mop:set-funcallable-instance-function result non-optimized-closure)))
+
+
+(defun ensure-index (header index/name)
+  (check-type index/name (or symbol string non-negative-integer))
+  (if (numberp index/name)
+      index/name
+      (vellum.header:name-to-index header
+                                   index/name)))

@@ -23,6 +23,9 @@
    #:%aggregate-columns
    #:row-cant-be-created
    #:show)
+  (:reexport #:vellum.selection
+             #:s
+             #:between)
   (:reexport #:cl-ds
              #:replica)
   (:reexport #:vellum.header

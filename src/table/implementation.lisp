@@ -447,7 +447,8 @@
 (defmethod select ((frame standard-table) &key rows columns)
   (let ((selected-columns (if (null columns)
                               frame
-                              (select-columns frame columns))))
+                              (with-table (frame)
+                                (select-columns frame columns)))))
     (if (null rows)
         selected-columns
         (select-rows selected-columns rows))))

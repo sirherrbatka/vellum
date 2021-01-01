@@ -36,10 +36,6 @@
                              (:file "implementation")))
                (:module "selection"
                 :components ((:file "package")
-                             (:file "variables")
-                             (:file "generics")
-                             (:file "conditions")
-                             (:file "types")
                              (:file "implementation")))
                (:module "table"
                 :components ((:file "package")
