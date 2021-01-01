@@ -1,7 +1,10 @@
 (cl:in-package #:vellum)
 
 
-(defgeneric copy-from (format input &rest options &key &allow-other-keys))
+(defgeneric copy-from (format input &rest options &key &allow-other-keys)
+  (:method ((format (eql nil)) input &rest options &key body key class header-class columns header)
+    (declare (ignore format body key class header-class columns header))
+    (apply #'to-table input options)))
 
 (defgeneric copy-to (format output input &rest options &key &allow-other-keys))
 

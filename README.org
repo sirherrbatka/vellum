@@ -122,6 +122,38 @@ One more thing: you can actually use name different from :name in the column. Th
                         :end nil)))
 #+END_SRC
 
+** TO-TABLE, COPY-FROM
+Instead of bothering with TRANSFORM just to create table, one can use either TO-TABLE or COPY-FROM. They actually do almost the same thing. TO-TABLE is a CL-DS aggregation function, meaning that it works on all kinds of CL-DS ranges (as long as they return CL:SEQUENCE) and SEQUENCEs holding SEQUENCEs. The inner SEQUENCE is a row. It is probabbly easier to demonstrate.
+
+#+BEGIN_SRC common-lisp
+  (defparameter *table*
+    (vellum:to-table '((:moose 1 2) (:gazelle 3 4))
+                     :columns '(animal category1 category2)))
+#+END_SRC
+
+The above will construct table with 3 columns: ANIMAL, CATEGORY1 and CATEGORY2 and 2 rows. The first row is :moose 1 2, the second row is :gazelle 3 4. CL-DS ranges sometimes can be more memory efficient then the plain vector/list of vectors/lists. CL-DS:XPR for instance can be used to construct a lazy generator. For instance, to table with 500 numbers, the following code can be used.
+
+#+BEGIN_SRC common-lisp
+(defparameter *table*
+  (vellum:to-table (cl-ds:xpr (:i 0)
+                     (when (< i 500)
+                       (cl-ds:send-recur (list i) :i (1+ i))))
+                   :columns '(iota)))
+#+END_SRC
+
+Aleternatively, one can use simple CL-DS:XPR form, combined with the CL-DS.ALG:RESTRAIN-SIZE function.
+
+#+BEGIN_SRC common-lisp
+  (defparameter *table*
+    (vellum:to-table (cl-ds.alg:restrain-size
+                      (cl-ds:xpr (:i 0)
+                        (cl-ds:send-recur (list i) :i (1+ i)))
+                      500)
+                     :columns '(iota)))
+#+END_SRC
+
+TO-TABLE is an CL-DS aggregation function, meaning that it can be used in conjuction with GROUP-BY and other layer functions.
+
 ** Columns manipulation
 Usually, BMI would not be present in the data frame from the start and must be somehow added. Vellum does not make this needlessly complex. Simply use NEW-COLUMNS function.
 

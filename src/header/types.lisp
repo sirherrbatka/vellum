@@ -46,9 +46,7 @@
 
 
 (defclass frame-range-mixin ()
-  ((%list-format :initarg :list-format
-                 :reader read-list-format))
-  (:default-initargs :list-format nil))
+  ())
 
 
 (defclass validated-frame-range-mixin (frame-range-mixin)
@@ -62,7 +60,7 @@
 
 (defmethod cl-ds.utils:cloning-information append
     ((signature frame-range-mixin))
-  '((:list-format read-list-format)))
+  '())
 
 
 (defclass bind-row ()

@@ -176,17 +176,16 @@
 (defmethod make-row ((header standard-header)
                      (range frame-range-mixin)
                      (data list))
-  (switch ((read-list-format range) :test eq)
-    (:pair (vector (make-value header (car data) 0)
-                   (make-value header (cdr data) 1)))
-    (nil (iterate
-           (with result = (~> header column-count
-                              (make-array :initial-element nil)
-                              (validate-row data)))
-           (for i from 0)
-           (for elt in data)
-           (setf (aref result i) (make-value header elt i))
-           (finally (return result))))))
+  (iterate
+    (with result = (~> header column-count
+                       (make-array :initial-element nil)
+                       (validate-row data)))
+    (for i from 0)
+    (for elt in data)
+    (for value = (make-value header elt i))
+    (check-predicate header i value)
+    (setf (aref result i) value)
+    (finally (return result))))
 
 
 (defmethod make-value ((header standard-header)
