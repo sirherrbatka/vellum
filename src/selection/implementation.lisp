@@ -56,7 +56,7 @@
                              (cl-ds:traversable x)
                              (vector x)
                              (list (bind (((first . rest) x))
-                                     (if (and (listp rest) (not (endp rest)))
+                                     (if (listp rest)
                                          x
                                          (content (between :from first
                                                            :to (or rest limit))
@@ -81,7 +81,7 @@
                              (cl-ds:traversable x)
                              (vector x)
                              (list (bind (((first . rest) x))
-                                     (if (and (listp rest) (not (endp rest)))
+                                     (if (listp rest)
                                          x
                                          (content (between :from first
                                                            :to rest)
