@@ -54,9 +54,17 @@
                     :key (lambda (x)
                            (typecase x
                              (cl-ds:traversable x)
-                        (sequence x)
-                        (content (content x translate (1+ position) limit))
-                        (atom (list x)))))
+                             (vector x)
+                             (list (bind (((first . rest) x))
+                                     (if (and (listp rest) (not (endp rest)))
+                                         x
+                                         (content (between :from first
+                                                           :to (or rest limit))
+                                                  translate
+                                                  (1+ position)
+                                                  limit))))
+                             (content (content x translate (1+ position) limit))
+                             (atom (list x)))))
                    (cl-ds.alg:on-each (lambda (x)
                                         (setf position
                                               (funcall translate x))))))))
@@ -71,7 +79,15 @@
                     :key (lambda (x)
                            (typecase x
                              (cl-ds:traversable x)
-                             (sequence x)
+                             (vector x)
+                             (list (bind (((first . rest) x))
+                                     (if (and (listp rest) (not (endp rest)))
+                                         x
+                                         (content (between :from first
+                                                           :to rest)
+                                                  translate
+                                                  (1- position)
+                                                  limit))))
                              (content (content x translate (1- position) limit))
                              (atom (list x)))))
                    (cl-ds.alg:on-each (lambda (x)
