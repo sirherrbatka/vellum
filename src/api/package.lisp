@@ -26,6 +26,7 @@
   (:reexport #:vellum.selection
              #:s
              #:rs
+             #:vs
              #:between)
   (:reexport #:cl-ds
              #:replica)
