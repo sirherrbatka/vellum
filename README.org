@@ -249,7 +249,7 @@ All four ways to select second and third columns are equally valid. Selecting by
   (defparameter *columns-subset* (vellum:select *table*
                                    :columns (alexandria:iota 6 :start 2)))
   (defparameter *columns-subset* (vellum:select *table*
-                                   :columns (vellum:s (vellum:between :from 2 :to 10))))
+                                   :columns (vellum:s '(2 . 10))))
   (defparameter *columns-subset* (vellum:select *table*
                                    :columns (vellum:s 2 (vellum:between :to 10))))
   (defparameter *columns-subset* (vellum:select *table*
