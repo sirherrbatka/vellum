@@ -9,4 +9,5 @@
    #:content
    #:name-when-selecting-row
    #:rs
+   #:vs
    #:s))

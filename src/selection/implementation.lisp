@@ -95,6 +95,16 @@
                                               (funcall translate x))))))))
 
 
+(defun vs (&rest forms)
+  (let ((header (vellum.header:header)))
+    (~> (s forms)
+        (address-range
+         (lambda (x) (vellum.header:ensure-index header x))
+         (vellum.header:column-count header))
+        (cl-ds.alg:on-each
+         (lambda (x) (vellum.header:rr x))))))
+
+
 (define-condition name-when-selecting-row (cl-ds:invalid-value)
   ())
 
