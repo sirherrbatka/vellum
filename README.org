@@ -26,7 +26,7 @@ You may be under impression that there has to be a better way to it. You would b
 
 #+BEGIN_SRC common-lisp
   (defparameter *table*
-    (vellum:make-table :columns '((:name first-column)
+    (vellum:make-table :columns '(first-column
                                   (:name second-column :type fixnum))))
 #+END_SRC
 
