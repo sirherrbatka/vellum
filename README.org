@@ -171,7 +171,25 @@ TO-TABLE is an CL-DS aggregation function, meaning that it can be used in conjuc
 
 But more on that later.
 
-COPY-FROM is almost like TO-TABLE, but the input it is inteded to be used on objects that are not CL-DS ranges or CL sequences. This includes, for instance, paths to files, SQL queries network handlers and so one. If you want to implement new data source, just specialize COPY-FROM generic function and you are done!
+COPY-FROM is almost like TO-TABLE, but the input it is inteded to be used on objects that are not CL-DS ranges or CL sequences. This includes, for instance, paths to files, SQL queries network handlers and so one. If you want to implement new data source, just specialize COPY-FROM generic function and you are done! Let me demonstrate.
+
+#+BEGIN_SRC common-lisp
+  (defmethod vellum:copy-from ((format (eql :custom-tab-separated-format)) file-path &key columns)
+    (let ((columns-count (length columns)))
+      (with-open-file (stream file-path)
+        (vellum:transform (vellum:make-table :columns columns)
+          (vellum:bind-row ()
+             (let ((row (read-line stream nil nil)))
+               (when (null row)
+                 (vellum:finish-transformation))
+               (let ((values (cl-ppcre:split #\tab row)))
+                 (loop :for i :from 0 :below columns-count
+                       :for elt :in values
+                       :do (setf (vellum:rr i) elt)))))
+          :in-place t))))
+#+END_SRC
+
+The above example sacrifices some of the features (most notably: converting from the textual format to a lisp data type) in the name of the clarity. By the way, generic functions can make wonders for the extensions!
 
 ** Columns manipulation
 Usually, BMI would not be present in the data frame from the start and must be somehow added. Vellum does not make this needlessly complex. Simply use NEW-COLUMNS function.
