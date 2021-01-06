@@ -9,9 +9,8 @@
   :depends-on ( :iterate       :serapeum
                 :lparallel     :cl-data-structures
                 :metabang-bind :alexandria
-                :local-time    :mcclim
-                :documentation-utils-extensions
-                :closer-mop)
+                :local-time    :closer-mop
+                :documentation-utils-extensions)
   :serial T
   :pathname "src"
   :components ((:file "aux-package")
@@ -65,8 +64,7 @@
                              (:file "macros")))
                (:module "integration"
                 :components ((:file "package")
-                             (:file "cl-ds")
-                             (:file "clim")))
+                             (:file "cl-ds")))
                (:module "csv"
                 :components ((:file "package")
                              (:file "conditions")
