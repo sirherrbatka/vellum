@@ -9,10 +9,9 @@
   :depends-on ( :iterate       :serapeum
                 :lparallel     :cl-data-structures
                 :metabang-bind :alexandria
-                :local-time    :cl-postgres
-                :s-sql         :mcclim
+                :local-time    :mcclim
                 :documentation-utils-extensions
-                :postmodern    :closer-mop)
+                :closer-mop)
   :serial T
   :pathname "src"
   :components ((:file "aux-package")
@@ -67,7 +66,6 @@
                (:module "integration"
                 :components ((:file "package")
                              (:file "cl-ds")
-                             (:file "postmodern")
                              (:file "clim")))
                (:module "csv"
                 :components ((:file "package")
