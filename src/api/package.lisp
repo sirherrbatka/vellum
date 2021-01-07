@@ -47,6 +47,7 @@
              #:at
              #:column-count
              #:column-type
+             #:column-name
              #:drop-row
              #:erase!
              #:finish-transformation

@@ -76,7 +76,7 @@
                  ,@(mapcar #'list
                            gensyms
                            names))
-            (declare (ignorable ,!row))
+            (declare (ignorable ,!header ,!row))
             (prog1 (progn ,@body)
               ,@(mapcar (lambda (column name gensym)
                           `(unless (eql ,name ,gensym)
