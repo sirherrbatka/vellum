@@ -34,7 +34,6 @@
              #:bind-row
              #:bind-row-closure
              #:brr
-             #:column-type
              #:decorate
              #:header
              #:make-header
@@ -47,6 +46,7 @@
              #:*current-row*
              #:at
              #:column-count
+             #:column-type
              #:drop-row
              #:erase!
              #:finish-transformation
