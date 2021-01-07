@@ -80,6 +80,9 @@
                   &allow-other-keys))
 
 
+(defgeneric visualize (as data destination))
+
+
 (defmethod join :before (algorithm method (frame-specs list) &key &allow-other-keys)
   (when (emptyp frame-specs)
     (error 'cl-ds:invalid-argument-value

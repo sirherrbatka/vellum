@@ -10,6 +10,7 @@
    #:empty-column
    #:empty-table
    #:with-standard-header
+   #:visualize
    #:join
    #:pipeline
    #:alter-columns

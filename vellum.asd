@@ -47,15 +47,6 @@
                              (:file "to-table")
                              (:file "internal")
                              (:file "implementation")))
-               (:module "plot"
-                :components ((:file "package")
-                             (:file "variables")
-                             (:file "generics")
-                             (:file "conditions")
-                             (:file "types")
-                             (:file "internal")
-                             (:file "functions")
-                             (:file "implementation")))
                (:module "api"
                 :components ((:file "package")
                              (:file "conditions")
