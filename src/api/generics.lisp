@@ -80,7 +80,7 @@
                   &allow-other-keys))
 
 
-(defgeneric visualize (as data destination))
+(defgeneric visualize (format data destination))
 
 
 (defmethod join :before (algorithm method (frame-specs list) &key &allow-other-keys)
