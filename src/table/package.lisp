@@ -24,6 +24,7 @@
    #:make-table
    #:make-table*
    #:no-transformation
+   #:show
    #:nullify
    #:remove-nulls
    #:bind-row-closure

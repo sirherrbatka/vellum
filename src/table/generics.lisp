@@ -42,3 +42,5 @@
 (defgeneric make-table* (class &optional header))
 
 (defgeneric erase! (frame row column))
+
+(defgeneric show (as table &key &allow-other-keys))

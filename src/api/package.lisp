@@ -22,8 +22,7 @@
    #:%aggregate-rows
    #:aggregate-columns
    #:%aggregate-columns
-   #:row-cant-be-created
-   #:show)
+   #:row-cant-be-created)
   (:reexport #:vellum.selection
              #:s
              #:rs
@@ -52,6 +51,7 @@
              #:erase!
              #:finish-transformation
              #:hstack
+             #:show
              #:make-table
              #:hstack*
              #:nullify
