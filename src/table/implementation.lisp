@@ -485,15 +485,15 @@
                    (output *standard-output*)
                    (start 0)
                    (end 10))
-  (check-type table vellum.table:fundamental-table)
+  (check-type table fundamental-table)
   (check-type output stream)
   (check-type start non-negative-integer)
   (check-type end non-negative-integer)
-  (bind ((column-count (vellum:column-count table))
+  (bind ((column-count (column-count table))
          (end (min end (row-count table)))
          (number-of-rows (max 0 (- end start)))
          (strings (make-array `(,(1+ number-of-rows) ,column-count)))
-         (header (vellum.table:header table))
+         (header (header table))
          (desired-sizes (make-array column-count
                                     :element-type 'fixnum
                                     :initial-element 0))
