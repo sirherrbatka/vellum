@@ -59,9 +59,7 @@
   (bind ((column-count (vellum.header:column-count header))
          (columns (make-array column-count))
          (columns-buffer (make-array column-count))
-         (function (if (null body)
-                       (constantly nil)
-                       (vellum:bind-row-closure body :header header))))
+         (function (vellum:bind-row-closure body :header header)))
     (iterate
       (for i from 0 below column-count)
       (setf (aref columns i)

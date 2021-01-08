@@ -31,12 +31,6 @@
   *header*)
 
 
-(declaim (inline decorate))
-(defun decorate (range &key list-format (header (header)))
-  (check-type list-format (member nil :pair))
-  (decorate-data header range :list-format list-format))
-
-
 (declaim (inline rr))
 (defun rr (index &optional (row (row)))
   (row-at (header) row index))

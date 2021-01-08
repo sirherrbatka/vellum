@@ -48,21 +48,13 @@
 
 
 (defclass frame-range-mixin ()
-  ())
-
-
-(defclass validated-frame-range-mixin (frame-range-mixin)
-  ())
-
-
-(defclass forward-proxy-frame-range (frame-range-mixin
-                                     cl-ds.alg:forward-proxy-range)
-  ())
+  ((%header :initarg :header
+            :reader read-header)))
 
 
 (defmethod cl-ds.utils:cloning-information append
-    ((signature frame-range-mixin))
-  '())
+    ((range frame-range-mixin))
+  '((:header read-header)))
 
 
 (defclass bind-row ()

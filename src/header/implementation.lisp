@@ -113,7 +113,8 @@
       (bind (((:values data more) (call-next-method)))
         (if (no more)
             (values nil nil)
-            (let ((row (make-row (header) range data)))
+            (let ((row (make-row (read-header range)
+                                 range data)))
               (set-row row)
               (values row t))))
     (skip-row () (cl-ds:consume-front range))))
@@ -123,17 +124,46 @@
   (bind (((:values data more) (call-next-method)))
     (if (no more)
         (values nil nil)
-        (let ((row (make-row (header) range data)))
+        (let ((row (make-row (read-header range)
+                             range data)))
           (set-row row)
           (values row t)))))
 
 
-(defmethod decorate-data ((header standard-header)
-                          (data cl-ds:fundamental-forward-range)
-                          &key list-format)
-  (make 'forward-proxy-frame-range
-        :original-range (cl-ds:clone data)
-        :list-format list-format))
+(defmethod cl-ds:traverse ((range frame-range-mixin) function)
+  (let* ((*row* (box nil))
+         (header (read-header range))
+         (bind-row-closure (bind-row-closure function
+                                             :header header)))
+    (call-next-method
+     range (lambda (data)
+             (let ((row (make-row header range data)))
+               (set-row row)
+               (funcall bind-row-closure row))))))
+
+
+(defmethod cl-ds:across ((range frame-range-mixin) function)
+  (let* ((*row* (box nil))
+         (header (read-header range))
+         (bind-row-closure (bind-row-closure function
+                                             :header header)))
+    (call-next-method
+     range (lambda (data)
+             (let ((row (make-row header range data)))
+               (set-row row)
+               (funcall bind-row-closure row))))))
+
+
+(defmethod cl-ds.alg.meta:across-aggregate ((range frame-range-mixin) function)
+  (let* ((*row* (box nil))
+         (header (read-header range))
+         (bind-row-closure (bind-row-closure function
+                                             :header header)))
+    (call-next-method
+     range (lambda (data)
+             (let ((row (make-row header range data)))
+               (set-row row)
+               (funcall bind-row-closure row))))))
 
 
 (defmethod make-row ((header standard-header)
@@ -144,7 +174,8 @@
                        (make-array :initial-element :null)))
     (for i from 0)
     (for elt in-vector data)
-    (setf (aref result i) (make-value header elt i))
+    (check-predicate header i elt)
+    (setf (aref result i) elt)
     (finally (return result))))
 
 
@@ -183,16 +214,9 @@
                        (validate-row data)))
     (for i from 0)
     (for elt in data)
-    (for value = (make-value header elt i))
-    (check-predicate header i value)
-    (setf (aref result i) value)
+    (check-predicate header i elt)
+    (setf (aref result i) elt)
     (finally (return result))))
-
-
-(defmethod make-value ((header standard-header)
-                       source
-                       index)
-  source)
 
 
 (defmethod row-at ((header standard-header)
@@ -310,6 +334,18 @@
                              &key (header (header)))
   (funcall (optimized-closure bind-row)
            header))
+
+
+(defmethod bind-row-closure ((bind-row (eql nil))
+                             &key header)
+  (declare (ignore header))
+  (constantly nil))
+
+
+(defmethod bind-row-closure (fn
+                             &key header)
+  (declare (ignore header))
+  (ensure-function fn))
 
 
 (defmethod check-predicate ((header fundamental-header)

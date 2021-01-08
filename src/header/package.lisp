@@ -13,6 +13,7 @@
    #:column-count
    #:column-predicate
    #:column-signature
+   #:read-header
    #:column-specs
    #:check-predicate
    #:ensure-index
@@ -20,8 +21,6 @@
    #:concatenate-headers
    #:constantly-t
    #:current-row-as-vector
-   #:decorate
-   #:forward-proxy-frame-range
    #:frame-range-mixin
    #:fundamental-header
    #:header

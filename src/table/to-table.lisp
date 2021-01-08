@@ -18,10 +18,8 @@
     (%iterator %function %row %class %columns %column-count %header)
 
     ((setf %header header
-           %function (if (null body)
-                         (constantly nil)
-                         (vellum.header:bind-row-closure
-                          body :header header))
+           %function (vellum.header:bind-row-closure
+                      body :header header)
            %class class
            %column-count (vellum.header:column-count %header)
            %columns (make-array %column-count))
@@ -102,9 +100,7 @@
            :format-control "TO-TABLE works only on 2 dimensional arrays."))
   (let* ((number-of-columns (length columns))
          (columns (make-array (length columns)))
-         (function (if body
-                       (vellum.header:bind-row-closure body :header header)
-                       (constantly nil)))
+         (function (vellum.header:bind-row-closure body :header header))
          (table (make class
                       :header header
                       :columns columns)))

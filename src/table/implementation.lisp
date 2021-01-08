@@ -140,10 +140,8 @@
                                             x
                                             (cl-ds.common.abstract:read-ownership-tag x)))
                                          (read-columns frame)))
-         (bind-row-closure (if (null bind-row)
-                               nil
-                               (vellum.header:bind-row-closure
-                                bind-row :header (header frame))))
+         (bind-row-closure (vellum.header:bind-row-closure
+                            bind-row :header (header frame)))
          (marker-column (vellum.column:make-sparse-material-column
                          :element-type 'boolean))
          (marker-iterator (make-iterator (vector marker-column)))
