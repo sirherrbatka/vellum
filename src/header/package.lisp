@@ -22,6 +22,7 @@
    #:constantly-t
    #:current-row-as-vector
    #:frame-range-mixin
+   #:make-row
    #:fundamental-header
    #:header
    #:headers-incompatible

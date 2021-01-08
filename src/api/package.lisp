@@ -34,7 +34,6 @@
              #:bind-row
              #:bind-row-closure
              #:brr
-             #:decorate
              #:header
              #:make-header
              #:rr

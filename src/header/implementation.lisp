@@ -109,7 +109,21 @@
 
 
 (defmethod cl-ds:consume-front ((range frame-range-mixin))
-  (restart-case
+  (if (null *header*)
+      (restart-case
+          (bind (((:values data more) (call-next-method)))
+            (if (no more)
+                (values nil nil)
+                (let ((row (make-row (read-header range)
+                                     range data)))
+                  (set-row row)
+                  (values row t))))
+        (skip-row () (cl-ds:consume-front range)))
+      (call-next-method)))
+
+
+(defmethod cl-ds:peek-front ((range frame-range-mixin))
+  (if (null *header*)
       (bind (((:values data more) (call-next-method)))
         (if (no more)
             (values nil nil)
@@ -117,53 +131,49 @@
                                  range data)))
               (set-row row)
               (values row t))))
-    (skip-row () (cl-ds:consume-front range))))
-
-
-(defmethod cl-ds:peek-front ((range frame-range-mixin))
-  (bind (((:values data more) (call-next-method)))
-    (if (no more)
-        (values nil nil)
-        (let ((row (make-row (read-header range)
-                             range data)))
-          (set-row row)
-          (values row t)))))
+      (call-next-method)))
 
 
 (defmethod cl-ds:traverse ((range frame-range-mixin) function)
-  (let* ((*row* (box nil))
-         (header (read-header range))
+  (let* ((header (read-header range))
          (bind-row-closure (bind-row-closure function
                                              :header header)))
-    (call-next-method
-     range (lambda (data)
-             (let ((row (make-row header range data)))
-               (set-row row)
-               (funcall bind-row-closure row))))))
+    (if (null *header*)
+        (with-header (header)
+          (call-next-method
+           range (lambda (data)
+                   (let ((row (make-row header range data)))
+                     (set-row row)
+                     (funcall bind-row-closure row)))))
+        (call-next-method))))
 
 
 (defmethod cl-ds:across ((range frame-range-mixin) function)
-  (let* ((*row* (box nil))
-         (header (read-header range))
+  (let* ((header (read-header range))
          (bind-row-closure (bind-row-closure function
                                              :header header)))
-    (call-next-method
-     range (lambda (data)
-             (let ((row (make-row header range data)))
-               (set-row row)
-               (funcall bind-row-closure row))))))
+    (if (null *header*)
+        (with-header (header)
+          (call-next-method
+           range (lambda (data)
+                   (let ((row (make-row header range data)))
+                     (set-row row)
+                     (funcall bind-row-closure row)))))
+        (call-next-method))))
 
 
 (defmethod cl-ds.alg.meta:across-aggregate ((range frame-range-mixin) function)
-  (let* ((*row* (box nil))
-         (header (read-header range))
+  (let* ((header (read-header range))
          (bind-row-closure (bind-row-closure function
                                              :header header)))
-    (call-next-method
-     range (lambda (data)
-             (let ((row (make-row header range data)))
-               (set-row row)
-               (funcall bind-row-closure row))))))
+    (if (null *header*)
+        (with-header (header)
+          (call-next-method
+           range (lambda (data)
+                   (let ((row (make-row header range data)))
+                     (set-row row)
+                     (funcall bind-row-closure row)))))
+        (call-next-method))))
 
 
 (defmethod make-row ((header standard-header)
@@ -172,23 +182,12 @@
   (iterate
     (with result = (~> header column-count
                        (make-array :initial-element :null)))
-    (for i from 0)
     (for elt in-vector data)
+    (for i from 0)
     (check-predicate header i elt)
     (setf (aref result i) elt)
     (finally (return result))))
 
-
-(defmethod make-row ((header standard-header)
-                     (range validated-frame-range-mixin)
-                     (data vector))
-  (iterate
-    (with result = (~> header column-count
-                       (make-array :initial-element :null)))
-    (for i from 0)
-    (for elt in-vector data)
-    (setf (aref result i) elt)
-    (finally (return result))))
 
 
 (more-conditions:define-condition-translating-method
@@ -212,8 +211,8 @@
     (with result = (~> header column-count
                        (make-array :initial-element nil)
                        (validate-row data)))
-    (for i from 0)
     (for elt in data)
+    (for i from 0)
     (check-predicate header i elt)
     (setf (aref result i) elt)
     (finally (return result))))

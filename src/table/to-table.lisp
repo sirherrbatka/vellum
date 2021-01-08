@@ -15,57 +15,64 @@
      (header (apply #'vellum.header:make-header
                     header-class columns)))
 
-    (%iterator %function %row %class %columns %column-count %header)
+    (%function %transformation)
 
-    ((setf %header header
-           %function (vellum.header:bind-row-closure
+    ((setf %function (vellum.header:bind-row-closure
                       body :header header)
-           %class class
-           %column-count (vellum.header:column-count %header)
-           %columns (make-array %column-count))
-     (iterate
-       (for i from 0 below %column-count)
-       (setf (aref %columns i)
-             (vellum.column:make-sparse-material-column
-              :element-type (vellum.header:column-type %header i))))
-     (setf %iterator (vellum.column:make-iterator %columns)
-           %row (make 'vellum.table:setfable-table-row
-                      :iterator %iterator)))
+           %transformation (transformation
+                            (make class
+                                  :header header
+                                  :columns (iterate
+                                             (with column-count = (vellum.header:column-count header))
+                                             (with result = (make-array column-count))
+                                             (for i from 0 below column-count)
+                                             (setf (aref result i)
+                                                   (vellum.column:make-sparse-material-column
+                                                    :element-type (vellum.header:column-type header i)))
+                                             (finally (return result))))
+                            nil
+                            :in-place t)))
 
     ((row)
-     (iterate
-       (for i from 0 below (min (length row) %column-count))
-       (for value = (vellum.header:row-at %header row i))
-       (vellum.header:check-predicate %header i value)
-       (setf (vellum.column:iterator-at %iterator i)
-             value))
-     (vellum.header:with-header (%header)
-       (let ((vellum.header:*row* (box %row)))
-         (funcall %function)))
-     (vellum.column:move-iterator %iterator 1))
+     (transform-row %transformation
+                    (lambda ()
+                      (iterate
+                        (for i from 0 below (length row))
+                        (for value = (elt row i))
+                        (setf (vellum.header:rr i) value))
+                      (funcall %function))))
 
-    ((vellum.column:finish-iterator %iterator)
-     (make %class
-           :header %header
-           :columns %columns)))
+    ((transformation-result %transformation)))
 
 
 (defmethod to-table ((range vellum.header:frame-range-mixin)
-                     &key (key #'identity)
+                     &key
                        (class 'vellum.table:standard-table)
-                       (header-class 'vellum.header:standard-header)
-                       (columns '())
                        (body nil)
-                       (header (apply #'vellum.header:make-header
-                                      header-class
-                                      columns)))
-  (vellum.header:with-header (header)
-    (call-next-method range :key key
-                            :class class
-                            :body body
-                            :header-class header-class
-                            :columns columns
-                            :header header)))
+                       &allow-other-keys)
+  (let* ((header (vellum.header:read-header range))
+         (column-count (vellum.header:column-count header))
+         (columns (make-array column-count))
+         (function (vellum.header:bind-row-closure
+                    body :header header)))
+    (iterate
+      (for i from 0 below column-count)
+      (setf (aref columns i)
+            (vellum.column:make-sparse-material-column
+             :element-type (vellum.header:column-type header i))))
+    (let ((iterator (vellum.column:make-iterator columns)))
+      (cl-ds:across range
+                    (lambda (row)
+                      (funcall function)
+                      (iterate
+                        (for elt in-vector row)
+                        (for i from 0)
+                        (setf (vellum.column:iterator-at iterator i) elt))
+                      (vellum.column:move-iterator iterator 1)))
+      (vellum.column:finish-iterator iterator)
+      (make class
+            :header header
+            :columns columns))))
 
 
 (defmethod to-table ((input sequence)
