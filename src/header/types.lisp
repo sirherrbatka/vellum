@@ -5,7 +5,9 @@
   ())
 
 
-(def constantly-t (constantly t))
+(defun constantly-t (&rest ignored)
+  (declare (ignore ignored))
+  t)
 
 
 (defclass column-signature ()
@@ -17,7 +19,7 @@
           :reader read-name))
   (:default-initargs :type t
                      :name nil
-                     :predicate constantly-t))
+                     :predicate 'constantly-t))
 
 
 (defclass standard-header (fundamental-header)

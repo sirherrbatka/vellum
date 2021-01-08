@@ -29,7 +29,8 @@
   (bind (((:slots %type %predicate %name) object))
     (check-type %type (or list symbol))
     (check-type %name (or symbol string))
-    (ensure-functionf %predicate)))
+    (check-type %predicate (or symbol function))
+    (ensure-function %predicate)))
 
 
 (defmethod column-signature ((header standard-header)
