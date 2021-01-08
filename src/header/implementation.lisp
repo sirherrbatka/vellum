@@ -114,8 +114,7 @@
           (bind (((:values data more) (call-next-method)))
             (if (no more)
                 (values nil nil)
-                (let ((row (make-row (read-header range)
-                                     range data)))
+                (let ((row (make-row range data)))
                   (set-row row)
                   (values row t))))
         (skip-row () (cl-ds:consume-front range)))
@@ -127,8 +126,7 @@
       (bind (((:values data more) (call-next-method)))
         (if (no more)
             (values nil nil)
-            (let ((row (make-row (read-header range)
-                                 range data)))
+            (let ((row (make-row range data)))
               (set-row row)
               (values row t))))
       (call-next-method)))
@@ -142,7 +140,7 @@
         (with-header (header)
           (call-next-method
            range (lambda (data)
-                   (let ((row (make-row header range data)))
+                   (let ((row (make-row range data)))
                      (set-row row)
                      (funcall bind-row-closure row)))))
         (call-next-method))))
@@ -156,7 +154,7 @@
         (with-header (header)
           (call-next-method
            range (lambda (data)
-                   (let ((row (make-row header range data)))
+                   (let ((row (make-row range data)))
                      (set-row row)
                      (funcall bind-row-closure row)))))
         (call-next-method))))
@@ -170,14 +168,13 @@
         (with-header (header)
           (call-next-method
            range (lambda (data)
-                   (let ((row (make-row header range data)))
+                   (let ((row (make-row range data)))
                      (set-row row)
                      (funcall bind-row-closure row)))))
         (call-next-method))))
 
 
-(defmethod make-row ((header standard-header)
-                     (range frame-range-mixin)
+(defmethod make-row ((range frame-range-mixin)
                      (data vector))
   (iterate
     (with result = (~> header column-count
@@ -191,9 +188,9 @@
 
 
 (more-conditions:define-condition-translating-method
-    make-row (header range data)
+    make-row (range data)
   ((error unable-to-construct-row)
-   :header (header)))
+   :header (read-header range)))
 
 
 (defun validate-row (row data)
@@ -204,8 +201,7 @@
   row)
 
 
-(defmethod make-row ((header standard-header)
-                     (range frame-range-mixin)
+(defmethod make-row ((range frame-range-mixin)
                      (data list))
   (iterate
     (with result = (~> header column-count

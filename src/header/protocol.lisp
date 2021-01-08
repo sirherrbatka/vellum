@@ -21,7 +21,7 @@
 
 (defgeneric (setf row-at) (new-value header row position))
 
-(defgeneric make-row (header range data))
+(defgeneric make-row (range data))
 
 (defgeneric make-value (header source index))
 
