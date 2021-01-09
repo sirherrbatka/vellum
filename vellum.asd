@@ -55,12 +55,4 @@
                              (:file "macros")))
                (:module "integration"
                 :components ((:file "package")
-                             (:file "cl-ds")))
-               ;; (:module "csv"
-               ;;  :components ((:file "package")
-               ;;               (:file "conditions")
-               ;;               (:file "common")
-               ;;               (:file "generics")
-               ;;               (:file "parser")
-               ;;               (:file "implementation")))
-               ))
+                             (:file "cl-ds")))))
