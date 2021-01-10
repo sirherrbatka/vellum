@@ -19,19 +19,8 @@
 
     ((setf %function (vellum.header:bind-row-closure
                       body :header header)
-           %transformation (transformation
-                            (make class
-                                  :header header
-                                  :columns (iterate
-                                             (with column-count = (vellum.header:column-count header))
-                                             (with result = (make-array column-count))
-                                             (for i from 0 below column-count)
-                                             (setf (aref result i)
-                                                   (vellum.column:make-sparse-material-column
-                                                    :element-type (vellum.header:column-type header i)))
-                                             (finally (return result))))
-                            nil
-                            :in-place t)))
+           %transformation (~> (table-from-header class header)
+                               (transformation nil :in-place t))))
 
     ((row)
      (transform-row %transformation
@@ -52,19 +41,8 @@
                        &allow-other-keys)
   (let* ((header (vellum.header:read-header range))
          (function (vellum.header:bind-row-closure body))
-         (transformation (transformation
-                          (make class
-                                :header header
-                                :columns (iterate
-                                           (with column-count = (vellum.header:column-count header))
-                                           (with result = (make-array column-count))
-                                           (for i from 0 below column-count)
-                                           (setf (aref result i)
-                                                 (vellum.column:make-sparse-material-column
-                                                  :element-type (vellum.header:column-type header i)))
-                                           (finally (return result))))
-                         nil
-                         :in-place t)))
+         (transformation (~> (table-from-header class header)
+                             (transformation nil :in-place t))))
     (cl-ds:across range
                   (lambda (row &aux (vellum.header:*validate-predicates* nil))
                     (transform-row transformation

@@ -143,3 +143,16 @@
       (finally (vellum.column:finish-iterator iterator)))
     (cl-ds.utils:quasi-clone* frame
       :columns new-columns)))
+
+
+(defun table-from-header (class header)
+  (make class
+        :header header
+        :columns (iterate
+                   (with column-count = (vellum.header:column-count header))
+                   (with result = (make-array column-count))
+                   (for i from 0 below column-count)
+                   (setf (aref result i)
+                         (vellum.column:make-sparse-material-column
+                          :element-type (vellum.header:column-type header i)))
+                   (finally (return result)))))
