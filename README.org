@@ -272,6 +272,9 @@ All four ways to select second and third columns are equally valid. Selecting by
 
 Depending on the specific use case each of those ways can be the most suitable.
 
+** Other functions
+Use HSTACK and VSTACK to concatenate tables column-wise and row-wise. Use ORDER-BY to sort table content. Use JOIN to perform SQL-like joins (currently only hash join is implemented). Use NEW-COLUMNS to add new columns to a table (non destructive).
+
 ** A few remarks about the inner representation and efficiency
 Vellum stores data in a column format, where each column is a sparse variant of an RRB trie. I've chosen this type of representation for efficient copy-on-write. Copy-on-write is important as it allows for exception safety in the transform function as well as reduces memory usage by allowing safe sharing of the common data bits. However, at the same time, data frames expose a mutable interface. You could consider it to be unusual.
 
