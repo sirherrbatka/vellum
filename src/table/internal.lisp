@@ -61,7 +61,8 @@
                       (iterate
                         (declare (type fixnum i))
                         (for i from 0 below column-count)
-                        (setf (vellum.column:iterator-at iterator i) :null))
+                        (setf (vellum.column:iterator-at iterator i)
+                              :null))
                       (setf (vellum.column:iterator-at marker-iterator 0) t
                             dropped t)
                       (move-iterator)

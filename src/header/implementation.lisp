@@ -346,10 +346,11 @@
 (defmethod check-predicate ((header fundamental-header)
                             column
                             value)
+  (when *validate-predicates*
     (unless (funcall (column-predicate header column)
                      value)
       (let ((index (name-to-index header column)))
         (error 'predicate-failed
                :column-number index
                :format-arguments (list value column)
-               :value value))))
+               :value value)))))
