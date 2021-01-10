@@ -42,16 +42,23 @@
   (let* ((header (vellum.header:read-header range))
          (function (vellum.header:bind-row-closure body))
          (transformation (~> (table-from-header class header)
-                             (transformation nil :in-place t))))
-    (cl-ds:across range
-                  (lambda (row &aux (vellum.header:*validate-predicates* nil))
-                    (transform-row transformation
-                                   (lambda ()
-                                     (iterate
-                                       (for i from 0 below (length row))
-                                       (for value = (aref row i))
-                                       (setf (vellum.header:rr i) value))
-                                     (funcall function)))))
+                             (transformation nil :in-place t)))
+         (prev-control (ensure-function *transform-control*)))
+    (block main
+      (let ((*transform-control* (lambda (operation)
+                                   (cond
+                                     ((eq operation :finish)
+                                      (return-from main))
+                                     (t (funcall prev-control operation))))))
+        (cl-ds:across range
+                      (lambda (row &aux (vellum.header:*validate-predicates* nil))
+                        (transform-row transformation
+                                       (lambda ()
+                                         (iterate
+                                           (for i from 0 below (length row))
+                                           (for value = (aref row i))
+                                           (setf (vellum.header:rr i) value))
+                                         (funcall function)))))))
     (transformation-result transformation)))
 
 
