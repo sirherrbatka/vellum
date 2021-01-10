@@ -72,17 +72,14 @@
                  (lambda (operation)
                    (eswitch (operation :test 'eq)
                      (:finish
-                      (iterate
-                        (for i from 0 below column-count)
-                        (setf (vellum.column:iterator-at iterator i)
-                              :null)
-                        (finally (return-from top))))
+                      (return-from top))
                      (:nullify
                       (iterate
                         (for i from 0 below column-count)
                         (setf (vellum.column:iterator-at iterator i)
-                              :null))
-                      (vellum.column:move-iterator iterator 1))
+                              :null)
+                        (finally
+                         (vellum.column:move-iterator iterator 1))))
                      (:drop-row
                       (iterate
                         (for i from 0 below column-count)
