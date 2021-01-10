@@ -66,7 +66,7 @@
                          nil
                          :in-place t)))
     (cl-ds:across range
-                  (lambda (row &aux (vellum.header:*validate-predicates* t))
+                  (lambda (row &aux (vellum.header:*validate-predicates* nil))
                     (transform-row transformation
                                    (lambda ()
                                      (iterate
