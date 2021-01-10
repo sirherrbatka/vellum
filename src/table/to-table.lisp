@@ -15,21 +15,29 @@
      (header (apply #'vellum.header:make-header
                     header-class columns)))
 
-    (%function %transformation)
+    (%function %transformation %done)
 
     ((setf %function (vellum.header:bind-row-closure
                       body :header header)
+           %done nil
            %transformation (~> (table-from-header class header)
                                (transformation nil :in-place t))))
 
     ((row)
-     (transform-row %transformation
-                    (lambda ()
-                      (iterate
-                        (for i from 0 below (length row))
-                        (for value = (elt row i))
-                        (setf (vellum.header:rr i) value))
-                      (funcall %function))))
+     (unless %done
+       (block main
+         (let ((*transform-control* (lambda (operation)
+                                      (cond ((eq operation :finish)
+                                             (setf %done t)
+                                             (return-from main))
+                                            (t nil)))))
+           (transform-row %transformation
+                          (lambda ()
+                            (iterate
+                              (for i from 0 below (length row))
+                              (for value = (elt row i))
+                              (setf (vellum.header:rr i) value))
+                            (funcall %function)))))))
 
     ((transformation-result %transformation)))
 
