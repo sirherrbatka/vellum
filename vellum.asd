@@ -6,6 +6,7 @@
   :version "0.0.0"
   :license "BSD simplified"
   :author "Marek Kochanowicz"
+  :description "Data Frames for Common Lisp"
   :depends-on ( :iterate       :serapeum
                 :lparallel     :cl-data-structures
                 :metabang-bind :alexandria

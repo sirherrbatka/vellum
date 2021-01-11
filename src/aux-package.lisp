@@ -1,4 +1,3 @@
-
 (cl:defpackage #:vellum.utils
   (:use #:cl)
   (:export #:def-fancy-package))
@@ -27,7 +26,7 @@
 
 (cl:in-package #:cl-user)
 
-(vellum.utils:def-fancy-package :vellum.aux-package
+(vellum.utils:def-fancy-package #:vellum.aux-package
   (:use #:cl)
   (:reexport #:alexandria
              #:if-let
@@ -328,4 +327,3 @@
              #:reducing
              #:accumulate
              #:accumulating))
-
