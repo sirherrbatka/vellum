@@ -27,7 +27,6 @@
 (cl:in-package #:cl-user)
 
 (vellum.utils:def-fancy-package #:vellum.aux-package
-  (:use #:cl)
   (:reexport #:alexandria
              #:if-let
              #:when-let

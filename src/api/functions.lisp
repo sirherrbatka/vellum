@@ -184,9 +184,14 @@
 (defun add-columns (frame &rest column-specs)
   (vellum:hstack* frame
                   (mapcar (lambda (x)
-                            (apply #'vellum:empty-column
-                                   (~> frame vellum.table:header class-of)
-                                   x))
+                            (etypecase x
+                              (list
+                               (apply #'vellum:empty-column
+                                      (~> frame vellum.table:header class-of)
+                                      x))
+                              ((or string symbol)
+                               (~> frame vellum.table:header class-of
+                                   (vellum:empty-column :name x)))))
                           column-specs)))
 
 
