@@ -48,7 +48,7 @@
                        (body nil)
                        &allow-other-keys)
   (let* ((header (vellum.header:read-header range))
-         (function (vellum.header:bind-row-closure body))
+         (function (vellum.header:bind-row-closure body :header header))
          (transformation (~> (table-from-header class header)
                              (transformation nil :in-place t)))
          (prev-control (ensure-function *transform-control*)))
