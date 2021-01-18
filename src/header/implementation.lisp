@@ -133,45 +133,45 @@
 
 
 (defmethod cl-ds:traverse ((range frame-range-mixin) function)
-  (let* ((header (read-header range))
-         (bind-row-closure (bind-row-closure function
-                                             :header header)))
-    (if (null *header*)
+  (if (null *header*)
+      (let* ((header (read-header range))
+             (bind-row-closure (bind-row-closure function
+                                                 :header header)))
         (with-header (header)
           (call-next-method
            range (lambda (data)
                    (let ((row (make-row range data)))
                      (set-row row)
-                     (funcall bind-row-closure row)))))
-        (call-next-method))))
+                     (funcall bind-row-closure row))))))
+      (call-next-method)))
 
 
 (defmethod cl-ds:across ((range frame-range-mixin) function)
-  (let* ((header (read-header range))
-         (bind-row-closure (bind-row-closure function
-                                             :header header)))
-    (if (null *header*)
+  (if (null *header*)
+      (let* ((header (read-header range))
+             (bind-row-closure (bind-row-closure function
+                                                 :header header)))
         (with-header (header)
           (call-next-method
            range (lambda (data)
                    (let ((row (make-row range data)))
                      (set-row row)
-                     (funcall bind-row-closure row)))))
-        (call-next-method))))
+                     (funcall bind-row-closure row))))))
+    (call-next-method)))
 
 
 (defmethod cl-ds.alg.meta:across-aggregate ((range frame-range-mixin) function)
-  (let* ((header (read-header range))
-         (bind-row-closure (bind-row-closure function
-                                             :header header)))
-    (if (null *header*)
+  (if (null *header*)
+      (let* ((header (read-header range))
+             (bind-row-closure (bind-row-closure function
+                                                 :header header)))
         (with-header (header)
           (call-next-method
            range (lambda (data)
                    (let ((row (make-row range data)))
                      (set-row row)
-                     (funcall bind-row-closure row)))))
-        (call-next-method))))
+                     (funcall bind-row-closure row))))))
+      (call-next-method)))
 
 
 (defmethod make-row ((range frame-range-mixin)
