@@ -160,23 +160,10 @@
     (call-next-method)))
 
 
-(defmethod cl-ds.alg.meta:across-aggregate ((range frame-range-mixin) function)
-  (if (null *header*)
-      (let* ((header (read-header range))
-             (bind-row-closure (bind-row-closure function
-                                                 :header header)))
-        (with-header (header)
-          (call-next-method
-           range (lambda (data)
-                   (let ((row (make-row range data)))
-                     (set-row row)
-                     (funcall bind-row-closure row))))))
-      (call-next-method)))
-
-
 (defmethod make-row ((range frame-range-mixin)
                      (data vector))
   (iterate
+    (with header = (read-header range))
     (with result = (~> header column-count
                        (make-array :initial-element :null)))
     (for elt in-vector data)
@@ -184,7 +171,6 @@
     (check-predicate header i elt)
     (setf (aref result i) elt)
     (finally (return result))))
-
 
 
 (more-conditions:define-condition-translating-method
