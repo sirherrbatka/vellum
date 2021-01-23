@@ -32,7 +32,8 @@
                              (:file "types")
                              (:file "conditions")
                              (:file "internal")
-                             (:file "implementation")))
+                             (:file "implementation")
+                             (:file "documentation")))
                (:module "selection"
                 :components ((:file "package")
                              (:file "implementation")))
@@ -44,7 +45,7 @@
                              (:file "types")
                              (:file "conditions")
                              (:file "functions")
-                             (:file "docstring")
+                             (:file "documentation")
                              (:file "to-table")
                              (:file "internal")
                              (:file "implementation")))
