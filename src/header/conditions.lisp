@@ -16,10 +16,8 @@
   (:default-initargs :format-control "No active header."))
 
 
-(define-condition predicate-failed (cl-ds:operation-not-allowed)
-  ((%value :initarg :value
-           :reader value)
-   (%column-number :initarg :column-number
+(define-condition predicate-failed (cl-ds:invalid-value)
+  ((%column-number :initarg :column-number
                    :reader column-number))
   (:default-initargs :format-control "Predicate for ~a in the ~a returned nil."))
 
@@ -36,9 +34,8 @@
   ())
 
 
-(define-condition name-duplicated (cl-ds:operation-not-allowed)
-  ((%name :initarg :name
-          :reader name))
+(define-condition name-duplicated (cl-ds:invalid-value)
+  ()
   (:default-initargs :format-control "Detected name ~a duplication."))
 
 

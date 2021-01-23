@@ -12,6 +12,6 @@
       (for (name value) in-hashtable (read-column-names header))
       (unless (null (shiftf (gethash name result) (+ offset value)))
         (error 'name-duplicated
-               :name name
+               :value name
                :format-arguments (list name))))
     (finally (return result))))

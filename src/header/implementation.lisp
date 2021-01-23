@@ -85,7 +85,7 @@
                   (unless (null (shiftf (gethash name result) i))
                     (error 'name-duplicated
                            :format-arguments (list name)
-                           :name name))
+                           :value name))
                   (finally (return result)))))
     (setf (slot-value result '%column-signatures) column-signatures
           (slot-value result '%column-names) names)
@@ -297,7 +297,7 @@
       (unless (null (shiftf (gethash name names) i))
         (error 'name-duplicated
                :format-arguments (list name)
-               :name name)))
+               :value name)))
     (make (class-of header)
           :column-signatures selected
           :column-names names)))
