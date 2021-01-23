@@ -86,20 +86,44 @@
                         gensyms))))))))
 
 
-(defmacro brr (column)
-  (with-gensyms (!header !index !current-header !row)
-    `(let ((,!header nil)
-           (,!index nil))
-       (lambda (&rest all) (declare (ignore all))
-         (let ((,!current-header (vellum.header:header))
-               (,!row (vellum.header:row)))
-           (unless (eq ,!current-header ,!header)
-             (setf ,!header ,!current-header
-                   ,!index ,(cond ((stringp column)
-                                   `(vellum.header:name-to-index ,!header
-                                                                 ,column))
-                                  ((symbolp column)
-                                   `(vellum.header:name-to-index ,!header
-                                                                 ,(symbol-name column)))
-                                  (t column))))
-           (row-at ,!header ,!row ,!index))))))
+(defmacro brr (column &rest other-columns)
+  (with-gensyms (!header !index !current-header !row !all)
+    (if (endp other-columns)
+        `(let ((,!header nil)
+               (,!index nil))
+           (lambda (&rest ,!all) (declare (ignore ,!all))
+             (let ((,!current-header (vellum.header:header))
+                   (,!row (vellum.header:row)))
+               (unless (eq ,!current-header ,!header)
+                 (setf ,!header ,!current-header
+                       ,!index ,(cond ((stringp column)
+                                       `(vellum.header:name-to-index ,!header
+                                                                     ,column))
+                                      ((symbolp column)
+                                       `(vellum.header:name-to-index ,!header
+                                                                     ,(symbol-name column)))
+                                      (t column)))))
+             (row-at ,!header ,!row ,!index)))
+        (let* ((columns (cons column other-columns))
+               (indexes (~> columns
+                            length
+                            make-list
+                            (map-into #'gensym))))
+          `(let (,!header ,@indexes)
+             (lambda (&rest ,!all) (declare (ignore ,!all))
+               (unless (eq ,!current-header ,!header)
+                 (setf ,!header ,!current-header
+                       ,@(iterate
+                           (for column in columns)
+                           (for index in indexes)
+                           (collecting index)
+                           (collecting `(cond ((stringp ,column)
+                                               `(vellum.header:name-to-index ,!header
+                                                                             ,column))
+                                              ((symbolp ,column)
+                                               `(vellum.header:name-to-index ,!header
+                                                                             ,(symbol-name column)))
+                                              (t column))))))
+               (list ,@(iterate
+                         (for index in indexes)
+                         (collecting `(row-at ,!header ,!row ,index))))))))))
