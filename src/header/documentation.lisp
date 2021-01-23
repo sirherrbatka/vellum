@@ -26,6 +26,10 @@
     :exceptional-situations "Signals NO-COLUMN when the COLUMN is not present in the current HEADER. Signals PREDICAT-FAILED when the predicate function returns nil."))
 
   (function
+   bind-row-closure
+   (:description "Prepares passed function/nil/bind-row instance to be used. It will return functions unaltered, header optimized closure from the bind-row instance and constantly nil closure when nil is passed."))
+
+  (function
    column-count
    (:description "How many columns header specifies?"))
 
