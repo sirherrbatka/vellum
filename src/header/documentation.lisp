@@ -21,6 +21,11 @@
    (:description "Error signalled when trying to set the column value in row to somethining rejected by the predicate."))
 
   (function
+   check-predicate
+   (:description "Calls the column predicate on the value "
+    :exceptional-situations "Signals NO-COLUMN when the COLUMN is not present in the current HEADER. Signals PREDICAT-FAILED when the predicate function returns nil."))
+
+  (function
    column-count
    (:description "How many columns header specifies?"))
 
