@@ -80,7 +80,7 @@
       (block main
         (restart-case (funcall function)
           (skip-row ()
-            :report "Skip altering this row."
+            :report "Omit this row."
             (iterate
               (for i from 0 below column-count)
               (vellum.column:untouch-column iterator i)
