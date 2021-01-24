@@ -140,9 +140,12 @@
         (with-header (header)
           (call-next-method
            range (lambda (data)
-                   (let ((row (make-row range data)))
-                     (set-row row)
-                     (funcall bind-row-closure row))))))
+                   (restart-case (let ((row (make-row range data)))
+                                   (set-row row)
+                                   (funcall bind-row-closure row))
+                     (skip-row ()
+                       :report "Skip this row."
+                       nil))))))
       (call-next-method)))
 
 
@@ -154,9 +157,12 @@
         (with-header (header)
           (call-next-method
            range (lambda (data)
-                   (let ((row (make-row range data)))
-                     (set-row row)
-                     (funcall bind-row-closure row))))))
+                   (restart-case (let ((row (make-row range data)))
+                                   (set-row row)
+                                   (funcall bind-row-closure row))
+                     (skip-row ()
+                       :report "Skip this row."
+                       nil))))))
     (call-next-method)))
 
 
