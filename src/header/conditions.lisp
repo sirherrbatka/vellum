@@ -19,7 +19,7 @@
 (define-condition predicate-failed (cl-ds:invalid-value)
   ((%column-number :initarg :column-number
                    :reader column-number))
-  (:default-initargs :format-control "Predicate for ~a in the ~a returned nil."))
+  (:default-initargs :format-control "Predicate for ~a in the column ~a returned nil."))
 
 
 (define-condition conversion-failed (cl-ds:operation-not-allowed)
