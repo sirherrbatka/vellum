@@ -190,12 +190,22 @@
 (defmethod make-row ((range frame-range-mixin)
                      (data list))
   (iterate
+    (with header = (header))
     (with result = (~> header column-count
                        (make-array :initial-element nil)
                        (validate-row data)))
     (for elt in data)
     (for i from 0)
-    (check-predicate header i elt)
+    (tagbody main
+       (restart-case (check-predicate header i elt)
+         (set-to-null ()
+           :report "Set the row position to :null."
+           (setf elt :null))
+         (provide-new-value (v)
+           :report "Enter the new value."
+           :interactive vellum.header:read-new-value
+           (setf elt v)
+           (go main))))
     (setf (aref result i) elt)
     (finally (return result))))
 
