@@ -53,6 +53,11 @@
    (:description "Names in the header are supposed to be unique. If an operation is performed that would violate that rule, this error is signalled."))
 
   (function
+   header
+   (:description "Returns the current active header."
+    :exceptional-situations "Will signal NO-HEADER when there is no active header."))
+
+  (function
    rr
    (:description "Extracts value from the current row."
     :exceptional-situations "Signals NO-COLUMN, NO-HEADER, NO-ROW exception if: column is not found in the current header, there is no active header, there is no active row."))
