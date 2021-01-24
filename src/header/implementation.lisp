@@ -200,7 +200,8 @@
        (restart-case (check-predicate header i elt)
          (set-to-null ()
            :report "Set the row position to :null."
-           (setf elt :null))
+           (setf elt :null)
+           (go main))
          (provide-new-value (v)
            :report "Enter the new value."
            :interactive vellum.header:read-new-value
@@ -252,7 +253,8 @@
            (return nil))
          (set-to-null ()
            :report "Set the row position to :null."
-           (setf new-value :null))
+           (setf new-value :null)
+           (go main))
          (provide-new-value (v)
            :report "Enter the new value."
            :interactive read-new-value
