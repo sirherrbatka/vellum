@@ -31,6 +31,11 @@
     :exceptional-situations "Will signal NO-COLUMN if no column in the HEADER with such INDEX/NAME exists."))
 
   (function
+   set-row
+   (:description "Sets the inner value of *CURRENT-ROW* to the passed ROW."
+    :exceptional-situations "Will signal NO-ROW when *CURRENT-ROW* is unbound."))
+
+  (function
    with-header
    (:description "Expands to form binding *HEADER* and establishing *CURRENT-ROW*."
     :notes "Call SET-ROW to actually set the value of the row to a specific object."))
