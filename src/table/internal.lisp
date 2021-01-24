@@ -78,7 +78,10 @@
                        (setf (vellum.column:iterator-at iterator i) :null)))
                     (t (funcall prev-control operation))))))
       (block main
-        (restart-case (funcall function)
+        (restart-case (handler-case (funcall function)
+                        (error (e)
+                          (error 'transformation-error
+                                 :cause e)))
           (skip-row ()
             :report "Omit this row."
             (iterate

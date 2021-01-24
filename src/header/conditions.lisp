@@ -22,14 +22,6 @@
   (:default-initargs :format-control "Predicate for ~a in the column ~a returned nil."))
 
 
-(define-condition conversion-failed (cl-ds:operation-not-allowed)
-  ((%value :initarg :value
-           :reader value)
-   (%target-type :initarg :target-type
-                 :reader target-type))
-  (:default-initargs :format-control "Can't convert ~a to type ~a."))
-
-
 (define-condition invalid-name (cl-ds:invalid-value)
   ())
 

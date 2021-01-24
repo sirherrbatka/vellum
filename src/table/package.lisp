@@ -9,6 +9,7 @@
    #:*table*
    #:*transform-in-place*
    #:at
+   #:bind-row-closure
    #:column-at
    #:column-count
    #:column-name
@@ -24,13 +25,12 @@
    #:make-table
    #:make-table*
    #:no-transformation
-   #:show
    #:nullify
    #:remove-nulls
-   #:bind-row-closure
    #:row-count
    #:select
    #:setfable-table-row
+   #:show
    #:standard-table
    #:standard-table-range
    #:standard-transformation-row
@@ -38,6 +38,7 @@
    #:transform
    #:transform-row
    #:transformation
+   #:transformation-error
    #:transformation-result
    #:vmask
    #:vstack
