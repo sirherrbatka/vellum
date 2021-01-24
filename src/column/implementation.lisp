@@ -82,6 +82,7 @@
   (< (access-index iterator)
      (reduce #'max
              (read-columns iterator)
+             :initial-value 0
              :key #'column-size)))
 
 
