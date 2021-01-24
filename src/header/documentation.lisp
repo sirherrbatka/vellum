@@ -26,6 +26,11 @@
     :exceptional-situations "Signals NO-COLUMN when the COLUMN is not present in the current HEADER. Signals PREDICAT-FAILED when the predicate function returns nil."))
 
   (function
+   ensure-index
+   (:description "Converts strings and symbols to index of column in the HEADER. If a numeric index is passed it is returned unaltered."
+    :exceptional-situations "Will signal NO-COLUMN if no column in the HEADER with such INDEX/NAME exists."))
+
+  (function
    bind-row-closure
    (:description "Prepares passed function/nil/bind-row instance to be used. It will return functions unaltered, header optimized closure from the bind-row instance and constantly nil closure when nil is passed."))
 

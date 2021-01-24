@@ -58,6 +58,13 @@
 (defun ensure-index (header index/name)
   (check-type index/name (or symbol string non-negative-integer))
   (if (numberp index/name)
-      index/name
+      (let ((column-count (column-count header)))
+        (unless (< index/name column-count)
+          (error 'no-column
+                 :bounds `(< 0 ,column-count)
+                 :argument 'index/name
+                 :value index/name
+                 :format-arguments (list index/name)))
+        index/name)
       (vellum.header:name-to-index header
                                    index/name)))
