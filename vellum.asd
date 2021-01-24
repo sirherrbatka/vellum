@@ -28,6 +28,7 @@
                              (:file "variables")
                              (:file "macros")
                              (:file "protocol")
+                             (:file "utils")
                              (:file "functions")
                              (:file "types")
                              (:file "conditions")

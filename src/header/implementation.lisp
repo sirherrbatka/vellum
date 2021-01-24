@@ -230,11 +230,23 @@
      (setf (elt row column) new-value)))
 
 
-(defmethod (setf row-at) :before
+(defmethod (setf row-at) :around
     (new-value
      (header standard-header)
      row column)
-  (check-predicate header column new-value))
+  (block nil
+    (restart-case (check-predicate header column new-value)
+      (keep-old-value ()
+        :report "Skip assigning the new value."
+        (return nil))
+      (set-to-null ()
+        :report "Set the row position to :null."
+        (setf new-value :null))
+      (provide-new-value (v)
+        :report "Enter the new value."
+        :interactive read-new-value
+        (setf new-value v)))
+    (call-next-method new-value header row column)))
 
 
 (defmethod (setf row-at) (new-value
@@ -335,7 +347,7 @@
   (when *validate-predicates*
     (unless (funcall (column-predicate header column)
                      value)
-      (let ((index (name-to-index header column)))
+      (let ((index (ensure-index header column)))
         (error 'predicate-failed
                :column-number index
                :format-arguments (list value column)
