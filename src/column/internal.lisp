@@ -22,11 +22,13 @@
   (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
 
 
+(declaim (inline offset))
 (defun offset (index)
   (declare (type fixnum index))
   (logandc2 index cl-ds.common.rrb:+tail-mask+))
 
 
+(declaim (inline tree-index))
 (defun tree-index (index)
   (declare (type fixnum index))
   (logand index cl-ds.common.rrb:+tail-mask+))
