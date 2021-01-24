@@ -37,6 +37,7 @@
    #:predicate-failed
    #:read-header
    #:read-name
+   #:read-new-value
    #:row
    #:row-at
    #:rr

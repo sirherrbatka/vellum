@@ -68,3 +68,8 @@
         index/name)
       (vellum.header:name-to-index header
                                    index/name)))
+
+
+(defun read-new-value ()
+  (format t "Enter a new value: ")
+  (multiple-value-list (eval (read))))

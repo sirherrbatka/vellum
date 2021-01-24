@@ -58,15 +58,16 @@
            (*transform-control*
              (lambda (operation)
                (cond ((eq operation :drop)
-                      (iterate
-                        (declare (type fixnum i))
-                        (for i from 0 below column-count)
-                        (setf (vellum.column:iterator-at iterator i)
-                              :null))
-                      (setf (vellum.column:iterator-at marker-iterator 0) t
-                            dropped t)
-                      (move-iterator)
-                      (return-from transform-row-impl transformation))
+                      #1=(iterate
+                           (declare (type fixnum i))
+                           (for i from 0 below column-count)
+                           (setf (vellum.column:iterator-at iterator i)
+                                 :null)
+                           (finally
+                            (setf (vellum.column:iterator-at marker-iterator 0) t
+                                  dropped t)
+                            (move-iterator)
+                            (return-from transform-row-impl transformation))))
                      ((eq operation :finish)
                       (funcall prev-control operation)
                       (return-from transform-row-impl transformation))
@@ -76,7 +77,10 @@
                         (for i from 0 below column-count)
                         (setf (vellum.column:iterator-at iterator i) :null)))
                      (t (funcall prev-control operation))))))
-      (funcall function)
+      (restart-case (funcall function)
+        (drop-row ()
+          :report "Drop this row."
+          #1#))
       (move-iterator)
       transformation)))
 

@@ -234,19 +234,21 @@
     (new-value
      (header standard-header)
      row column)
-  (block nil
-    (restart-case (check-predicate header column new-value)
-      (keep-old-value ()
-        :report "Skip assigning the new value."
-        (return nil))
-      (set-to-null ()
-        :report "Set the row position to :null."
-        (setf new-value :null))
-      (provide-new-value (v)
-        :report "Enter the new value."
-        :interactive read-new-value
-        (setf new-value v)))
-    (call-next-method new-value header row column)))
+  (tagbody main
+     (block nil
+       (restart-case (check-predicate header column new-value)
+         (keep-old-value ()
+           :report "Skip assigning the new value."
+           (return nil))
+         (set-to-null ()
+           :report "Set the row position to :null."
+           (setf new-value :null))
+         (provide-new-value (v)
+           :report "Enter the new value."
+           :interactive read-new-value
+           (setf new-value v)
+           (go main)))
+       (call-next-method new-value header row column))))
 
 
 (defmethod (setf row-at) (new-value
