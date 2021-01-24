@@ -6,19 +6,20 @@
   (:nicknames #:vellum.column)
   (:export
    #:augment-iterator
-   #:columns
    #:column-at
    #:column-size
    #:column-type
    #:column-type-error
+   #:columns
    #:finish-iterator
-   #:truncate-to-length
-   #:remove-nulls
-   #:index
    #:fundamental-column
+   #:index
    #:iterator-at
    #:make-iterator
    #:make-sparse-material-column
    #:move-iterator
    #:move-iterator-to
-   #:sparse-material-column))
+   #:remove-nulls
+   #:sparse-material-column
+   #:truncate-to-length
+   #:untouch-column))

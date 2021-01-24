@@ -56,31 +56,38 @@
             (vellum.column:move-iterator iterator 1)
             (vellum.column:move-iterator marker-iterator 1))
            (*transform-control*
-             (lambda (operation)
-               (cond ((eq operation :drop)
-                      #1=(iterate
-                           (declare (type fixnum i))
-                           (for i from 0 below column-count)
-                           (setf (vellum.column:iterator-at iterator i)
-                                 :null)
-                           (finally
-                            (setf (vellum.column:iterator-at marker-iterator 0) t
-                                  dropped t)
-                            (move-iterator)
-                            (return-from transform-row-impl transformation))))
-                     ((eq operation :finish)
-                      (funcall prev-control operation)
-                      (return-from transform-row-impl transformation))
-                     ((eq operation :nullify)
-                      (iterate
-                        (declare (type fixnum i))
-                        (for i from 0 below column-count)
-                        (setf (vellum.column:iterator-at iterator i) :null)))
-                     (t (funcall prev-control operation))))))
-      (restart-case (funcall function)
-        (drop-row ()
-          :report "Drop this row."
-          #1#))
+            (lambda (operation)
+              (cond ((eq operation :drop)
+                     #1=(iterate
+                          (declare (type fixnum i))
+                          (for i from 0 below column-count)
+                          (setf (vellum.column:iterator-at iterator i)
+                                :null)
+                          (finally
+                           (setf (vellum.column:iterator-at marker-iterator 0) t
+                                 dropped t)
+                           (move-iterator)
+                           (return-from transform-row-impl transformation))))
+                    ((eq operation :finish)
+                     (funcall prev-control operation)
+                     (return-from transform-row-impl transformation))
+                    ((eq operation :nullify)
+                     (iterate
+                       (declare (type fixnum i))
+                       (for i from 0 below column-count)
+                       (setf (vellum.column:iterator-at iterator i) :null)))
+                    (t (funcall prev-control operation))))))
+      (block main
+        (restart-case (funcall function)
+          (skip-row ()
+            :report "Skip altering this row."
+            (iterate
+              (for i from 0 below column-count)
+              (vellum.column:untouch-column iterator i)
+              (finally (return-from main))))
+          (drop-row ()
+            :report "Drop this row."
+            #1#)))
       (move-iterator)
       transformation)))
 

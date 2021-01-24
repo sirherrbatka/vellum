@@ -58,6 +58,11 @@
     new-value))
 
 
+(defun untouch-column (iterator column)
+  (let ((touched (read-touched iterator)))
+    (setf (aref touched column) nil)))
+
+
 (defmethod in-existing-content ((iterator sparse-material-column-iterator))
   (< (access-index iterator)
      (reduce #'max
