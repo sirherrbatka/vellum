@@ -58,6 +58,10 @@
     :exceptional-situations "Will signal NO-HEADER when there is no active header."))
 
   (function
+   validate-active-header
+   (:description "Signals NO-HEADER error when the *HEADER* is NIL."))
+
+  (function
    rr
    (:description "Extracts value from the current row."
     :exceptional-situations "Signals NO-COLUMN, NO-HEADER, NO-ROW exception if: column is not found in the current header, there is no active header, there is no active row."))
