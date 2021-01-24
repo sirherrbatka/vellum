@@ -11,6 +11,11 @@
                 (more-frames "Traversable object presenting more of the data frames."))))
 
   (function
+   transformation-error
+   (:description "Error signalled when transformation of rows fails for some reason."
+    :notes "The cause of the error can be extracted with MORE-CONDITIONS:CAUSE."))
+
+  (function
    vstack*
    (:description "Concatenates multiple frames column-wise."))
 
