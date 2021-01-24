@@ -31,6 +31,11 @@
     :exceptional-situations "Will signal NO-COLUMN if no column in the HEADER with such INDEX/NAME exists."))
 
   (function
+   with-header
+   (:description "Expands to form binding *HEADER* and establishing *CURRENT-ROW*."
+    :notes "Call SET-ROW to actually set the value of the row to a specific object."))
+
+  (function
    bind-row-closure
    (:description "Prepares passed function/nil/bind-row instance to be used. It will return functions unaltered, header optimized closure from the bind-row instance and constantly nil closure when nil is passed."))
 
