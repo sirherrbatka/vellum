@@ -58,9 +58,24 @@
     new-value))
 
 
-(defun untouch-column (iterator column)
-  (let ((touched (read-touched iterator)))
-    (setf (aref touched column) nil)))
+(defun untouch (iterator)
+  (iterate
+    (with depths = (read-depths iterator))
+    (with offset = (offset (index iterator)))
+    (with changes = (read-changes iterator))
+    (with buffers = (read-buffers iterator))
+    (with stacks = (read-stacks iterator))
+    (for change in-vector changes)
+    (for buffer in-vector buffers)
+    (for depth in-vector depths)
+    (for stack in-vector stacks)
+    (for node = (aref stack depth))
+    (setf (aref change offset) nil
+          (aref buffer offset) (cond ((null node)
+                                      :null)
+                                     ((cl-ds.common.rrb:sparse-rrb-node-contains node offset)
+                                      (cl-ds.common.rrb:sparse-nref node offset))
+                                     (t :null)))))
 
 
 (defmethod in-existing-content ((iterator sparse-material-column-iterator))

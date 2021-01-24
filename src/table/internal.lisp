@@ -84,10 +84,8 @@
                                  :cause e)))
           (skip-row ()
             :report "Omit this row."
-            (iterate
-              (for i from 0 below column-count)
-              (vellum.column:untouch-column iterator i)
-              (finally (return-from main))))
+            (vellum.column:untouch iterator)
+            (return-from main))
           (drop-row ()
             :report "Drop this row."
             #1#)))

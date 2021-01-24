@@ -22,4 +22,4 @@
    #:remove-nulls
    #:sparse-material-column
    #:truncate-to-length
-   #:untouch-column))
+   #:untouch))
