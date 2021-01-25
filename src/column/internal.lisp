@@ -871,7 +871,7 @@
   (declare (type iterator-buffer buffer)
            (type fixnum depth)
            (type iterator-stack stack))
-  (cond ((every (curry #'eql :null) buffer change)
+  (cond ((every (curry #'eql :null) buffer)
          (setf (aref stack depth) nil))
         (t
          (let* ((tag (cl-ds.common.abstract:read-ownership-tag column))
