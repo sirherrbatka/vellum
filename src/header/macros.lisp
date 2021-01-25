@@ -102,8 +102,8 @@
                                       ((symbolp column)
                                        `(vellum.header:name-to-index ,!header
                                                                      ,(symbol-name column)))
-                                      (t column)))))
-             (row-at ,!header ,!row ,!index)))
+                                      (t column))))
+               (row-at ,!header ,!row ,!index))))
         (let* ((columns (cons column other-columns))
                (indexes (~> columns
                             length
@@ -111,19 +111,21 @@
                             (map-into #'gensym))))
           `(let (,!header ,@indexes)
              (lambda (&rest ,!all) (declare (ignore ,!all))
-               (unless (eq ,!current-header ,!header)
-                 (setf ,!header ,!current-header
-                       ,@(iterate
-                           (for column in columns)
+               (let ((,!current-header (vellum.header:header))
+                     (,!row (vellum.header:row)))
+                 (unless (eq ,!current-header ,!header)
+                   (setf ,!header ,!current-header
+                         ,@(iterate
+                             (for column in columns)
+                             (for index in indexes)
+                             (collecting index)
+                             (collecting `(cond ((stringp ,column)
+                                                 `(vellum.header:name-to-index ,!header
+                                                                               ,column))
+                                                ((symbolp ,column)
+                                                 `(vellum.header:name-to-index ,!header
+                                                                               ,(symbol-name column)))
+                                                (t column))))))
+                 (list ,@(iterate
                            (for index in indexes)
-                           (collecting index)
-                           (collecting `(cond ((stringp ,column)
-                                               `(vellum.header:name-to-index ,!header
-                                                                             ,column))
-                                              ((symbolp ,column)
-                                               `(vellum.header:name-to-index ,!header
-                                                                             ,(symbol-name column)))
-                                              (t column))))))
-               (list ,@(iterate
-                         (for index in indexes)
-                         (collecting `(row-at ,!header ,!row ,index))))))))))
+                           (collecting `(row-at ,!header ,!row ,index)))))))))))
