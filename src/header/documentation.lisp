@@ -70,7 +70,8 @@
 
   (function
    column-type
-   (:description "What is the type stored inside the COLUMN."))
+   (:description "What is the type stored inside the COLUMN."
+    :exceptional-situations "Will signal NO-COLUMN if no COLUMN in the HEADER."))
 
   (function
    index-to-name
