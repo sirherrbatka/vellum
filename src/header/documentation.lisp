@@ -5,6 +5,22 @@
   :formatter docs.ext:rich-aggregating-formatter
 
   (type
+   fundamental-header
+   (:description "Fundamental super-class of all headers."))
+
+  (type
+   column-signature
+   (:description "Stores informations regarding the the specific column: type, name, predicate"))
+
+  (type
+   standard-header
+   (:description "Default class of header. Supplies the default implementaiton of the header protocol."))
+
+  (type
+   frame-range-mixin
+   (:description "Mixin class that can be inherited by various subclasses of CL-DS:FUNDAMENTAL-FORWARD-RANGE to provide partial support for the data-frames. This includes consume-front, peek-front, traverse, and accross methods. See vellum-csv system to see the example of the use case for this class."))
+
+  (type
    no-column
    (:description "Error signalled when trying to reference non existing column in the current header."))
 
@@ -53,6 +69,10 @@
    (:description "How many columns header specifies?"))
 
   (function
+   column-type
+   (:description "What is the type stored inside the COLUMN."))
+
+  (function
    index-to-name
    (:description "Converts a numeric INDEX designating column to the column name in the HEADER."
     :exceptional-situations "Signalls NO-COLUMN when the INDEX is not found in the HEADER."))
@@ -79,6 +99,10 @@
    rr
    (:description "Extracts value from the current row."
     :exceptional-situations "Signals NO-COLUMN, NO-HEADER, NO-ROW exception if: column is not found in the current header, there is no active header, there is no active row."))
+
+  (function
+   make-bind-row
+   (:description "Conrstucts the BIND-ROW instance. This function is typically not called explicitly but instead part of the BIND-ROW macros macroexpansion."))
 
   (function
    brr
