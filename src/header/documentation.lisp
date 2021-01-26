@@ -69,8 +69,26 @@
    (:description "How many columns header specifies?"))
 
   (function
+   column-predicate
+   (:description "What is the predicate That must be fullfilled by the values stored in the COLUMN?"
+    :exceptional-situations "Will signal NO-COLUMN if no COLUMN in the HEADER."))
+
+  (function
+   column-signature
+   (:description "Returns the complete COLUMN-SIGNATURE object from the HEADER for the specified COLUMN."
+    :exceptional-situations "Will signal NO-COLUMN if no COLUMN in the HEADER."))
+
+  (function
+   make-row
+   (:description "Constructs validated row for the HEADER from the DATA."))
+
+  (function
+   make-header
+   (:description "Construct the header instance of CLASS."))
+
+  (function
    column-type
-   (:description "What is the type stored inside the COLUMN."
+   (:description "What is the type stored inside the COLUMN?"
     :exceptional-situations "Will signal NO-COLUMN if no COLUMN in the HEADER."))
 
   (function
