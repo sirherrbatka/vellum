@@ -442,14 +442,17 @@
                            :columns columns)))))
 
 
-(defmethod select ((frame standard-table) &key rows columns)
-  (let ((selected-columns (if (null columns)
-                              frame
+(defmethod select ((frame standard-table)
+                   &key
+                     (rows '() rows-bound-p)
+                     (columns '() columns-bound-p))
+  (let ((selected-columns (if columns-bound-p
                               (with-table (frame)
-                                (select-columns frame columns)))))
-    (if (null rows)
-        selected-columns
-        (select-rows selected-columns rows))))
+                                (select-columns frame columns))
+                              frame)))
+    (if rows-bound-p
+        (select-rows selected-columns rows)
+        selected-columns)))
 
 
 (defmethod column-at ((frame standard-table) column)

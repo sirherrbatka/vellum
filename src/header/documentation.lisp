@@ -80,7 +80,8 @@
 
   (function
    make-row
-   (:description "Constructs validated row for the HEADER from the DATA."))
+   (:description "Constructs new row validated for the HEADERs predicates from the DATA."
+    :notes "Since there is no column at this level, you may expect that the COLUMN-TYPE-ERROR can't be signalled. This is not true, as this function is used to implement the data-frame behavior for various streams. Examples of this is vellum-csv which depends on the whole base vellum package as a whole."))
 
   (function
    make-header
