@@ -37,9 +37,9 @@
   (let ((from (funcall translate
                        (or (read-from selection)
                            current-position)))
-        (to (funcall translate
-                     (or (read-to selection)
-                         limit))))
+        (to (if-let ((to (read-to selection)))
+              (funcall translate to)
+              limit)))
     (cl-ds:iota-range :from from
                       :to to
                       :by (if (<= from to) 1 -1))))
@@ -51,20 +51,20 @@
    :callback (lambda (translate limit &aux (position -1))
                (~> forms
                    (cl-ds.alg:multiplex
-                    :key (lambda (x)
-                           (typecase x
-                             (cl-ds:traversable x)
-                             (vector x)
-                             (list (bind (((first . rest) x))
-                                     (if (listp rest)
-                                         x
-                                         (content (between :from first
-                                                           :to (or rest limit))
-                                                  translate
-                                                  (1+ position)
-                                                  limit))))
-                             (content (content x translate (1+ position) limit))
-                             (atom (list x)))))
+                    :function (lambda (x)
+                                (typecase x
+                                  (cl-ds:traversable x)
+                                  (vector x)
+                                  (list (bind (((first . rest) x))
+                                          (if (listp rest)
+                                              x
+                                              (content (between :from first
+                                                                :to (or rest limit))
+                                                       translate
+                                                       (1+ position)
+                                                       limit))))
+                                  (content (content x translate (1+ position) limit))
+                                  (atom (list x)))))
                    (cl-ds.alg:on-each (lambda (x)
                                         (setf position
                                               (funcall translate x))))))))
@@ -97,7 +97,7 @@
 
 (defun vs (&rest forms)
   (let ((header (vellum.header:header)))
-    (~> (s forms)
+    (~> (apply #'s forms)
         (address-range
          (lambda (x) (vellum.header:ensure-index header x))
          (vellum.header:column-count header))
