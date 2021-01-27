@@ -277,7 +277,7 @@
 (defun %aggregate-columns (table aggregator-constructor
                            &key (skip-nulls nil) (type t)
                            name
-                             (predicate vellum.header:constantly-t))
+                             (predicate 'vellum.header:constantly-t))
   (declare (optimize (speed 3)))
   (bind ((column-count (column-count table))
          (result (vellum.table:make-table
