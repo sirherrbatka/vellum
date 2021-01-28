@@ -42,7 +42,6 @@
    #:set-to-null
    #:provide-new-value
    #:keep-old-value
-   #:set-to-null
    #:row
    #:row-at
    #:rr
