@@ -38,6 +38,10 @@
    #:read-header
    #:read-name
    #:read-new-value
+   #:skip-row
+   #:set-to-null
+   #:provide-new-value
+   #:keep-old-value
    #:row
    #:row-at
    #:rr
