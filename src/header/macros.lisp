@@ -119,13 +119,13 @@
                              (for column in columns)
                              (for index in indexes)
                              (collecting index)
-                             (collecting `(cond ((stringp ,column)
-                                                 `(vellum.header:name-to-index ,!header
-                                                                               ,column))
-                                                ((symbolp ,column)
-                                                 `(vellum.header:name-to-index ,!header
-                                                                               ,(symbol-name column)))
-                                                (t column))))))
+                             (collecting (cond ((stringp column)
+                                                `(vellum.header:name-to-index ,!header
+                                                                              ,column))
+                                               ((symbolp column)
+                                                `(vellum.header:name-to-index ,!header
+                                                                              ,(symbol-name column)))
+                                               (t column))))))
                  (list ,@(iterate
                            (for index in indexes)
                            (collecting `(row-at ,!header ,!row ,index)))))))))))
