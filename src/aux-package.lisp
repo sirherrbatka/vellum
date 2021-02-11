@@ -1,32 +1,6 @@
-(cl:defpackage #:vellum.utils
-  (:use #:cl)
-  (:export #:def-fancy-package))
-
-(cl:in-package #:vellum.utils)
-
-(cl:defmacro def-fancy-package (package &rest options)
-  (let ((reexports nil))
-    (dolist (option options)
-      (unless (consp option)
-        (error "bogus FANCY-PACKAGE option: ~S" option))
-      (destructuring-bind (optname . optval)
-          option
-        (case optname
-          (:reexport
-           (push optval reexports)))))
-    `(eval-when (:compile-toplevel :load-toplevel :execute)
-       (defpackage ,package
-         ,@(remove :reexport options :key #'car)
-         ,@(loop for rexport-spec in reexports
-              append
-                (destructuring-bind (rpackage . rsymbols)
-                    rexport-spec
-                  `((:import-from ,rpackage ,@rsymbols)
-                    (:export ,@rsymbols))))))))
-
 (cl:in-package #:cl-user)
 
-(vellum.utils:def-fancy-package #:vellum.aux-package
+(cl-ds.fancy:defpackage #:vellum.aux-package
   (:reexport #:alexandria
              #:if-let
              #:when-let
