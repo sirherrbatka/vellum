@@ -1,6 +1,6 @@
 (cl:in-package #:cl-user)
 
-(cl-ds.fancy:defpackage #:vellum.aux-package
+(cl-ds.fancy:defpackage :vellum.aux-package
   (:reexport #:alexandria
              #:if-let
              #:when-let
