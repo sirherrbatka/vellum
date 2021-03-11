@@ -67,7 +67,7 @@
              :element-type (vellum.header:column-type header i))))
     (let* ((iterator (vellum.column:make-iterator columns))
            (vellum.header:*row* (make 'vellum.table:setfable-table-row
-                                     :iterator iterator)))
+                                      :iterator iterator)))
       (fill-columns-buffer-impl
        range 0 columns-buffer
        (lambda ()
