@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 42126)
+(prove:plan 42130)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -11,7 +11,6 @@
     (defparameter *table*
       (~> *test-data*
           cl-ds:whole-range
-          vellum:decorate
           (vellum:to-table :header (vellum:header)))))
 
   (prove:is (vellum:at *table* 0 0) 1)
@@ -70,7 +69,7 @@
   (prove:is (vellum:at *concatenated-table* 5 0) 4)
 
   (defparameter *sub-table* (select *concatenated-table*
-                              :rows '(:take-from 1 :take-to 3)))
+                              :rows (vellum:s (vellum:between :from 1 :to 4))))
   (prove:is (column-count *sub-table*) 4)
   (prove:is (row-count *sub-table*) 3)
   (prove:is (at *sub-table* 0 0) 4)
@@ -78,12 +77,12 @@
   (prove:is (at *sub-table* 2 0) 2)
 
   (defparameter *sub-table* (select *concatenated-table*
-                              :columns '(:take-to 2)))
+                              :columns (vellum:s (vellum:between :to 3))))
   (prove:is (column-count *sub-table*) 3)
   (prove:is (row-count *sub-table*) 6)
 
   (defparameter *sub-table* (select *concatenated-table*
-                              :rows '(:v 1 :v 2 :v 3)))
+                              :rows '(1 2 3)))
   (prove:is (column-count *sub-table*) 4)
   (prove:is (row-count *sub-table*) 3)
   (prove:is (at *sub-table* 0 0) 4)
@@ -153,11 +152,27 @@
                   (cl-ds.alg:on-each (rcurry #'coerce 'vector))
                   (vellum:to-table :columns '((:name first-column)
                                               (:name second-column)
-                                              (:name third-columns)))))
+                                              (:name third-column)))))
+       (renamed (vellum:select table :columns '((first-column renamed-first-column)
+                                                (second-column renamed-second-column)
+                                                (third-column renamed-third-column))))
        (dropped (cl-ds.alg:to-hash-table
                  (take 50300 (shuffle source))
                  :hash-table-key #'first)))
   (prove:is (vellum:row-count table) element-count)
+  (prove:is (vellum:row-count renamed) element-count)
+  (prove:is (~> renamed vellum.table:header (vellum.header:column-signature 0)
+                vellum.header:read-name)
+            "RENAMED-FIRST-COLUMN"
+            :test #'string=)
+  (prove:is (~> renamed vellum.table:header (vellum.header:column-signature 1)
+                vellum.header:read-name)
+            "RENAMED-SECOND-COLUMN"
+            :test #'string=)
+  (prove:is (~> renamed vellum.table:header (vellum.header:column-signature 2)
+                vellum.header:read-name)
+            "RENAMED-THIRD-COLUMN"
+            :test #'string=)
   (vellum:transform table
                     (vellum:bind-row (first-column)
                       (when (gethash first-column dropped)
@@ -179,6 +194,7 @@
       (prove:ok (> index p-index)))
     (prove:is (list second-column third-column)
               (gethash first-column pairs)
-              :test #'equal)))
+              :test #'equal))
+  )
 
 (prove:finalize)

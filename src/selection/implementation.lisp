@@ -57,7 +57,7 @@
                                   (vector x)
                                   (list (bind (((first . rest) x))
                                           (if (listp rest)
-                                              x
+                                              (vector x)
                                               (content (between :from first
                                                                 :to (or rest limit))
                                                        translate
@@ -66,8 +66,8 @@
                                   (content (content x translate (1+ position) limit))
                                   (atom (list x)))))
                    (cl-ds.alg:on-each (lambda (x)
-                                        (setf position
-                                              (funcall translate x))))))))
+                                        (setf position (funcall translate x))
+                                        x))))))
 
 
 (defun rs (&rest forms)
@@ -92,7 +92,8 @@
                              (atom (list x)))))
                    (cl-ds.alg:on-each (lambda (x)
                                         (setf position
-                                              (funcall translate x))))))))
+                                              (funcall translate x))
+                                        x))))))
 
 
 (defun vs (&rest forms)
@@ -116,4 +117,4 @@
 
 
 (defmethod address-range ((selector/sequence sequence) translate limit)
-  (cl-ds.alg:on-each selector/sequence (lambda (x) (funcall translate x))))
+  (cl-ds.alg:on-each selector/sequence (lambda (x) (funcall translate x) x)))

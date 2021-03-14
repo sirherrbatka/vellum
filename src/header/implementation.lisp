@@ -66,10 +66,7 @@
   (let* ((result (make class))
          (signature-class (read-column-signature-class result))
          (column-signatures (map 'vector
-                                 (lambda (c)
-                                   (apply #'make signature-class
-                                          (cond ((listp c) c)
-                                                ((atom c) `(:name ,c)))))
+                                 (curry #'make-signature signature-class)
                                  columns))
          (names (iterate
                   (with result = (make-hash-table
@@ -314,15 +311,16 @@
 (defmethod select-columns ((header standard-header)
                            columns)
   (bind ((selected (~> columns
-                       (cl-ds.alg:on-each (curry #'column-signature header))
+                       (cl-ds.alg:on-each (extracting-signature header))
                        cl-ds.alg:to-vector))
          (names (make-hash-table :size (length selected)
                                  :test 'equal)))
     (declare (type vector selected))
     (iterate
+      (declare (ignorable original id))
       (for i from 0)
-      (for s in-vector selected)
-      (for name = (read-name s))
+      (for (original new id) in-vector selected)
+      (for name = (read-name new))
       (when (null name) (next-iteration))
       (when (symbolp name)
         (setf name (symbol-name name)))
@@ -330,9 +328,10 @@
         (error 'name-duplicated
                :format-arguments (list name)
                :value name)))
-    (make (class-of header)
-          :column-signatures selected
-          :column-names names)))
+    (values (make (class-of header)
+                  :column-signatures (map 'vector #'second selected)
+                  :column-names names)
+            (map 'vector #'third selected))))
 
 
 (defmethod column-specs ((header standard-header))

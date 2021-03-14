@@ -15,3 +15,25 @@
                :value name
                :format-arguments (list name))))
     (finally (return result))))
+
+
+(defun make-signature (signature-class c)
+  (apply #'make signature-class
+         (cond ((listp c) c)
+               ((atom c) `(:name ,c)))))
+
+
+(defun extracting-signature (header)
+  (let ((column-signature-class (read-column-signature-class header)))
+    (lambda (column)
+      (let* ((existing-signature (column-signature header
+                                                   (if (listp column)
+                                                       (first column)
+                                                       column))))
+        (if (listp column)
+            (list existing-signature
+                  (make-signature column-signature-class (second column))
+                  (first column))
+            (list existing-signature
+                  existing-signature
+                  column))))))

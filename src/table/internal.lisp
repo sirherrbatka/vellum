@@ -95,18 +95,26 @@
 
 (defun select-columns (frame selection)
   (vellum.header:with-header ((header frame))
-    (let* ((header (header frame))
+    (bind ((header (header frame))
            (columns (read-columns frame))
            (column-indexes
              (~> selection
                  (vellum.selection:address-range
-                  (lambda (x) (vellum.header:ensure-index header x))
+                  (lambda (spec)
+                    (vellum.header:ensure-index header
+                                                (if (listp spec)
+                                                    (first spec)
+                                                    spec)))
                   (column-count frame))
                  cl-ds.alg:to-vector))
-           (new-header (vellum.header:select-columns header column-indexes))
-           (new-columns (map 'vector (compose (rcurry #'cl-ds:replica t)
-                                              (curry #'aref columns))
-                             column-indexes)))
+           ((:values new-header old-ids)
+            (vellum.header:select-columns header column-indexes))
+           (new-columns (map 'vector
+                             (compose (rcurry #'cl-ds:replica t)
+                                      (curry #'aref columns)
+                                      (curry #'vellum.header:ensure-index
+                                             header))
+                             old-ids)))
       (declare (type vector columns new-columns)
                (optimize (debug 3)))
       (cl-ds.utils:quasi-clone* frame
