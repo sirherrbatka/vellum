@@ -11,6 +11,7 @@
    #:bind-row
    #:bind-row-closure
    #:brr
+   #:check-column-signatures-compatibility
    #:check-predicate
    #:column-count
    #:column-predicate
@@ -28,6 +29,7 @@
    #:index-to-name
    #:invalid-input-for-row
    #:invalid-name
+   #:keep-old-value
    #:make-header
    #:make-row
    #:name-duplicated
@@ -35,18 +37,17 @@
    #:no-column
    #:no-header
    #:predicate-failed
+   #:provide-new-value
    #:read-header
    #:read-name
    #:read-new-value
-   #:skip-row
-   #:set-to-null
-   #:provide-new-value
-   #:keep-old-value
    #:row
    #:row-at
    #:rr
    #:select-columns
    #:set-row
+   #:set-to-null
+   #:skip-row
    #:skip-row
    #:standard-header
    #:unable-to-construct-row

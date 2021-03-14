@@ -320,6 +320,7 @@
       (declare (ignorable original id))
       (for i from 0)
       (for (original new id) in-vector selected)
+      (check-column-signatures-compatibility original new)
       (for name = (read-name new))
       (when (null name) (next-iteration))
       (when (symbolp name)
@@ -371,3 +372,14 @@
                :column-number index
                :format-arguments (list value column)
                :value value)))))
+
+
+(defmethod check-column-signatures-compatibility
+    ((first-signature column-signature)
+     (second-signature column-signature))
+  (unless (equal (read-type first-signature)
+                 (read-type second-signature))
+    (error 'cl-ds:operation-not-allowed
+           :format-control "Attempted to change type of the signature from ~a to ~a."
+           :format-arguments (list (read-type first-signature)
+                                   (read-type second-signature)))))
