@@ -13,6 +13,4 @@
   :components ((:module "column"
                 :components ((:test-file "tests")))
                (:module "table"
-                :components ((:test-file "tests")))
-               (:module "csv"
-                :components ((:test-file "parser-tests")))))
+                :components ((:test-file "tests")))))
