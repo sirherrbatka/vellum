@@ -1,5 +1,9 @@
-(ql:quickload :vellum)
-(ql:quickload :vellum-tests)
+(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
+                                       (user-homedir-pathname))))
+  (when (probe-file quicklisp-init)
+    (load quicklisp-init)))
+
+(quicklisp:quickload :vellum-tests)
 
 (setf prove:*enable-colors* nil)
 
