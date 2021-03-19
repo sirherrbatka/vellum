@@ -1,7 +1,7 @@
 (ql:quickload :vellum)
 (ql:quickload :vellum-tests)
 
-(setf prove:*enable-colors* (null (find-package :swank)))
+(setf prove:*enable-colors* nil)
 
 (unwind-protect
      (let ((*error-output* (make-broadcast-stream)))
