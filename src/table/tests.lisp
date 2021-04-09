@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 42132)
+(prove:plan 42138)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -206,5 +206,49 @@
                                 (when (evenp number)
                                   (drop-row))))))
   (prove:is (row-count frame) 16))
+
+(let* ((frame (to-table (mapcar #'list (iota 63))
+                        :columns '(number)
+                        :body (vellum:bind-row (number)
+                                (when (evenp number)
+                                  (drop-row))))))
+  (prove:is (row-count frame) 31))
+
+(let* ((frame (to-table (mapcar #'list (iota 63))
+                        :columns '(number)
+                        :body (vellum:bind-row (number)
+                                (when (oddp number)
+                                  (drop-row))))))
+  (prove:is (row-count frame) 32))
+
+(let* ((frame (to-table (mapcar #'list (iota 32))
+                        :columns '(number)
+                        :body (vellum:bind-row (number)
+                                (when (oddp number)
+                                  (drop-row))))))
+  (prove:is (row-count frame) 16))
+
+(let* ((frame (to-table (mapcar #'list (iota 62))
+                        :columns '(number)
+                        :body (vellum:bind-row (number)
+                                (unless (zerop (truncate number 3))
+                                  (drop-row))))))
+  (prove:is (row-count frame) 3))
+
+(let* ((frame (to-table (mapcar #'list (iota 62))
+                        :columns '(number)
+                        :body (vellum:bind-row (number)
+                                (unless (zerop (mod number 5))
+                                  (drop-row))))))
+  (prove:is (row-count frame) 13))
+
+(let* ((frame (transform
+                  (make-table :columns '(number))
+                (vellum:bind-row (number)
+                  (setf number *current-row*)
+                  (unless (zerop (mod number 5))
+                    (drop-row)))
+                :end 62)))
+  (prove:is (row-count frame) 13))
 
 (prove:finalize)

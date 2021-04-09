@@ -26,9 +26,14 @@
     ((row)
      (unless %done
        (block main
-         (let ((*transform-control* (lambda (operation)
+         (let ((transform-control (lambda (operation)
                                       (cond ((eq operation :finish)
                                              (setf %done t)
+                                             (return-from main))
+                                            ((eq operation :drop)
+                                             (iterate
+                                               (for i from 0 below (length row))
+                                               (setf (vellum.header:rr i) :null))
                                              (return-from main))
                                             (t nil)))))
            (transform-row %transformation
@@ -37,7 +42,8 @@
                               (for i from 0 below (length row))
                               (for value = (elt row i))
                               (setf (vellum.header:rr i) value))
-                            (funcall %function)))))))
+                            (let ((*transform-control* transform-control))
+                              (funcall %function))))))))
 
     ((transformation-result %transformation)))
 
@@ -53,20 +59,27 @@
                              (transformation nil :in-place t)))
          (prev-control (ensure-function *transform-control*)))
     (block main
-      (let ((*transform-control* (lambda (operation)
-                                   (cond
-                                     ((eq operation :finish)
-                                      (return-from main))
-                                     (t (funcall prev-control operation))))))
-        (cl-ds:across range
-                      (lambda (row &aux (vellum.header:*validate-predicates* nil))
-                        (transform-row transformation
-                                       (lambda ()
-                                         (iterate
-                                           (for i from 0 below (length row))
-                                           (for value = (aref row i))
-                                           (setf (vellum.header:rr i) value))
-                                         (funcall function)))))))
+      (cl-ds:across
+       range
+       (lambda (row &aux (vellum.header:*validate-predicates* nil))
+         (block function
+           (transform-row transformation
+                          (lambda ()
+                            (iterate
+                              (for i from 0 below (length row))
+                              (for value = (aref row i))
+                              (setf (vellum.header:rr i) value))
+                            (let ((*transform-control* (lambda (operation)
+                                                         (cond
+                                                           ((eq operation :finish)
+                                                            (return-from main))
+                                                           ((eq operation :drop)
+                                                            (iterate
+                                                              (for i from 0 below (vellum.header:column-count header))
+                                                              (setf (vellum.header:rr i) :null))
+                                                            (return-from function))
+                                                           (t (funcall prev-control operation))))))
+                              (funcall function))))))))
     (transformation-result transformation)))
 
 

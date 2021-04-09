@@ -254,13 +254,14 @@
     (for stack in-vector (read-stacks iterator))
     (unless touched
       (next-iteration))
+    (for stack-head = (first-elt stack))
     (setf (cl-ds.dicts.srrb:access-shift column) depth
           (cl-ds.dicts.srrb:access-tree-size column)
-          (if (first-elt stack)
-              (~> stack first-elt
-                  (cl-ds.common.rrb:sparse-rrb-tree-size depth))
+          (if stack-head
+              (cl-ds.common.rrb:sparse-rrb-tree-size stack-head
+                                                     depth)
               0))
-    (setf (cl-ds.dicts.srrb:access-tree column) (or (first-elt stack)
+    (setf (cl-ds.dicts.srrb:access-tree column) (or stack-head
                                                     cl-ds.meta:null-bucket))
     (for tree-index-bound = (* #1=cl-ds.common.rrb:+maximum-children-count+
                                (ceiling (cl-ds.dicts.srrb:scan-index-bound column)

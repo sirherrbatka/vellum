@@ -946,8 +946,8 @@
 (defun reduce-stack (iterator index depth stack column)
   (iterate
     (declare (type fixnum i bits))
-    (with tag = (cl-ds.common.abstract:read-ownership-tag column))
     (with prev-node = (aref stack depth))
+    (with tag = (cl-ds.common.abstract:read-ownership-tag column))
     (for i from (1- depth) downto 0)
     (for bits
          from cl-ds.common.rrb:+bit-count+
