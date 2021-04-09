@@ -240,11 +240,15 @@
 
 (defmethod finish-iterator ((iterator sparse-material-column-iterator))
   (change-leafs iterator)
-  (reduce-stacks iterator)
+  ;; this prohibits reducing stacks directly after they have been reduced by move-iterator
+  (let ((index (vellum.column:index iterator)))
+    (unless (= index
+               (* cl-ds.common.rrb:+maximum-children-count+
+                  (truncate index cl-ds.common.rrb:+maximum-children-count+)))
+      (reduce-stacks iterator)))
   (iterate
     (for column in-vector (read-columns iterator))
     (for touched in-vector (read-touched iterator))
-    (for column-size = (column-size column))
     (for depth in-vector (read-depths iterator))
     (setf (cl-ds.dicts.srrb:access-shift column) depth)
     (for stack in-vector (read-stacks iterator))

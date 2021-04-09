@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 42130)
+(prove:plan 42131)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -194,7 +194,10 @@
       (prove:ok (> index p-index)))
     (prove:is (list second-column third-column)
               (gethash first-column pairs)
-              :test #'equal))
-  )
+              :test #'equal)))
+
+(let* ((frame (to-table (mapcar #'list (iota 32))
+                        :columns '(number))))
+  (prove:is (row-count frame) 32))
 
 (prove:finalize)
