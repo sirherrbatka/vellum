@@ -44,7 +44,8 @@
    :type (simple-array fixnum (*)))
   (index 0 :type fixnum)
   (initial-index 0 :type fixnum)
-  (touched (make-array 0 :element-type 'boolean) :type (simple-array boolean (*)))
+  (touched (make-array 0 :element-type 'boolean)
+   :type (simple-array boolean (*)))
   (buffers #() :type simple-vector)
   (changes #() :type simple-vector))
 

@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 42131)
+(prove:plan 42132)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -199,5 +199,12 @@
 (let* ((frame (to-table (mapcar #'list (iota 32))
                         :columns '(number))))
   (prove:is (row-count frame) 32))
+
+(let* ((frame (to-table (mapcar #'list (iota 32))
+                        :columns '(number)
+                        :body (vellum:bind-row (number)
+                                (when (evenp number)
+                                  (drop-row))))))
+  (prove:is (row-count frame) 16))
 
 (prove:finalize)
