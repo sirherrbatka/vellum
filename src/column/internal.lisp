@@ -428,7 +428,7 @@
           (iterate
             (declare (type fixnum i j shifted-count))
             (for j from 0 below real-from-size)
-            (for i from (logcount real-to-mask) below (length to-content))
+            (for i from real-to-size below (length to-content))
             (repeat shifted-count)
             (setf (aref to-content i) (aref from-content j))
             (finally (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node)
@@ -442,10 +442,14 @@
                             logcount
                             (- cl-ds.common.rrb:+maximum-children-count+))
                        new-to-size))
-                 (new-content (make-array
-                               new-content-size
-                               :initial-element cl-ds.meta:null-bucket
-                               :element-type element-type)))
+                 (new-content (if (eq element-type t)
+                                  (make-array
+                                   new-content-size
+                                   :initial-element cl-ds.meta:null-bucket
+                                   :element-type element-type)
+                                  (make-array
+                                   new-content-size
+                                   :element-type element-type))))
             (declare (type (simple-array * (*)) new-content)
                      (type fixnum new-content-size))
             (assert (>= new-content-size new-to-size))
