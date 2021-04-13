@@ -31,11 +31,13 @@
                                                        (first column)
                                                        column))))
         (if (listp column)
-            (list existing-signature
-                  (make-signature column-signature-class
-                                  (append (second column)
-                                          (column-signature-spec existing-signature)))
-                  (first column))
+            (let ((new-spec (second column)))
+              (list existing-signature
+                    (make-signature column-signature-class
+                                    (append (cond ((listp new-spec) new-spec)
+                                                  ((atom new-spec) (list :name new-spec)))
+                                            (column-signature-spec existing-signature)))
+                    (first column)))
             (list existing-signature
                   existing-signature
                   column))))))
