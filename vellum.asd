@@ -1,7 +1,4 @@
-(cl:in-package #:cl-user)
-
-
-(asdf:defsystem vellum
+(asdf:defsystem #:vellum
   :name "vellum"
   :version "0.0.0"
   :license "BSD simplified"
