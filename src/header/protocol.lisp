@@ -35,3 +35,5 @@
 
 (defgeneric check-column-signatures-compatibility
     (old-signature new-signature))
+
+(defgeneric column-signature-spec (column-signature))

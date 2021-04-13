@@ -32,7 +32,9 @@
                                                        column))))
         (if (listp column)
             (list existing-signature
-                  (make-signature column-signature-class (second column))
+                  (make-signature column-signature-class
+                                  (append (second column)
+                                          (column-signature-spec existing-signature)))
                   (first column))
             (list existing-signature
                   existing-signature

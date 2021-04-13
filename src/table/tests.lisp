@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 42138)
+(prove:plan 42139)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -241,6 +241,15 @@
                                 (unless (zerop (mod number 5))
                                   (drop-row))))))
   (prove:is (row-count frame) 13))
+
+(let* ((frame (transform
+                  (make-table :columns '(number))
+                (vellum:bind-row (number)
+                  (setf number *current-row*)
+                  (unless (zerop (mod number 62))
+                    (drop-row)))
+                :end (* 32 62))))
+  (prove:is (row-count frame) 32))
 
 (let* ((frame (transform
                   (make-table :columns '(number))

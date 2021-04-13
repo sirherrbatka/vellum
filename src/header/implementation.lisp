@@ -338,9 +338,7 @@
 (defmethod column-specs ((header standard-header))
   (iterate
     (for signature in-vector (read-column-signatures header))
-    (collect (list :name (read-name signature)
-                   :predicate (read-predicate signature)
-                   :type (read-type signature)))))
+    (collect (column-signature-spec signature))))
 
 
 (defmethod bind-row-closure ((bind-row bind-row)
@@ -383,3 +381,9 @@
            :format-control "Attempted to change type of the signature from ~a to ~a."
            :format-arguments (list (read-type first-signature)
                                    (read-type second-signature)))))
+
+
+(defmethod column-signature-spec ((signature column-signature))
+  (list :name (read-name signature)
+        :predicate (read-predicate signature)
+        :type (read-type signature)))
