@@ -3,7 +3,7 @@
   (when (probe-file quicklisp-init)
     (load quicklisp-init)))
 
-(quicklisp:quickload :vellum-tests :silent t)
+(quicklisp:quickload :vellum/tests :silent t)
 
 (setf prove:*enable-colors* nil)
 
@@ -14,5 +14,5 @@
               (lambda (c)
                 (declare (ignore c))
                 (invoke-restart 'lparallel.kernel:make-kernel 4))))
-         (prove:run :vellum-tests)))
+         (prove:run :vellum/tests)))
   (cl-user::quit))
