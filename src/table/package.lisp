@@ -29,6 +29,7 @@
    #:remove-nulls
    #:row-count
    #:select
+   #:skip-row
    #:setfable-table-row
    #:show
    #:standard-table

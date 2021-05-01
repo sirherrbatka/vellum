@@ -61,7 +61,8 @@
   ((%table-row :initarg :table-row
                :reader read-table-row)
    (%header :initarg :header
-            :reader read-header)
+            :reader read-header
+            :reader header)
    (%row-count :initarg :row-count
                :type fixnum
                :reader read-row-count)))
