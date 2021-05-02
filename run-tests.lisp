@@ -3,7 +3,7 @@
   (when (probe-file quicklisp-init)
     (load quicklisp-init)))
 
-(quicklisp:quickload :vellum/tests :silent t)
+(quicklisp:quickload :vellum-tests :silent t)
 
 (setf prove:*enable-colors* nil)
 

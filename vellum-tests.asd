@@ -1,5 +1,5 @@
-(asdf:defsystem #:vellum/tests
-  :name "vellum/tests"
+(asdf:defsystem #:vellum-tests
+  :name "vellum-tests"
   :version "0.0.0"
   :license "BSD simplified"
   :author "Marek Kochanowicz"
