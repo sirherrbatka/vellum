@@ -17,6 +17,7 @@
    #:drop-row
    #:erase!
    #:finish-transformation
+   #:retry
    #:fundamental-table
    #:header
    #:hstack
