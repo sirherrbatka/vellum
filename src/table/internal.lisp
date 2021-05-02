@@ -88,6 +88,7 @@
              (go end))
            (retry ()
              :report "Retry calling function on this row."
+             (vellum.column:untouch iterator)
              (go main))
            (drop-row ()
              :report "Drop this row."

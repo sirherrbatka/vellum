@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 42140)
+(prove:plan 42143)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -270,5 +270,23 @@
                   (assert (zerop (mod number 5))))
                 :end 62)))
     (prove:is (row-count frame) 13)))
+
+(handler-bind ((error (lambda (c)
+                        (declare (ignore c))
+                        (invoke-restart 'retry))))
+  (let* ((index 0)
+         (calls 0)
+         (frame (transform
+                 (make-table :columns '(number))
+                 (vellum:bind-row (number)
+                   (incf calls)
+                   (setf number (incf index))
+                   (assert (zerop (mod number 5))))
+                 :end 62)))
+    (prove:is (row-count frame) 62)
+    (prove:is calls 310)
+    (prove:ok (every (compose #'zerop (rcurry #'mod 5))
+                     (vellum:pipeline (frame)
+                       (cl-ds.alg:to-list :key (vellum:brr number)))))))
 
 (prove:finalize)
