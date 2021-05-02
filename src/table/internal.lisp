@@ -78,17 +78,21 @@
                        (setf (vellum.column:iterator-at iterator i) :null)))
                     (t (funcall prev-control operation))))))
       (block main
-        (restart-case (handler-case (funcall function)
-                        (error (e)
-                          (error 'transformation-error
-                                 :cause e)))
-          (skip-row ()
-            :report "Omit this row."
-            (vellum.column:untouch iterator)
-            (return-from main))
-          (drop-row ()
-            :report "Drop this row."
-            #1#)))
+        (tagbody main
+           (restart-case (handler-case (funcall function)
+                           (error (e)
+                             (error 'transformation-error
+                                    :cause e)))
+             (skip-row ()
+               :report "Omit this row."
+               (vellum.column:untouch iterator)
+               (return-from main))
+             (retry ()
+               :report "Retry calling function on this row."
+               (go main))
+             (drop-row ()
+               :report "Drop this row."
+               #1#))))
       (move-iterator)
       transformation)))
 
