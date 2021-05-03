@@ -25,7 +25,9 @@
 
 
 (defun hstack (frames &key (isolate t))
-  (let ((list (cl-ds.alg:to-list frames)))
+  (let ((list (if (listp frames)
+                  frames
+                  (cl-ds.alg:to-list frames))))
     (hstack* (first list) (rest list)
              :isolate isolate)))
 
