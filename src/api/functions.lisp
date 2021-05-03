@@ -53,13 +53,14 @@
 (defun collect-column-specs (frame-specs)
   (bind ((raw-column-specs
           (iterate
+            (declare (ignorable column))
             (for (label frame column) in frame-specs)
             (for header = (vellum.table:header frame))
             (for column-specs = (vellum.header:column-specs header))
             (for transformed-specs =
                  (mapcar (lambda (x)
                            (let* ((name (getf x :name))
-                                  (new-name (format nil "~a-~a" name name)))
+                                  (new-name (format nil "~a/~a" label name)))
                              (list :name new-name
                                    :predicate (getf x :predicate)
                                    :type (getf x :type))))
