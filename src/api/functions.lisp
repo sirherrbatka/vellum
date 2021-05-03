@@ -52,8 +52,8 @@
 
 (defun collect-column-specs (frame-specs)
   (iterate outer
-    (declare (ignorable column))
-    (for (label frame column) in frame-specs)
+    (declare (ignorable columns))
+    (for (label frame . columns) in frame-specs)
     (for header = (vellum.table:header frame))
     (for column-specs = (vellum.header:column-specs header))
     (iterate
@@ -91,18 +91,27 @@
 
 
 (defun hash-join-implementation (frame-specs header class test function)
-  (let ((frames-count (length frame-specs))
-        (hash-table (make-hash-table :test test))
-        (fresh-table (vellum.table:make-table :class class :header header)))
+  (bind ((frames-count (length frame-specs))
+         (hash-table (make-hash-table :test test))
+         (fresh-table (vellum.table:make-table :class class :header header))
+         ((:flet key-values (columns))
+          (if (endp (rest columns))
+              (let ((column (first columns)))
+                (lambda (row)
+                  (vellum:rr column row)))
+              (lambda (row)
+                (mapcar (rcurry #'vellum:rr row)
+                        columns)))))
     (iterate
       (declare (ignorable label))
       (for i from 0)
-      (for (label frame column) in frame-specs)
+      (for (label frame . columns) in frame-specs)
       (for column-count = (vellum:column-count frame))
+      (for selector = (key-values columns))
       (vellum:transform frame
                        (vellum:bind-row ()
                          (let* ((row (vellum.header:row))
-                                (key (vellum:rr column row)))
+                                (key (funcall selector row)))
                            (unless (null key)
                              (let ((data
                                      (ensure (gethash key hash-table)
