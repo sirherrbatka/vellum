@@ -224,34 +224,6 @@
     result))
 
 
-(defun alter-columns (table column params &rest more)
-  (bind ((header (vellum.table:header table))
-         (pairs (cons (list column params)
-                      (batches more 2)))
-         (columns-count (vellum.header:column-count header))
-         ((:flet alter-column (index))
-          (let* ((column (vellum.header:column-signature header index))
-                 (id (or (vellum.header:read-name column)
-                         index))
-                 (new-params (find-if (lambda (x)
-                                        (or (equal id x)
-                                            (eql index x)))
-                                      pairs
-                                      :key #'first)))
-            (if (null new-params)
-                (cl-ds.utils:cloning-list column)
-                (append (second new-params)
-                        (cl-ds.utils:cloning-list column)))))
-         (new-header (apply #'vellum.header:make-header
-                            (class-of header)
-                            (iterate
-                              (for i from 0 below columns-count)
-                              (collect (alter-column i)))))
-         (result (cl-ds.utils:quasi-clone table
-                                          :header new-header)))
-    (replica result t)))
-
-
 (defun %aggregate-rows (table &rest params)
   (bind ((pairs (batches params 2))
          (row-count (row-count table))
