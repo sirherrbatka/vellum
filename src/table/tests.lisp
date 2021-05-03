@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 42143)
+(prove:plan 42145)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -288,5 +288,23 @@
     (prove:ok (every (compose #'zerop (rcurry #'mod 5))
                      (vellum:pipeline (frame)
                        (cl-ds.alg:to-list :key (vellum:brr number)))))))
+
+(let* ((index 0)
+       (frame (handler-bind
+                  ((error (lambda (c)
+                            (declare (ignore c))
+                            (invoke-restart 'skip-row))))
+                (transform
+                 (make-table :columns '(number))
+                 (vellum:bind-row (number)
+                   (setf number (incf index))
+                   (assert (zerop (mod number 5))))
+                 :end 62))))
+  (prove:is (row-count frame) 60)
+  (prove:ok (every (lambda (x)
+                     (or (eq :null x)
+                         (zerop (mod x 5))))
+                   (vellum:pipeline (frame)
+                     (cl-ds.alg:to-list :key (vellum:brr number))))))
 
 (prove:finalize)
