@@ -341,7 +341,8 @@ Notice that the label was used as a prefix. This often means that you will want 
        (result (join :hash :inner
                      `((nil ,frame-1 a)
                        (:frame-2 ,frame-2 a)))))
-  (vellum:show :text result)
+  (vellum:show :text result))
+
 A  B   FRAME-2/A  FRAME-2/B
 ===========================
 4  a4  4          b4
