@@ -51,24 +51,22 @@
 
 
 (defun collect-column-specs (frame-specs)
-  (bind ((raw-column-specs
-          (iterate
-            (declare (ignorable column))
-            (for (label frame column) in frame-specs)
-            (for header = (vellum.table:header frame))
-            (for column-specs = (vellum.header:column-specs header))
-            (for transformed-specs =
-                 (mapcar (lambda (x)
-                           (let* ((name (getf x :name))
-                                  (new-name (if (null label)
-                                                name
-                                                (format nil "~a/~a" label name))))
-                             (list :name new-name
-                                   :predicate (getf x :predicate)
-                                   :type (getf x :type))))
-                         column-specs))
-            (adjoining transformed-specs))))
-    raw-column-specs))
+  (iterate
+    (declare (ignorable column))
+    (for (label frame column) in frame-specs)
+    (for header = (vellum.table:header frame))
+    (for column-specs = (vellum.header:column-specs header))
+    (for transformed-specs =
+         (mapcar (lambda (x)
+                   (let* ((name (getf x :name))
+                          (new-name (if (null label)
+                                        name
+                                        (format nil "~a/~a" label name))))
+                     (list :name new-name
+                           :predicate (getf x :predicate)
+                           :type (getf x :type))))
+                 column-specs))
+    (adjoining transformed-specs)))
 
 
 (defun cartesian-product (vector)
