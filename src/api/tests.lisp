@@ -15,6 +15,7 @@
        (result (join :hash :inner
                      `((:frame-1 ,frame-1 a)
                        (:frame-2 ,frame-2 a)))))
+  (vellum:show :text result)
   (prove:is (column-count result) 4)
   (prove:is (row-count result) 5))
 
