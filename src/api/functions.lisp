@@ -60,7 +60,9 @@
             (for transformed-specs =
                  (mapcar (lambda (x)
                            (let* ((name (getf x :name))
-                                  (new-name (format nil "~a/~a" label name)))
+                                  (new-name (if (null label)
+                                                name
+                                                (format nil "~a/~a" label name))))
                              (list :name new-name
                                    :predicate (getf x :predicate)
                                    :type (getf x :type))))
