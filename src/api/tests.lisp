@@ -13,8 +13,8 @@
                              (setf b (format nil "b~a" a)))
                            :end 5))
        (result (join :hash :inner
-                     (list (list :frame-1 frame-1 'a)
-                           (list :frame-2 frame-2 'a)))))
+                     `((:frame-1 ,frame-1 a)
+                       (:frame-2 ,frame-2 a)))))
   (prove:is (column-count result) 4)
   (prove:is (row-count result) 5))
 
