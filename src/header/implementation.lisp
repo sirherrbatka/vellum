@@ -70,12 +70,13 @@
          (column-signatures (map 'vector
                                  (curry #'make-signature signature-class)
                                  columns))
+         (length (length column-signatures))
          (names (iterate
                   (with result = (make-hash-table
                                   :test 'equal
-                                  :size (length column-signatures)))
-                  (for column in-vector column-signatures)
-                  (for i from 0)
+                                  :size length))
+                  (for i from 0 below length)
+                  (for column = (aref column-signatures i))
                   (for name = (read-name column))
                   (when (null name) (next-iteration))
                   (when (symbolp name)
