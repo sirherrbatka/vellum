@@ -10,4 +10,6 @@
   :components ((:module "column"
                 :components ((:test-file "tests")))
                (:module "table"
+                :components ((:test-file "tests")))
+               (:module "api"
                 :components ((:test-file "tests")))))

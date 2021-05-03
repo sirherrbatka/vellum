@@ -59,7 +59,9 @@
                :value index
                :format-control "No name for column ~a."
                :format-arguments (list index))
-        name)))
+        (if (stringp name)
+            name
+            (symbol-name name)))))
 
 
 (defmethod make-header (class &rest columns)

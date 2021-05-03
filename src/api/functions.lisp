@@ -51,22 +51,21 @@
 
 
 (defun collect-column-specs (frame-specs)
-  (iterate
+  (iterate outer
     (declare (ignorable column))
     (for (label frame column) in frame-specs)
     (for header = (vellum.table:header frame))
     (for column-specs = (vellum.header:column-specs header))
-    (for transformed-specs =
-         (mapcar (lambda (x)
-                   (let* ((name (getf x :name))
-                          (new-name (if (null label)
-                                        name
-                                        (format nil "~a/~a" label name))))
-                     (list :name new-name
-                           :predicate (getf x :predicate)
-                           :type (getf x :type))))
-                 column-specs))
-    (adjoining transformed-specs)))
+    (iterate
+      (for x in column-specs)
+      (let* ((name (getf x :name))
+             (new-name (if (null label)
+                           name
+                           (format nil "~a/~a" label name))))
+        (in outer (collecting
+                    (list :name new-name
+                          :predicate (getf x :predicate)
+                          :type (getf x :type))))))))
 
 
 (defun cartesian-product (vector)
@@ -94,8 +93,9 @@
 (defun hash-join-implementation (frame-specs header class test function)
   (let ((frames-count (length frame-specs))
         (hash-table (make-hash-table :test test))
-        (fresh-table (vellum.table:make-table class header)))
+        (fresh-table (vellum.table:make-table :class class :header header)))
     (iterate
+      (declare (ignorable label))
       (for i from 0)
       (for (label frame column) in frame-specs)
       (for column-count = (vellum:column-count frame))
@@ -114,25 +114,25 @@
                                  (setf (aref row-data i) (vellum:rr i row)))
                                (vector-push-extend row-data (aref data i))))))
                        :in-place t))
-  (let ((range (~> hash-table
-                   cl-ds.alg:make-hash-table-range
-                   (cl-ds.alg:multiplex :function function
-                                        :key #'cdr))))
-    (vellum:transform fresh-table
-                     (vellum:bind-row ()
-                       (let ((row-data (cl-ds:consume-front range)))
-                         (if (null row-data)
-                             (vellum:finish-transformation)
-                             (iterate
-                               (with k = 0)
-                               (for i from 0 below (length row-data))
-                               (for sub = (aref row-data i))
-                               (iterate
-                                 (for j from 0 below (length sub))
-                                 (setf (vellum:rr k) (aref sub j))
-                                 (incf k))))))
-                     :in-place t
-                     :end nil))))
+    (let ((range (~> hash-table
+                     cl-ds.alg:make-hash-table-range
+                     (cl-ds.alg:multiplex :function function
+                                          :key #'cdr))))
+      (vellum:transform fresh-table
+                        (vellum:bind-row ()
+                          (let ((row-data (cl-ds:consume-front range)))
+                            (if (null row-data)
+                                (vellum:finish-transformation)
+                                (iterate
+                                  (with k = 0)
+                                (for i from 0 below (length row-data))
+                                  (for sub = (aref row-data i))
+                                  (iterate
+                                    (for j from 0 below (length sub))
+                                    (setf (vellum:rr k) (aref sub j))
+                                    (incf k))))))
+                        :in-place t
+                        :end nil))))
 
 
 (defmethod join ((algorithm (eql :hash)) (method (eql :inner)) (frame-specs list)

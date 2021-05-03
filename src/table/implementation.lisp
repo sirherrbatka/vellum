@@ -515,9 +515,7 @@
     (iterate
       (for j from 0 below column-count)
       (for string = (or (ignore-errors
-                         (~> header
-                             (vellum.header:index-to-name j)
-                             symbol-name))
+                         (vellum.header:index-to-name header j))
                         (format nil "~a" j)))
       (setf (aref strings 0 j) string)
       (setf (aref desired-sizes j) (length string)))
