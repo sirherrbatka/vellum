@@ -58,14 +58,14 @@
     (for column-specs = (vellum.header:column-specs header))
     (iterate
       (for x in column-specs)
-      (let* ((name (getf x :name))
-             (new-name (if (null label)
-                           name
-                           (format nil "~a/~a" label name))))
-        (in outer (collecting
-                    (list :name new-name
-                          :predicate (getf x :predicate)
-                          :type (getf x :type))))))))
+      (for name = (getf x :name))
+      (for new-name = (if (null label)
+                          name
+                          (format nil "~a/~a" label name)))
+      (in outer (collecting
+                  (list :name new-name
+                        :predicate (getf x :predicate)
+                        :type (getf x :type)))))))
 
 
 (defun cartesian-product (vector)
