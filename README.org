@@ -279,14 +279,14 @@ Depending on the specific use case each of those ways can be the most suitable.
 Select can be also used to establish new names for columns. To do so, provide list with two elements.
 
 #+BEGIN_SRC common-lisp
-   (defparameter *table* (vellum:make-table :columns '((:name first-colum)
-                                                       (:name second-column)
-                                                       (:name third-column))))
-   (defparameter *just-second-and-third* (vellum:select *table*
-                                           :columns '((1 (:name new-first-column)) 2)))
-   (defparameter *just-second-and-third* (vellum:select *table*
-                                           :columns '((second-column new-first-column)
-                                                      third-column)))
+(defparameter *table* (vellum:make-table :columns '((:name first-colum)
+                                                    (:name second-column)
+                                                    (:name third-column))))
+(defparameter *just-second-and-third* (vellum:select *table*
+                                        :columns '((1 (:name new-first-column)) 2)))
+(defparameter *just-second-and-third* (vellum:select *table*
+                                        :columns '((second-column new-first-column)
+                                                   third-column)))
 #+END_SRC
 
 The second element supports all the same options as the make-table :columns element itself.
@@ -295,10 +295,10 @@ The second element supports all the same options as the make-table :columns elem
 So, working with relations? Chances are you gonna use JOIN.
 
 #+BEGIN_SRC common-lisp
-  (let* ((frame-1 (transform (vellum:make-table :columns '(a b))
-                             (vellum:bind-row (a b)
-                               (setf a vellum.table:*current-row*)
-                               (setf b (format nil "a~a" a)))
+(let* ((frame-1 (transform (vellum:make-table :columns '(a b))
+                           (vellum:bind-row (a b)
+                             (setf a vellum.table:*current-row*)
+                             (setf b (format nil "a~a" a)))
                              :end 5))
          (frame-2 (transform (vellum:make-table :columns '(a b))
                              (vellum:bind-row (a b)
