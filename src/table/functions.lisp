@@ -31,5 +31,7 @@
 
 
 (defun vstack (frames)
-  (let ((list (cl-ds.alg:to-list frames)))
+  (let ((list (if (listp frames)
+                  frames
+                  (cl-ds.alg:to-list frames))))
     (vstack* (first list) (rest list))))
