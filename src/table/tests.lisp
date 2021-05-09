@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 45144)
+(prove:plan 45612)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -327,7 +327,10 @@
                         (vellum:drop-row)))
                     :in-place t)
   (prove:is (vellum:row-count table)
-            (- 1500 1032)))
+            (- 1500 1032))
+  (iterate
+    (for i from 0 below 468)
+    (prove:is (at table i 'column) :null)))
 
 (let ((table (make-table :columns '(test))))
   (vellum:transform table
