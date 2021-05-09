@@ -53,8 +53,8 @@
     (bind ((prev-control (ensure-function *transform-control*))
            ((:flet move-iterator ())
             (incf count)
-            (vellum.column:move-iterator iterator 1)
-            (vellum.column:move-iterator marker-iterator 1))
+            (vellum.column:move-iterator iterator 1))
+           (index (vellum.column:sparse-material-column-iterator-index iterator))
            (*transform-control*
             (lambda (operation)
               (cond ((eq operation :drop)
@@ -64,7 +64,7 @@
                           (setf (vellum.column:iterator-at iterator i)
                                 :null)
                           (finally
-                           (setf (vellum.column:iterator-at marker-iterator 0) t
+                           (setf (vellum.column:column-at marker-column index) t
                                  dropped t)
                            (move-iterator)
                            (return-from transform-row-impl transformation))))
@@ -120,8 +120,7 @@
                                       (curry #'vellum.header:ensure-index
                                              header))
                              old-ids)))
-      (declare (type vector columns new-columns)
-               (optimize (debug 3)))
+      (declare (type vector columns new-columns))
       (cl-ds.utils:quasi-clone* frame
         :header new-header
         :columns new-columns))))

@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 42145)
+(prove:plan 45143)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -306,5 +306,34 @@
                          (zerop (mod x 5))))
                    (vellum:pipeline (frame)
                      (cl-ds.alg:to-list :key (vellum:brr number))))))
+
+(let ((table (~> (iota 1500)
+                 (cl-ds.alg:on-each #'list)
+                 (vellum:to-table :columns '(number))
+                 (vellum:add-columns 'column))))
+  (vellum:show :text table)
+  (iterate
+    (for i from 0 below 1032)
+    (setf (at table i 'column) t))
+  (iterate
+    (for i from 0 below 1032)
+    (prove:is (at table i 'column) t))
+  (iterate
+    (for i from 1033 below 1500)
+    (prove:is (at table i 'column) :null)))
+
+(let ((table (make-table :columns '(test))))
+  (vellum:transform table
+                    (vellum:bind-row (test)
+                      (when (> *current-row* 1032)
+                        (setf test 'test)))
+                    :in-place t
+                    :end 1500)
+  (iterate
+    (for i from 0 below 1032)
+    (prove:is (at table i 'test) :null))
+  (iterate
+    (for i from 1033 below 1500)
+    (prove:is (at table i 'test) 'test)))
 
 (prove:finalize)

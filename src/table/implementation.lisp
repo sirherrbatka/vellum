@@ -144,13 +144,10 @@
                             bind-row :header (header frame)))
          (marker-column (vellum.column:make-sparse-material-column
                          :element-type 'boolean))
-         (marker-iterator (make-iterator (vector marker-column)))
          (iterator (iterator frame in-place))
          (row (make 'setfable-table-row :iterator iterator)))
     (vellum.column:move-iterator iterator start)
-    (vellum.column:move-iterator marker-iterator start)
     (make-standard-transformation
-     :marker-iterator marker-iterator
      :marker-column marker-column
      :iterator iterator
      :bind-row-closure bind-row-closure
@@ -173,19 +170,15 @@
 (defmethod transformation-result ((object standard-transformation))
   (cl-ds.utils:with-slots-for (object standard-transformation)
     (vellum.column:finish-iterator iterator)
-    (let ((new-columns (vellum.column:columns iterator))
-          (marker-iterator marker-iterator))
+    (let ((new-columns (vellum.column:columns iterator)))
       (assert (not (eq new-columns columns)))
       (when dropped
-        (vellum.column:finish-iterator marker-iterator)
-        (setf marker-iterator (make-iterator (vector marker-column)))
         (iterate
           (for i from 0 below (the fixnum (+ start count)))
-          (for value = (vellum.column:iterator-at marker-iterator 0))
-          (setf (vellum.column:iterator-at marker-iterator 0)
-                (if (eql :null value) t :null))
-          (vellum.column:move-iterator marker-iterator 1))
-        (vellum.column:finish-iterator marker-iterator)
+          (for value = (vellum.column:column-at marker-column i))
+          (if (eq :null value)
+              (setf (vellum.column:column-at marker-column i) t)
+              (cl-ds:erase! marker-column i)))
         (let ((cleaned-columns (adjust-array new-columns
                                              (1+ column-count))))
           (setf (last-elt cleaned-columns) marker-column

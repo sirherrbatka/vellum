@@ -40,7 +40,9 @@
     t)
 (defun pad-stack (iterator depth index new-depth stack column)
   (iterate
-    (declare (type fixnum j byte offset depth-difference))
+    (declare (type fixnum j byte offset depth-difference)
+             (type (or null cl-ds.common.rrb:sparse-rrb-node)
+                   prev-node))
     (with depth-difference = (- new-depth depth))
     (with prev-node = (aref stack 0))
     (with tag = (cl-ds.common.abstract:read-ownership-tag column))
@@ -52,13 +54,14 @@
          by cl-ds.common.rrb:+bit-count+)
     (for offset = (ldb (byte cl-ds.common.rrb:+bit-count+ byte)
                        index))
-    (for node = (if (null prev-node)
-                    (make-node iterator column 0
-                               :tag tag)
-                    (make-node
-                     iterator column (ash 1 offset)
-                     :tag tag
-                     :content (vector prev-node))))
+    (for node = (the cl-ds.common.rrb:sparse-rrb-node
+                     (if (null prev-node)
+                         (make-node iterator column 0
+                                    :tag tag)
+                         (make-node
+                          iterator column (ash 1 offset)
+                          :tag tag
+                          :content (vector prev-node)))))
     (setf prev-node node
           (aref stack j) node))
   (aref stack 0))
@@ -784,7 +787,8 @@
         (for j from i to depth)
         (setf (aref stack j) nil))
       (leave))
-    (setf node (cl-ds.common.rrb:sparse-nref node offset)
+    (setf node (the cl-ds.common.rrb:sparse-rrb-node
+                    (cl-ds.common.rrb:sparse-nref node offset))
           (aref stack i) node))
   (aref stack 0))
 
@@ -919,8 +923,7 @@
          nil)
         ((null parent)
          (make-node iterator column (ash 1 position)
-                    :content (lret ((vector (make-array 4)))
-                               (setf (first-elt vector) child))))
+                    :content (vector child)))
         ((and (null child)
               (eql 1 (cl-ds.common.rrb:sparse-rrb-node-size parent)))
          nil)

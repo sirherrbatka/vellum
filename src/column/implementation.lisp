@@ -142,7 +142,7 @@
         (when (< (aref depths i) new-depth)
           (pad-stack iterator (aref depths i) index new-depth
                      (aref stacks i) (aref columns i))
-          (maxf (aref depths i) new-depth))
+          (setf (aref depths i) new-depth))
         (if not-changed
             (setf (aref initialization-status i) nil)
             (progn
@@ -221,6 +221,7 @@
                                      :initial-element nil))
          (stacks (map-into (make-array length)
                            (curry #'make-array max-shift
+                                  :element-type '(or null cl-ds.common.rrb:sparse-rrb-node)
                                   :initial-element nil)))
          (buffers (map-into (make-array length)
                             (curry #'make-array max-children-count

@@ -17,7 +17,6 @@
 (defstruct standard-transformation
   (dropped nil :type boolean)
   marker-column
-  marker-iterator
   table
   (in-place nil :type boolean)
   (start 0 :type integer)
@@ -33,7 +32,6 @@
   (column-count standard-transformation-column-count)
   (dropped standard-transformation-dropped)
   (marker-column standard-transformation-marker-column)
-  (marker-iterator standard-transformation-marker-iterator)
   (table standard-transformation-table)
   (in-place standard-transformation-in-place)
   (start standard-transformation-start)
