@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 46912)
+(prove:plan 45882)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -311,40 +311,30 @@
                  (cl-ds.alg:on-each #'list)
                  (vellum:to-table :columns '(number))
                  (vellum:add-columns 'column))))
-  (vellum:show :text table)
   (iterate
     (for i from 0 below 1032)
+    (setf (at table i 'column) i))
+  (iterate
+    (for i from 1032 below 1500)
     (setf (at table i 'column) t))
   (iterate
-    (for i from 0 below 1032)
+    (for i from 1032 below 1500)
     (prove:is (at table i 'column) t))
   (iterate
-    (for i from 1033 below 1500)
-    (prove:is (at table i 'column) :null))
+    (for i from 0 below 1032)
+    (prove:is (at table i 'column) i))
   (vellum:transform table
                     (vellum:bind-row (column)
-                      (when (eq column t)
+                      (when (integerp column)
                         (vellum:drop-row)))
                     :in-place t)
   (prove:is (vellum:row-count table)
             (- 1500 1032))
   (iterate
-    (for i from 0 below 468)
-    (prove:is (at table i 'column) :null)))
-
-(let ((table (make-table :columns '(test))))
-  (vellum:transform table
-                    (vellum:bind-row (test)
-                      (when (> *current-row* 1032)
-                        (setf test 'test)))
-                    :in-place t
-                    :end 1500)
-  (iterate
-    (for i from 0 below 1032)
-    (prove:is (at table i 'test) :null))
-  (iterate
-    (for i from 1033 below 1500)
-    (prove:is (at table i 'test) 'test)))
+    (for i from 1032 below 1500)
+    (for j from 0)
+    (prove:is (at table j 'column) t)
+    (prove:is (at table j 'number) i)))
 
 (let ((table (make-table :columns '(test1 test2))))
   (iterate
