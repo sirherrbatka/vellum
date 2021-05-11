@@ -133,7 +133,7 @@
                               :initial-element nil)))
     (make-sparse-material-column-iterator
      :indexes (~>> iterator read-indexes
-                   (into-vector-copy 0))
+                   (into-vector-copy -1))
      :index (index iterator)
      :initial-index (index iterator)
      :touched (~>> iterator read-touched
