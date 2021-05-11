@@ -91,10 +91,8 @@
   (bind ((new-depth (calculate-depth new-index))
          (depths (read-depths iterator))
          (length (length depths)))
-    (declare (type simple-vector stacks columns changes buffers)
-             (type fixnum length)
-             (type (simple-array fixnum (*)) depths indexes)
-             (type (simple-array boolean (*)) initialization-status))
+    (declare (type fixnum length)
+             (type (simple-array fixnum (*)) depths))
     (iterate
       (declare (type fixnum i))
       (for i from 0 below length)
