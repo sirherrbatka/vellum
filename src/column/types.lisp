@@ -43,6 +43,8 @@
   (depths (make-array 0 :element-type 'fixnum)
    :type (simple-array fixnum (*)))
   (index 0 :type fixnum)
+  (indexes (make-array 0 :element-type 'fixnum)
+   :type (simple-array fixnum (*)))
   (initial-index 0 :type fixnum)
   (touched (make-array 0 :element-type 'boolean)
    :type (simple-array boolean (*)))
@@ -50,9 +52,9 @@
   (changes #() :type simple-vector))
 
 (declaim (inline read-transformation))
-(declaim (inline read-initialization-status))
 (declaim (inline index))
 (declaim (inline read-columns))
+(declaim (inline read-initialization-status))
 (declaim (inline read-stacks))
 (declaim (inline read-depths))
 (declaim (inline read-initial-index))
@@ -62,12 +64,16 @@
 (declaim (inline access-index))
 (declaim (inline (setf access-index)))
 (declaim (inline columns))
+(declaim (inline read-indexes))
 
 (defun read-initialization-status (iterator)
   (sparse-material-column-iterator-initialization-status iterator))
 
 (defun read-transformation (iterator)
   (sparse-material-column-iterator-transformation iterator))
+
+(defun read-indexes (iterator)
+  (sparse-material-column-iterator-indexes iterator))
 
 (defun index (iterator)
   (sparse-material-column-iterator-index iterator))
