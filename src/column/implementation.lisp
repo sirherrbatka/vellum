@@ -204,12 +204,6 @@
       (reduce-stack iterator index depth stack column))
     (setf (cl-ds.dicts.srrb:access-shift column) depth)
     (for stack-head = (first-elt stack))
-    (setf (cl-ds.dicts.srrb:access-shift column) depth
-          (cl-ds.dicts.srrb:access-tree-size column)
-          (if stack-head
-              (cl-ds.common.rrb:sparse-rrb-tree-size stack-head
-                                                     depth)
-              0))
     (setf (cl-ds.dicts.srrb:access-tree column)
           (if (or (null stack-head)
                   (~> stack-head
@@ -217,6 +211,16 @@
                       zerop))
               cl-ds.meta:null-bucket
               stack-head))
+    (for tree-present? = (~> column
+                             cl-ds.dicts.srrb:access-tree
+                             cl-ds.meta:null-bucket-p
+                             not))
+    (setf (cl-ds.dicts.srrb:access-shift column) (if tree-present? depth 0)
+          (cl-ds.dicts.srrb:access-tree-size column)
+          (if tree-present?
+              (cl-ds.common.rrb:sparse-rrb-tree-size stack-head
+                                                     depth)
+              0))
     (for tree-index-bound = (* #1=cl-ds.common.rrb:+maximum-children-count+
                                (ceiling (cl-ds.dicts.srrb:scan-index-bound column)
                                         #1#)))
