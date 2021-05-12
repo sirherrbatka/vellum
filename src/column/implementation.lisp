@@ -168,7 +168,6 @@
                                      :initial-element nil))
          (stacks (map-into (make-array length)
                            (curry #'make-array max-shift
-                                  :element-type '(or null cl-ds.common.rrb:sparse-rrb-node)
                                   :initial-element nil)))
          (buffers (map-into (make-array length)
                             (curry #'make-array max-children-count
@@ -293,14 +292,15 @@
          (depth (~> (extremum columns #'>
                               :key #'cl-ds.dicts.srrb:access-shift)
                     cl-ds.dicts.srrb:access-shift))
-         ((:flet unify-shift (column))
-          (iterate
-            (for i from (cl-ds.dicts.srrb:access-shift column) below depth)
-            (for node
-                 initially (cl-ds.dicts.srrb:access-tree column)
-                 then (make-node iterator column 1
-                                 :content (vector node)))
-            (finally (setf (cl-ds.dicts.srrb:access-tree column) node)))))
+         ((:flet unify-shift (column &aux (root (cl-ds.dicts.srrb:access-tree column))))
+          (unless (cl-ds.meta:null-bucket-p root)
+            (iterate
+              (for i from (cl-ds.dicts.srrb:access-shift column) below depth)
+              (for node
+                   initially (cl-ds.dicts.srrb:access-tree column)
+                   then (make-node iterator column 1
+                                   :content (vector node)))
+              (finally (setf (cl-ds.dicts.srrb:access-tree column) node))))))
     (cl-ds.utils:transform (read-transformation iterator) columns)
     (map nil #'unify-shift columns)
     (concatenate-trees iterator)

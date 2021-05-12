@@ -187,6 +187,7 @@
     t)
 (defun initialize-iterator-column (iterator index column stack buffer shift
                                    touched column-index)
+  (declare (ignore buffer shift))
   (let ((column-root (column-root column)))
     (unless touched
       (ensure (aref stack 0) column-root)
@@ -837,6 +838,8 @@
 (defun move-stack (depth new-index stack &aux (node (aref stack 0)))
   (declare (type fixnum depth new-index)
            (type iterator-stack stack))
+  (assert (>= new-index 0))
+  (assert (typep node '(or null cl-ds.common.rrb:sparse-rrb-node)))
   (when (null node)
     (return-from move-stack nil))
   (iterate outer
@@ -968,6 +971,8 @@
 
 
 (defun copy-on-write-node (iterator parent child position tag column)
+  (assert (typep parent '(or null cl-ds.common.rrb:sparse-rrb-node)))
+  (assert (typep child '(or null cl-ds.common.rrb:sparse-rrb-node)))
   (cond ((and (null parent) (null child))
          nil)
         ((null parent)
@@ -996,22 +1001,22 @@
 
 (-> reduce-stack (sparse-material-column-iterator fixnum fixnum iterator-stack sparse-material-column) t)
 (defun reduce-stack (iterator index depth stack column)
-  (iterate
-    (declare (type fixnum i bits))
-    (with prev-node = (aref stack depth))
-    (with tag = (cl-ds.common.abstract:read-ownership-tag column))
-    (for i from (1- depth) downto 0)
-    (for bits
-         from cl-ds.common.rrb:+bit-count+
-         by cl-ds.common.rrb:+bit-count+)
-    (for node = (aref stack i))
-    (for position = (ldb (byte cl-ds.common.rrb:+bit-count+ bits)
-                         index))
-    (for new-node = (copy-on-write-node iterator node prev-node
-                                        position tag column))
-    (until (eq node new-node))
-    (setf prev-node new-node
-          (aref stack i) new-node))
+  (let ((prev-node (aref stack depth)))
+    (iterate
+      (declare (type fixnum i bits))
+      (with tag = (cl-ds.common.abstract:read-ownership-tag column))
+      (for i from (1- depth) downto 0)
+      (for bits
+           from cl-ds.common.rrb:+bit-count+
+           by cl-ds.common.rrb:+bit-count+)
+      (for node = (aref stack i))
+      (for position = (ldb (byte cl-ds.common.rrb:+bit-count+ bits)
+                           index))
+      (for new-node = (copy-on-write-node iterator node prev-node
+                                          position tag column))
+      (until (eq node new-node))
+      (setf prev-node new-node
+            (aref stack i) new-node)))
   (aref stack 0))
 
 
@@ -1138,11 +1143,10 @@
 
 (defun trim-depth-in-column (column)
   (bind (((:labels skip (node))
-          (if (or (cl-ds.meta:null-bucket-p node)
-                  (~> node
-                      cl-ds.common.rrb:sparse-rrb-node-bitmask
-                      (eql 1)
-                      not))
+          (if (~> node
+                  cl-ds.common.rrb:sparse-rrb-node-bitmask
+                  (eql 1)
+                  not)
               node
               (skip (cl-ds.common.rrb:sparse-nref node 0))))
          (tree-index-bound (cl-ds.dicts.srrb:scan-index-bound column))
@@ -1155,7 +1159,9 @@
           (cl-ds.dicts.srrb:access-shift column)
           (cl-ds.dicts.srrb:shift-for-position (1- tree-index-bound))
 
-          (cl-ds.dicts.srrb:access-tree column) (skip root))))
+          (cl-ds.dicts.srrb:access-tree column) (if (cl-ds.meta:null-bucket-p root)
+                                                    root
+                                                    (skip root)))))
 
 
 (defun trim-depth (iterator)
