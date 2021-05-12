@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 45882)
+(prove:plan 45885)
 
 (progn
   (defparameter *test-data* #(#(1 a 5 s)
@@ -343,9 +343,16 @@
   (iterate
     (for i from 0 below 500)
     (setf (vellum:at table i 'test2) i))
+  (prove:is (vellum:row-count table) 1300)
   (vellum:transform table
                     (vellum:bind-row (test1 test2)
                       (prove:is test2 (vellum:at table *current-row* 'test2)))
-                    :in-place t))
+    :in-place t)
+  (prove:is (vellum:row-count table) 1300)
+  (vellum:transform table
+    (vellum:bind-row () (vellum:drop-row))
+    :in-place t
+    :end (vellum:row-count table))
+  (prove:is (vellum:row-count table) 0))
 
 (prove:finalize)

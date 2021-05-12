@@ -190,19 +190,19 @@
 (defmethod finish-iterator ((iterator sparse-material-column-iterator))
   (change-leafs iterator)
   ;; this prohibits reducing stacks directly after they have been reduced by move-iterator
-  (let ((index (vellum.column:index iterator)))
-    (unless (= index
-               (* cl-ds.common.rrb:+maximum-children-count+
-                  (truncate index cl-ds.common.rrb:+maximum-children-count+)))
-      (reduce-stacks iterator)))
   (iterate
     (for column in-vector (read-columns iterator))
     (for touched in-vector (read-touched iterator))
     (for depth in-vector (read-depths iterator))
-    (setf (cl-ds.dicts.srrb:access-shift column) depth)
+    (for index in-vector (read-indexes iterator))
     (for stack in-vector (read-stacks iterator))
     (unless touched
       (next-iteration))
+    (unless (= index
+               (* cl-ds.common.rrb:+maximum-children-count+
+                  (truncate index cl-ds.common.rrb:+maximum-children-count+)))
+      (reduce-stack iterator index depth stack column))
+    (setf (cl-ds.dicts.srrb:access-shift column) depth)
     (for stack-head = (first-elt stack))
     (setf (cl-ds.dicts.srrb:access-shift column) depth
           (cl-ds.dicts.srrb:access-tree-size column)
@@ -210,8 +210,13 @@
               (cl-ds.common.rrb:sparse-rrb-tree-size stack-head
                                                      depth)
               0))
-    (setf (cl-ds.dicts.srrb:access-tree column) (or stack-head
-                                                    cl-ds.meta:null-bucket))
+    (setf (cl-ds.dicts.srrb:access-tree column)
+          (if (or (null stack-head)
+                  (~> stack-head
+                      cl-ds.common.rrb:sparse-rrb-node-size
+                      zerop))
+              cl-ds.meta:null-bucket
+              stack-head))
     (for tree-index-bound = (* #1=cl-ds.common.rrb:+maximum-children-count+
                                (ceiling (cl-ds.dicts.srrb:scan-index-bound column)
                                         #1#)))
