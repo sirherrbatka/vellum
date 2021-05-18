@@ -33,7 +33,7 @@
 
 (defmethod vstack* ((frame standard-table) more-frames)
   (let* ((new-columns
-           (cl-ds.utils:transform
+           (map 'vector
                 (lambda (column &aux (new (cl-ds:replica column t)))
                   (~>> new
                        cl-ds.common.abstract:read-ownership-tag
