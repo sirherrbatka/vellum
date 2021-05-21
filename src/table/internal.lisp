@@ -78,6 +78,9 @@
                        (setf (vellum.column:iterator-at iterator i) :null)))
                     (t (funcall prev-control operation))))))
       (tagbody main
+         (unless restarts-enabled
+           (funcall function)
+           (go end))
          (restart-case (handler-case (funcall function)
                          (error (e)
                            (error 'transformation-error

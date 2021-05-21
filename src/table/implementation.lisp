@@ -131,6 +131,7 @@
                            bind-row
                            &key
                              (in-place *transform-in-place*)
+                             (restarts-enabled t)
                              (start 0))
   (when (~> frame read-columns length zerop)
     (error 'cl-ds:operation-not-allowed
@@ -152,6 +153,7 @@
      :iterator iterator
      :bind-row-closure bind-row-closure
      :column-count (length columns)
+     :restarts-enabled restarts-enabled
      :table frame
      :row row
      :in-place in-place
@@ -196,6 +198,7 @@
 (defmethod transform ((frame standard-table)
                       bind-row
                       &key
+                        (restarts-enabled t)
                         (in-place *transform-in-place*)
                         (start 0)
                         (end (row-count frame)))
@@ -209,6 +212,7 @@
            (transformation (transformation frame
                                            bind-row
                                            :start start
+                                           :restarts-enabled restarts-enabled
                                            :in-place in-place))
            (row (standard-transformation-row transformation))
            (*transform-control*
