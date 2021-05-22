@@ -47,7 +47,7 @@
       (setf content
             (stable-sort content comparator
                          :key (lambda (v) (aref v index)))))
-    (to-table content :header header)))
+    (to-table (cl-ds:whole-range content) :header header)))
 
 
 (defun collect-column-specs (frame-specs)
