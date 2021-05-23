@@ -37,7 +37,7 @@
                                name
                                skip-nulls
                                (type t)
-                               (predicate 'vellum.header:constantly-t))
+                               (predicate ''vellum.header:constantly-t))
   (bind (((function . body) expression))
     `(%aggregate-columns ,table
                          (cl-ds.alg.meta:aggregator-constructor

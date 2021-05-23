@@ -283,4 +283,4 @@
                          (finally (setf (rr column-count)
                                         (cl-ds.alg.meta:extract-result aggregator))))))
                    :in-place nil)
-        (select :columns `(:v ,column-count)))))
+        (select :columns `(,column-count)))))
