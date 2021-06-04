@@ -109,7 +109,7 @@
 (defun row-to-list (&rest forms)
   (let* ((header (vellum.header:header))
          (selection
-           (if (null forms)
+           (if (endp forms)
                (iota (vellum.table:column-count vellum.table:*table*))
                (~> (apply #'s forms)
                    (address-range
