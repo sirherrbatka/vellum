@@ -26,6 +26,7 @@
              #:s
              #:rs
              #:vs
+             #:row-to-list
              #:between)
   (:reexport #:cl-ds
              #:replica)
