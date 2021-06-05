@@ -58,6 +58,7 @@
              #:remove-nulls
              #:row-count
              #:row-to-list
+             #:row-to-vector
              #:select
              #:show
              #:to-table

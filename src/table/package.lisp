@@ -31,6 +31,8 @@
    #:remove-nulls
    #:retry
    #:row-count
+   #:row-to-list
+   #:row-to-vector
    #:select
    #:setfable-table-row
    #:show
