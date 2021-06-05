@@ -14,7 +14,7 @@
    #:join
    #:pipeline
    #:file-input-row-cant-be-created
-   #:new-columns
+   #:add-columns
    #:order-by
    #:to-matrix
    #:aggregate-rows
@@ -23,10 +23,10 @@
    #:%aggregate-columns
    #:row-cant-be-created)
   (:reexport #:vellum.selection
-             #:s
+             #:between
              #:rs
-             #:vs
-             #:between)
+             #:s
+             #:vs)
   (:reexport #:cl-ds
              #:replica)
   (:reexport #:vellum.header
@@ -40,26 +40,26 @@
              #:standard-header
              #:with-header)
   (:reexport #:vellum.table
-             #:*transform-in-place*
              #:*current-row*
-             #:at
-             #:column-names
-             #:row-to-list
+             #:*transform-in-place*
              #:alter-columns
+             #:at
              #:column-count
-             #:column-type
              #:column-name
+             #:column-names
+             #:column-type
              #:drop-row
              #:erase!
              #:finish-transformation
              #:hstack
-             #:show
-             #:make-table
              #:hstack*
+             #:make-table
              #:nullify
              #:remove-nulls
              #:row-count
+             #:row-to-list
              #:select
+             #:show
              #:to-table
              #:transform
              #:transform-row

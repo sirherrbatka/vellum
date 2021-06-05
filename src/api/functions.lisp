@@ -6,7 +6,7 @@
                            :columns row-parameters))
 
 
-(defun new-columns (table &rest columns)
+(defun add-columns (table &rest columns)
   (~>> table
        vellum.table:header
        type-of
