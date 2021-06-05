@@ -43,7 +43,7 @@
   (let* ((header (vellum.header:header))
          (selection
            (if (endp forms)
-               (iota (vellum.table:column-count vellum.table:*table*))
+               (iota (vellum.header:column-count header))
                (~> (apply #'vellum.selection:s forms)
                    (vellum.selection:address-range
                     (lambda (x) (vellum.header:ensure-index header x))
@@ -58,7 +58,7 @@
   (let* ((header (vellum.header:header))
          (selection
            (if (endp forms)
-               (iota (vellum.table:column-count vellum.table:*table*))
+               (iota (vellum.header:column-count header))
                (~> (apply #'vellum.selection:s forms)
                    (vellum.selection:address-range
                     (lambda (x) (vellum.header:ensure-index header x))
