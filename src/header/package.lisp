@@ -8,12 +8,14 @@
    #:*header*
    #:*row*
    #:*validate-predicates*
+   #:alter-columns
    #:bind-row
    #:bind-row-closure
    #:brr
    #:check-column-signatures-compatibility
    #:check-predicate
    #:column-count
+   #:column-names
    #:column-predicate
    #:column-signature
    #:column-specs

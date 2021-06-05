@@ -73,3 +73,9 @@
 (defun read-new-value ()
   (format t "Enter a new value: ")
   (multiple-value-list (eval (read))))
+
+
+(defun column-names (header)
+  (~>> header
+       vellum.header:column-specs
+       (mapcar (lambda (x) (getf x :name)))))

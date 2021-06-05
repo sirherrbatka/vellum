@@ -452,6 +452,31 @@
         selected-columns)))
 
 
+(defmethod alter-columns ((frame standard-table) &rest columns)
+  (bind ((header (header frame))
+         (column-objects (read-columns frame))
+         (column-indexes
+          (~> columns
+              (vellum.selection:address-range
+               (lambda (spec)
+                 (vellum.header:ensure-index header
+                                             (if (listp spec)
+                                                 (first spec)
+                                                 spec)))
+               (column-count frame))
+              cl-ds.alg:to-vector))
+         (new-columns (map 'vector
+                           (rcurry #'cl-ds:replica t)
+                           column-objects))
+         ((:values new-header old-ids)
+          (vellum.header:alter-columns header column-indexes)))
+    (declare (type vector columns new-columns)
+             (ignore old-ids))
+    (cl-ds.utils:quasi-clone* frame
+      :header new-header
+      :columns new-columns)))
+
+
 (defmethod column-at ((frame standard-table) column)
   (~>> (header frame)
        (vellum.header:name-to-index _ column)

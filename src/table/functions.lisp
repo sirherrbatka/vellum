@@ -38,6 +38,7 @@
                   (cl-ds.alg:to-list frames))))
     (vstack* (first list) (rest list))))
 
+
 (defun row-to-list (&rest forms)
   (let* ((header (vellum.header:header))
          (selection
@@ -51,3 +52,7 @@
     (lambda (&rest ignored)
       (declare (ignore ignored))
       (mapcar #'vellum.header:rr selection))))
+
+
+(defun column-names (table)
+  (~> table vellum.table:header vellum.header:column-names))

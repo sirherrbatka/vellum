@@ -8,16 +8,17 @@
    #:*current-row*
    #:*table*
    #:*transform-in-place*
+   #:alter-columns
    #:at
    #:bind-row-closure
    #:column-at
    #:column-count
    #:column-name
+   #:column-names
    #:column-type
    #:drop-row
    #:erase!
    #:finish-transformation
-   #:retry
    #:fundamental-table
    #:header
    #:hstack
@@ -28,11 +29,12 @@
    #:no-transformation
    #:nullify
    #:remove-nulls
+   #:retry
    #:row-count
    #:select
-   #:skip-row
    #:setfable-table-row
    #:show
+   #:skip-row
    #:standard-table
    #:standard-table-range
    #:standard-transformation-row

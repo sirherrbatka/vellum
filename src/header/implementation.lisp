@@ -320,7 +320,7 @@
                                  :test 'equal)))
     (declare (type vector selected))
     (iterate
-      (declare (ignorable original id))
+      (declare (ignorable id))
       (for i from 0)
       (for (original new id) in-vector selected)
       (check-column-signatures-compatibility original new)
@@ -336,6 +336,47 @@
                   :column-signatures (map 'vector #'second selected)
                   :column-names names)
             (map 'vector #'third selected))))
+
+
+(defmethod alter-columns ((header standard-header)
+                          columns)
+  (bind ((altered (~> columns
+                      (cl-ds.alg:on-each (extracting-signature header))
+                      cl-ds.alg:to-vector))
+         (altered-table (cl-ds.alg:to-hash-table
+                         altered
+                         :test 'equal
+                         :hash-table-key (compose #'read-name
+                                                  #'first)))
+         (names (make-hash-table :test 'equal))
+         (column-count (column-count header))
+         (new-columns (make-array column-count)))
+    (declare (type vector selected))
+    (iterate
+      (declare (ignorable id))
+      (for i from 0 below column-count)
+      (for signature = (column-signature header i))
+      (for column-name = (read-name signature))
+      (for (values change found) = (gethash column-name altered-table))
+      (unless found
+        (setf (aref new-columns i) signature)
+        (unless (null (shiftf (gethash column-name names) i))
+          (error 'name-duplicated
+                 :format-arguments (list column-name)
+                 :value column-name))
+        (next-iteration))
+      (for (original new id) = change)
+      (check-column-signatures-compatibility original new)
+      (for name = (read-name new))
+      (setf (aref new-columns i) new)
+      (unless (null (shiftf (gethash name names) i))
+        (error 'name-duplicated
+               :format-arguments (list name)
+               :value name)))
+    (values (make (class-of header)
+                  :column-signatures new-columns
+                  :column-names names)
+            (map 'vector #'third altered))))
 
 
 (defmethod column-specs ((header standard-header))

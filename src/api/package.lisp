@@ -43,7 +43,9 @@
              #:*transform-in-place*
              #:*current-row*
              #:at
+             #:column-names
              #:row-to-list
+             #:alter-columns
              #:column-count
              #:column-type
              #:column-name

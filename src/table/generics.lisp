@@ -44,3 +44,5 @@
 (defgeneric erase! (frame row column))
 
 (defgeneric show (as table &key &allow-other-keys))
+
+(defgeneric alter-columns (table &rest columns))

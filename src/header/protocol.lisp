@@ -29,6 +29,8 @@
 
 (defgeneric select-columns (header columns))
 
+(defgeneric alter-columns (header columns))
+
 (defgeneric column-specs (header))
 
 (defgeneric bind-row-closure (bind-row-object &key header))
