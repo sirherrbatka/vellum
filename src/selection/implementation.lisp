@@ -106,21 +106,6 @@
          (lambda (x) (vellum.header:rr x))))))
 
 
-(defun row-to-list (&rest forms)
-  (let* ((header (vellum.header:header))
-         (selection
-           (if (endp forms)
-               (iota (vellum.table:column-count vellum.table:*table*))
-               (~> (apply #'s forms)
-                   (address-range
-                    (lambda (x) (vellum.header:ensure-index header x))
-                    (vellum.header:column-count header))
-                   cl-ds.alg:to-list))))
-    (lambda (&rest ignored)
-      (declare (ignore ignored))
-      (mapcar #'vellum.header:rr selection))))
-
-
 (define-condition name-when-selecting-row (cl-ds:invalid-value)
   ())
 

@@ -26,7 +26,6 @@
              #:s
              #:rs
              #:vs
-             #:row-to-list
              #:between)
   (:reexport #:cl-ds
              #:replica)
@@ -44,6 +43,7 @@
              #:*transform-in-place*
              #:*current-row*
              #:at
+             #:row-to-list
              #:column-count
              #:column-type
              #:column-name
