@@ -6,16 +6,6 @@
                            :columns row-parameters))
 
 
-(defun add-columns (table &rest columns)
-  (~>> table
-       vellum.table:header
-       type-of
-       (apply #'vellum:make-header _ columns)
-       (vellum.table:make-table (type-of table))
-       list
-       (hstack* table)))
-
-
 (defun order-by (table column comparator &rest columns-comparators)
   (let* ((content (make-array (row-count table)))
          (header (vellum.table:header table))
