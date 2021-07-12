@@ -351,7 +351,6 @@
          (names (make-hash-table :test 'equal))
          (column-count (column-count header))
          (new-columns (make-array column-count)))
-    (declare (type vector selected))
     (iterate
       (declare (ignorable id))
       (for i from 0 below column-count)

@@ -470,8 +470,7 @@
                            column-objects))
          ((:values new-header old-ids)
           (vellum.header:alter-columns header column-indexes)))
-    (declare (type vector columns new-columns)
-             (ignore old-ids))
+    (declare (ignore old-ids))
     (cl-ds.utils:quasi-clone* frame
       :header new-header
       :columns new-columns)))

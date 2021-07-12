@@ -1,5 +1,3 @@
-(cl:in-package #:cl-user)
-
 (cl-ds.fancy:defpackage :vellum.aux-package
   (:reexport #:alexandria
              #:if-let
