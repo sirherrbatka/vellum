@@ -228,27 +228,6 @@
           (cl-ds.dicts.srrb:access-index-bound column) index-bound)))
 
 
-(defmethod cl-ds.meta:make-bucket ((operation cl-ds.meta:grow-function)
-                                   (container sparse-material-column)
-                                   location
-                                   &rest all
-                                   &key value)
-  (declare (ignore all location))
-  (values (cl-ds:force value)
-          cl-ds.common:empty-changed-eager-modification-operation-status))
-
-
-(defmethod cl-ds.meta:grow-bucket ((operation cl-ds.meta:grow-function)
-                                   (container sparse-material-column)
-                                   bucket
-                                   location
-                                   &rest all
-                                   &key value)
-  (declare (ignore all location bucket))
-  (values (cl-ds:force value)
-          cl-ds.common:empty-changed-eager-modification-operation-status))
-
-
 (defmethod cl-ds.meta:position-modification
     ((operation cl-ds.meta:grow-function)
      (structure sparse-material-column)
