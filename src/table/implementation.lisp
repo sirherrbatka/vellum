@@ -556,10 +556,18 @@
                    (* (1- column-count)
                       2)))
       (princ #\= output))
-    (terpri)
+    (terpri output)
     (iterate
       (for i from 1 to number-of-rows)
       (iterate
         (for j from 0 below column-count)
         (print-with-padding i j))
       (terpri output))))
+
+
+(defmethod print-object ((object fundamental-table) stream)
+  (if *print-pretty*
+      (print-unreadable-object (object stream)
+        (show :text object :output stream))
+      (call-next-method))
+  object)
