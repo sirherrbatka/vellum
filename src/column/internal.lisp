@@ -1142,13 +1142,16 @@
 
 
 (defun trim-depth-in-column (column)
-  (bind (((:labels skip (node))
-          (if (~> node
-                  cl-ds.common.rrb:sparse-rrb-node-bitmask
-                  (eql 1)
-                  not)
+  (bind ((shift (cl-ds.dicts.srrb:access-shift column))
+         ((:labels skip (node &optional (s shift)))
+          (if (or (zerop s)
+                  (~> node
+                      cl-ds.common.rrb:sparse-rrb-node-bitmask
+                      (eql 1)
+                      not))
               node
-              (skip (cl-ds.common.rrb:sparse-nref node 0))))
+              (skip (cl-ds.common.rrb:sparse-nref node 0)
+                    (1- s))))
          (tree-index-bound (cl-ds.dicts.srrb:scan-index-bound column))
          (index-bound (* #1=cl-ds.common.rrb:+maximum-children-count+
                          (1+ (ceiling tree-index-bound #1#))))
