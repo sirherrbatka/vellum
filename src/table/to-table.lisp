@@ -4,12 +4,13 @@
 (cl-ds.alg.meta:define-aggregation-function
     to-table to-table-function
 
-    (:range &key body key class header-class columns header)
+    (:range &key body key class header-class columns header restarts-enabled)
 
     (:range &key
      (key #'identity)
      (body nil)
      (class 'standard-table)
+     (restarts-enabled t)
      (header-class 'vellum.header:standard-header)
      (columns '())
      (header (apply #'vellum.header:make-header
@@ -21,7 +22,8 @@
                       body :header header)
            %done nil
            %transformation (~> (table-from-header class header)
-                               (transformation nil :in-place t))))
+                               (transformation nil :in-place t
+                                                   :restarts-enabled restarts-enabled))))
 
     ((row)
      (unless %done
@@ -52,11 +54,13 @@
                      &key
                        (class 'vellum.table:standard-table)
                        (body nil)
+                       (restarts-enabled t)
                        &allow-other-keys)
   (let* ((header (vellum.header:read-header range))
          (function (vellum.header:bind-row-closure body :header header))
          (transformation (~> (table-from-header class header)
-                             (transformation nil :in-place t)))
+                             (transformation nil :in-place t
+                                             :restarts-enabled restarts-enabled)))
          (prev-control (ensure-function *transform-control*)))
     (block main
       (cl-ds:across
@@ -89,12 +93,14 @@
                        (header-class 'vellum.header:standard-header)
                        (columns '())
                        (body nil)
+                       (restarts-enabled t)
                        (header (apply #'vellum.header:make-header
                                       header-class
                                       columns)))
   (to-table (cl-ds:whole-range input)
             :key key
             :class class
+            :restarts-enabled restarts-enabled
             :body body
             :header header))
 
@@ -105,6 +111,7 @@
                        (header-class 'vellum.header:standard-header)
                        (columns '())
                        (body nil)
+                       (restarts-enabled t)
                        (header (apply #'vellum.header:make-header
                                       header-class
                                       columns)))
@@ -133,4 +140,5 @@
                    (setf (vellum.header:rr i) (funcall key (aref input *current-row* i))))
                  (funcall function))
                :end nil
+               :restarts-enabled restarts-enabled
                :in-place t)))

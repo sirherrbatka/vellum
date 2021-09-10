@@ -11,6 +11,7 @@
                     (tag (cl-ds.common.abstract:read-ownership-tag column)))
   (declare (ignore iterator))
   (assert (<= (length content) cl-ds.common.rrb:+maximum-children-count+))
+  (assert (not (zerop length)))
   (cl-ds.common.rrb:make-sparse-rrb-node
    :ownership-tag tag
    :content content
@@ -57,8 +58,7 @@
                     index))
       (for prev-node = (aref stack (1+ j)))
       (for node = (if (null prev-node)
-                      (make-node iterator column 0
-                                 :tag tag)
+                      nil
                       (make-node
                        iterator column (ash 1 i)
                        :tag tag
@@ -109,7 +109,7 @@
       (floor cl-ds.common.rrb:+bit-count+)))
 
 
-(declaim (inline move-column-to))
+(declaim (notinline move-column-to))
 (defun move-column-to (iterator new-index column-index
                        &key
                          (force-initialization nil)
@@ -383,13 +383,16 @@
     (or null cl-ds.common.rrb:sparse-rrb-node))
 (defun (setf node) (new-value state column index)
   (declare (optimize (speed 3)))
+  (assert (or (null new-value)
+              (> (cl-ds.common.rrb:sparse-rrb-node-size new-value) 0)))
   (unless (null (concatenation-state-parents state))
     (unless (eq new-value (node state column index))
       (setf (parent-changed state column (parent-index index)) t)))
   (with-concatenation-state (state)
     (if (null new-value)
         (remhash index (aref nodes column))
-        (setf (gethash index (aref nodes column)) new-value))
+        (progn
+          (setf (gethash index (aref nodes column)) new-value)))
     new-value))
 
 
@@ -494,8 +497,6 @@
                     (logcount new-to-mask))
                  (+ (logcount real-from-mask)
                     (logcount real-to-mask))))
-      (when (zerop new-from-mask)
-        (setf (node state column-index from) nil))
       (if (and to-owned
                (>= (length to-content) new-to-size))
           (iterate
@@ -700,6 +701,8 @@
         (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
         (for child-index = (child-index index i))
         (for child = (node state column child-index))
+        (assert (or (null child)
+                    (> (cl-ds.common.rrb:sparse-rrb-node-size child) 0)))
         (unless (null child)
           (setf mask (dpb 1 (byte 1 i) mask))))
       (setf mask (truncate-mask mask))
@@ -973,30 +976,33 @@
 (defun copy-on-write-node (iterator parent child position tag column)
   (assert (typep parent '(or null cl-ds.common.rrb:sparse-rrb-node)))
   (assert (typep child '(or null cl-ds.common.rrb:sparse-rrb-node)))
-  (cond ((and (null parent) (null child))
-         nil)
-        ((null parent)
-         (make-node iterator column (ash 1 position)
-                    :content (vector child)))
-        ((and (null child)
-              (eql 1 (cl-ds.common.rrb:sparse-rrb-node-size parent)))
-         nil)
-        ((cl-ds.common.abstract:acquire-ownership parent tag)
-         (if (null child)
-             (when (cl-ds.common.rrb:sparse-rrb-node-contains parent position)
-               (cl-ds.common.rrb:sparse-rrb-node-erase! parent position))
-             (setf (cl-ds.common.rrb:sparse-nref parent position)
-                   child))
-         parent)
-        (t (lret ((copy (cl-ds.common.rrb:deep-copy-sparse-rrb-node
-                         parent
-                         0
-                         tag)))
-             (if (null child)
-                 (when (cl-ds.common.rrb:sparse-rrb-node-contains copy position)
-                   (cl-ds.common.rrb:sparse-rrb-node-erase! copy position))
-                 (setf (cl-ds.common.rrb:sparse-nref copy position)
-                       child))))))
+  (flet ((empty-node (node)
+           (or (null node)
+               (zerop (cl-ds.common.rrb:sparse-rrb-node-size node)))))
+    (cond ((and (empty-node parent) (empty-node child))
+           nil)
+          ((null parent)
+           (make-node iterator column (ash 1 position)
+                      :content (vector child)))
+          ((and (empty-node child)
+                (eql 1 (cl-ds.common.rrb:sparse-rrb-node-size parent)))
+           nil)
+          ((cl-ds.common.abstract:acquire-ownership parent tag)
+           (if (empty-node child)
+               (when (cl-ds.common.rrb:sparse-rrb-node-contains parent position)
+                 (cl-ds.common.rrb:sparse-rrb-node-erase! parent position))
+               (setf (cl-ds.common.rrb:sparse-nref parent position)
+                     child))
+           parent)
+          (t (lret ((copy (cl-ds.common.rrb:deep-copy-sparse-rrb-node
+                           parent
+                           0
+                           tag)))
+               (if (empty-node child)
+                   (when (cl-ds.common.rrb:sparse-rrb-node-contains copy position)
+                     (cl-ds.common.rrb:sparse-rrb-node-erase! copy position))
+                   (setf (cl-ds.common.rrb:sparse-nref copy position)
+                         child)))))))
 
 
 (-> reduce-stack (sparse-material-column-iterator fixnum fixnum iterator-stack sparse-material-column) t)
@@ -1014,6 +1020,8 @@
                            index))
       (for new-node = (copy-on-write-node iterator node prev-node
                                           position tag column))
+      (assert (or (null new-node)
+                  (> (cl-ds.common.rrb:sparse-rrb-node-size new-node) 0)))
       (until (eq node new-node))
       (setf prev-node new-node
             (aref stack i) new-node)))
