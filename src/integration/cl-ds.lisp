@@ -93,7 +93,8 @@
                              (body nil)
                              (header (apply #'vellum:make-header
                                             header-class
-                                            (gather-column-data range columns '()))))
+                                            (gather-column-data range columns '())))
+                             &allow-other-keys)
   (common-to-table range key class header body))
 
 
@@ -106,5 +107,6 @@
                              (body nil)
                              (header (apply #'vellum:make-header
                                             header-class
-                                            (gather-column-data range columns '()))))
+                                            (gather-column-data range columns '())))
+                            &allow-other-keys)
   (common-to-table range key class header body))

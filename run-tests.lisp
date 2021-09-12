@@ -14,5 +14,5 @@
               (lambda (c)
                 (declare (ignore c))
                 (invoke-restart 'lparallel.kernel:make-kernel 4))))
-         (prove:run :vellum/tests)))
+         (prove:run :vellum-tests)))
   (cl-user::quit))
