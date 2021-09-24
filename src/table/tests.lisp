@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 45887)
+(prove:plan 45888)
 
 (let* ((data-frame (vellum:to-table (cl-ds.alg:on-each (cl-ds:iota-range :to 308) #'list)
                                    :columns '(column)))
@@ -363,5 +363,17 @@
     :in-place t
     :end (vellum:row-count table))
   (prove:is (vellum:row-count table) 0))
+
+(let* ((iota (iota 80000))
+       (table (vellum:make-table :columns '(i)))
+       (transformation (vellum.table:transformation table
+                                                    (vellum:bind-row (i)
+                                                      (setf i (pop iota)))
+                                                    :in-place t)))
+  (iterate
+    (repeat 80000)
+    (vellum:transform-row transformation))
+  (vellum.table:transformation-result transformation)
+  (prove:is (vellum:pipeline (table) (cl-ds.alg:to-list :key (vellum:brr i))) (iota 80000)))
 
 (prove:finalize)
