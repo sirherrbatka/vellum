@@ -75,6 +75,9 @@ All dates are already present in the source file, but in general it is a bad hab
 ;; We want just those 3 columns.
 (defparameter *selected-columns* '(in-icu-currently death-increase positive-increase))
 
+;; and a fresh table
+
+
 ;; local-time calculates timestamp difference in seconds, but we want days offset
 (defun seconds->days (seconds)
   (truncate seconds 86400))
@@ -82,13 +85,23 @@ All dates are already present in the source file, but in general it is a bad hab
 (defun offset-from-start (date)
   (seconds->days (local-time:timestamp-difference date *start-date*)))
 
-;; let's populate the new data frame!
+#|
+let's populate the new data frame!
+Notice, how we are placing rows into exact spots, as specified by the day offset.
+This will handle missing rows, if there are any.
+|#
 (defparameter *selected-data*
-  (serapeum:~>
-   (vellum:add-columns *source-data* 'day)
-   (vellum:transform (vellum:bind-row (day date)
-                       (setf day (offset-from-start date))))
-   (vellum:select :columns (cons 'day *selected-columns*))))
+  (vellum:make-table :columns (cons 'day *selected-columns*)))
+
+(vellum:transform *source-data*
+                  (vellum:bind-row (date)
+                    (let ((offset (offset-from-start date)))
+                      (setf (vellum:at *selected-data* offset 'day) offset)
+                      (map nil
+                           (lambda (column &aux (value (vellum:rr column)))
+                             (unless (eq :null value)
+                               (setf (vellum:at *selected-data* offset column) value)))
+                           *selected-columns*))))
 
 #|
 We will simply remove the missing data from the 7 days period.
@@ -108,7 +121,7 @@ Lets's calculate those moving averages.
     (cl-ds.alg:on-each (alexandria:curry #'vellum:rr column)) ; extract the desired value
     (cl-ds.alg:sliding-window 7) ; 7 days or 1 week
     (vellum:to-table :columns (list column) ; and convert to a single column table
-                     :key (alexandria:compose #'list #'calculate-average)))) ; forms an proper row input
+                     :key (alexandria:compose #'list #'calculate-average)))) ; forms an interpretable row
 
 (defparameter *averages*
   (mapcar #'average-data-frame *selected-columns*))
@@ -118,6 +131,7 @@ We can simply use hstack function to attach freshly calculated columns to form d
 We will be missing the few first days because not enough data there to calculate average in the first week.
 Therefore, drop row.
 |#
+
 (defparameter *plot-data*
   (vellum:hstack* (vellum:transform (vellum:select *selected-data* :columns '(day))
                                     (vellum:bind-row (day)
