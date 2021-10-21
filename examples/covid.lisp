@@ -1,3 +1,8 @@
+(cl:defpackage #:covid-example
+  (:use #:cl))
+
+(cl:in-package #:covid-example)
+
 #|
 This example demonstrates some basic data frame manipulation allowed by the vellum library.
 Comments contain detailed explanation for each step.
