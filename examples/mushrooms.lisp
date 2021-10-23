@@ -11,29 +11,29 @@ We will assume that all attributes are discreete. This is not far from the truth
 (defparameter *source-data*
   (vellum:copy-from :csv (asdf:system-relative-pathname :vellum "examples/mushrooms.data")
                     :includes-header-p nil
-                    :columns '((:name class) ; this is actually the target for the classification so it is largely ignored
-                               (:name cap-shape)
-                               (:name cap-surface)
-                               (:name cap-color)
-                               (:name bruises?)
-                               (:name odor)
-                               (:name gill-attachment)
-                               (:name gill-spacing)
-                               (:name gill-size)
-                               (:name gill-color)
-                               (:name stalk-shape)
-                               (:name stalk-root)
-                               (:name stalk-surface-above-ring)
-                               (:name stalk-surface-below-ring)
-                               (:name stalk-color-above-ring)
-                               (:name stalk-color-below-ring)
-                               (:name veil-type)
-                               (:name veil-color)
-                               (:name ring-number)
-                               (:name ring-type)
-                               (:name spore-print-color)
-                               (:name population)
-                               (:name habitat))))
+                    :columns '(class ; this is actually the target for the classification so it is largely ignored
+                               cap-shape
+                               cap-surface
+                               cap-color
+                               bruises?
+                               odor
+                               gill-attachment
+                               gill-spacing
+                               gill-size
+                               gill-color
+                               stalk-shape
+                               stalk-root
+                               stalk-surface-above-ring
+                               stalk-surface-below-ring
+                               stalk-color-above-ring
+                               stalk-color-below-ring
+                               veil-type
+                               veil-color
+                               ring-number
+                               ring-type
+                               spore-print-color
+                               population
+                               habitat)))
 
 
 (defparameter *train-data-columns*
