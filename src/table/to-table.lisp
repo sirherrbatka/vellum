@@ -39,13 +39,13 @@
                                              (return-from main))
                                             (t nil)))))
            (transform-row %transformation
-                          (lambda ()
+                          (lambda (&rest all) (declare (ignore all))
                             (iterate
                               (for i from 0 below (length row))
                               (for value = (elt row i))
                               (setf (vellum.header:rr i) value))
                             (let ((*transform-control* transform-control))
-                              (funcall %function))))))))
+                              (funcall %function row))))))))
 
     ((transformation-result %transformation)))
 
@@ -68,7 +68,7 @@
        (lambda (row &aux (vellum.header:*validate-predicates* nil))
          (block function
            (transform-row transformation
-                          (lambda ()
+                          (lambda (&rest all) (declare (ignore all))
                             (iterate
                               (for i from 0 below (length row))
                               (for value = (aref row i))
@@ -83,7 +83,7 @@
                                                               (setf (vellum.header:rr i) :null))
                                                             (return-from function))
                                                            (t (funcall prev-control operation))))))
-                              (funcall function))))))))
+                              (funcall function row))))))))
     (transformation-result transformation)))
 
 

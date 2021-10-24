@@ -3,11 +3,13 @@
 (prove:plan 45889)
 
 (let* ((data-frame (vellum:to-table (cl-ds.alg:on-each (cl-ds:iota-range :to 308) #'list)
-                                   :columns '(column)))
+                                    :columns '(column)
+                                    :restarts-enabled nil))
        (transformed (vellum:transform data-frame
                                       (vellum:bind-row (column)
                                         (unless (= column 108)
-                                          (vellum:drop-row))))))
+                                          (vellum:drop-row)))
+                                      :restarts-enabled nil)))
   (prove:is (vellum:row-count transformed) 1)
   (prove:is (vellum:at transformed 0 0) 108))
 

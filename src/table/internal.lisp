@@ -79,9 +79,9 @@
                     (t (funcall prev-control operation))))))
       (tagbody main
          (unless restarts-enabled
-           (funcall function)
+           (funcall function row)
            (go end))
-         (restart-case (handler-case (funcall function)
+         (restart-case (handler-case (funcall function row)
                          (error (e)
                            (error 'transformation-error
                                   :cause e)))

@@ -393,7 +393,9 @@
 (defmethod bind-row-closure ((bind-row (eql nil))
                              &key header)
   (declare (ignore header))
-  (constantly nil))
+  (lambda (&rest all)
+    (declare (ignore all))
+    nil))
 
 
 (defmethod bind-row-closure (fn
