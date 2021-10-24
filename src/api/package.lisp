@@ -14,6 +14,7 @@
    #:join
    #:pipeline
    #:file-input-row-cant-be-created
+   #:drop-row-when
    #:add-columns
    #:order-by
    #:to-matrix

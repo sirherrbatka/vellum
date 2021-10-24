@@ -47,3 +47,7 @@
                          :type ,type
                          :name ,name
                          :predicate ,predicate)))
+
+
+(defmacro drop-row-when (predicate)
+  `(when ,predicate (vellum:drop-row)))
