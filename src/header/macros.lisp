@@ -23,6 +23,7 @@
                           selected-columns))
          (!row (gensym "ROW"))
          (!header (gensym "HEADER"))
+         (!rest (gensym "REST"))
          (generated (mapcar (lambda (x) (declare (ignore x))
                               (gensym))
                             columns))
@@ -59,8 +60,8 @@
                           generated
                           names
                           gensyms))))))
-      (lambda (&optional (,!row (row)))
-        (declare (ignorable ,!row))
+      (lambda (&rest ,!rest)
+        (declare (ignore ,!rest))
         (let* ((,!header (vellum.header:header))
                ,@(mapcar #'generate-column-index
                          generated
