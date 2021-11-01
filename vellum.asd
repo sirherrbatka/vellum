@@ -4,11 +4,11 @@
   :license "BSD simplified"
   :author "Marek Kochanowicz"
   :description "Data Frames for Common Lisp"
-  :depends-on ( :iterate       :serapeum
-                :lparallel     :cl-data-structures
-                :metabang-bind :alexandria
-                :closer-mop
-                :documentation-utils-extensions)
+  :depends-on ( #:iterate       #:serapeum
+                #:lparallel     #:closer-mop
+                #:metabang-bind #:alexandria
+                (:version #:cl-data-structures ((>= 1.0.0)))
+                #:documentation-utils-extensions)
   :serial T
   :pathname "src"
   :components ((:file "aux-package")
