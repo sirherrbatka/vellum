@@ -44,17 +44,15 @@
         (let ,(mapcar #'generate-column-index
                generated
                columns)
-          (lambda (&rest ,!rest)
-            (declare (ignore ,!rest))
-            (let* ((,!row (row))
-                   ,@(mapcar (lambda (name column)
+          (lambda (&optional (,!row (row)))
+            (declare (ignorable ,!row))
+            (let* (,@(mapcar (lambda (name column)
                                `(,name (row-at ,!header ,!row ,column)))
                              names
                              generated)
                    ,@(mapcar #'list
                              gensyms
                              names))
-              (declare (ignorable ,!row))
               (prog1 (progn ,@body)
                 ,@(mapcar (lambda (column name gensym)
                             `(unless (eql ,name ,gensym)

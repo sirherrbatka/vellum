@@ -45,7 +45,7 @@
                               (for value = (elt row i))
                               (setf (vellum.header:rr i) value))
                             (let ((*transform-control* transform-control))
-                              (funcall %function row))))))))
+                              (funcall %function (standard-transformation-row %transformation)))))))))
 
     ((transformation-result %transformation)))
 
@@ -83,7 +83,7 @@
                                                               (setf (vellum.header:rr i) :null))
                                                             (return-from function))
                                                            (t (funcall prev-control operation))))))
-                              (funcall function row))))))))
+                              (funcall function (standard-transformation-row transformation)))))))))
     (transformation-result transformation)))
 
 
