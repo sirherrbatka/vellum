@@ -287,7 +287,6 @@
                             cl-ds.alg:to-list))
          (old-column-names (coerce (column-names table) 'vector))
          (used (make-array (length new-names-vector) :initial-element nil))
-         (renamed (make-array (length old-column-names) :initial-element nil))
          (new-column-names (copy-array old-column-names))
          ((:labels find-new-name (index))
           (let* ((old-name (aref old-column-names index))
@@ -297,8 +296,6 @@
                 (aref old-column-names index)
                 (progn
                   (setf (aref used position) t)
-                  (when (shiftf (aref renamed index) t)
-                    (error "Renaming column number ~a more then once." index))
                   (second (aref new-names-vector position)))))))
     (iterate
       (for index from 0 below (length old-column-names))
@@ -306,6 +303,9 @@
       (for new-name = (find-new-name index))
       (setf (aref new-column-names index) new-name))
     (unless (every #'identity used)
-      (error "Not all original columns found during renaming."))
+      (error "Name mappings ~a not applied."
+             (~>> (map 'list #'list used new-names-vector)
+                  (remove-if #'first)
+                  (mapcar #'second))))
     (vellum:select table
       :columns (map 'list #'list old-column-names new-column-names))))
