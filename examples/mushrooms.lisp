@@ -85,12 +85,30 @@ Wrap the offset and the classes dict into one object.
        *encoder-dicts*
        *encoder-offsets*))
 
+#|
+Other (dense but perhaps cryptic) way to do the exact same thing.
+|#
+(defparameter *encoders*
+  (vellum:pipeline ((vellum:aggregate-rows (vellum:select *source-data* :columns (vellum:s *train-data-columns*))
+                                           '(cap-shape cap-surface cap-color bruises? odor gill-attachment gill-spacing gill-size
+                                             gill-color stalk-shape stalk-root stalk-surface-above-ring stalk-surface-below-ring
+                                             stalk-color-above-ring stalk-color-below-ring veil-type veil-color ring-number
+                                             ring-type spore-print-color population habitat)
+                                           ((cl-ds.alg:enumerate :test 'equal))))
+    (cl-ds.alg:on-each (lambda (encoder-dicts)
+                         (map 'vector #'make-one-hot-encoder
+                              encoder-dicts
+                              (serapeum:scan #'+ encoder-dicts
+                                             :key #'hash-table-count
+                                             :initial-value 0)))
+                       :key (vellum:row-to-vector))
+    cl-ds.alg:first-element))
 
 #|
 What is the number of columns in the result matrix?
 |#
 (defparameter *encoded-size*
-  (reduce #'+ *encoder-dicts* :key #'hash-table-count))
+  (reduce #'+ *encoders* :key (alexandria:compose #'hash-table-count #'dict)))
 
 
 #|
