@@ -274,3 +274,38 @@
                                         (cl-ds.alg.meta:extract-result aggregator))))))
                    :in-place nil)
         (select :columns `(,column-count)))))
+
+
+(defun rename-columns (table old-name new-name &rest more-names)
+  (bind ((new-names-vector (~> (list* old-name new-name more-names)
+                            (cl-ds.alg:on-each (lambda (string/symbol/number)
+                                                 (etypecase string/symbol/number
+                                                   (string string/symbol/number)
+                                                   (symbol (symbol-name string/symbol/number))
+                                                   (non-negative-fixnum string/symbol/number))))
+                            (cl-ds.alg:in-batches 2)
+                            cl-ds.alg:to-list))
+         (old-column-names (coerce (column-names table) 'vector))
+         (used (make-array (length new-names-vector) :initial-element nil))
+         (renamed (make-array (length old-column-names) :initial-element nil))
+         (new-column-names (copy-array old-column-names))
+         ((:labels find-new-name (index))
+          (let* ((old-name (aref old-column-names index))
+                 (position (or (position old-name new-names-vector :test 'equal :key #'first)
+                               (position index new-names-vector :test 'equal :key #'first))))
+            (if (null position)
+                (aref old-column-names index)
+                (progn
+                  (setf (aref used position) t)
+                  (when (shiftf (aref renamed index) t)
+                    (error "Renaming column number ~a more then once." index))
+                  (second (aref new-names-vector position)))))))
+    (iterate
+      (for index from 0 below (length old-column-names))
+      (ensure (aref old-column-names index) index)
+      (for new-name = (find-new-name index))
+      (setf (aref new-column-names index) new-name))
+    (unless (every #'identity used)
+      (error "Not all original columns found during renaming."))
+    (vellum:select table
+      :columns (map 'list #'list old-column-names new-column-names))))

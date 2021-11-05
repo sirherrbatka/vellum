@@ -18,6 +18,7 @@
    #:add-columns
    #:order-by
    #:to-matrix
+   #:rename-columns
    #:aggregate-rows
    #:%aggregate-rows
    #:aggregate-columns
