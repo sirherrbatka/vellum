@@ -291,6 +291,11 @@ Select can be also used to establish new names for columns. To do so, provide li
 
 The second element supports all the same options as the make-table :columns element itself.
 
+Instead of using select for renaming columns, you can also use rename-columns, like this:
+#+BEGIN_SRC common-lisp
+  (vellum:rename-columns *table* 1 'new-first-column)
+#+END_SRC
+
 ** Joins
 So, working with relations? Chances are you gonna use JOIN.
 
