@@ -278,28 +278,37 @@
 
 (defun rename-columns (table old-name new-name &rest more-names)
   (bind ((new-names-vector (~> (list* old-name new-name more-names)
-                            (cl-ds.alg:on-each (lambda (string/symbol/number)
-                                                 (etypecase string/symbol/number
-                                                   (string string/symbol/number)
-                                                   (symbol (symbol-name string/symbol/number))
-                                                   (non-negative-fixnum string/symbol/number))))
-                            (cl-ds.alg:in-batches 2)
-                            cl-ds.alg:to-list))
+                               (cl-ds.alg:on-each
+                                (lambda (string/symbol/number)
+                                  (etypecase string/symbol/number
+                                    (string string/symbol/number)
+                                    (symbol (symbol-name string/symbol/number))
+                                    (non-negative-fixnum string/symbol/number))))
+                               (cl-ds.alg:in-batches 2)
+                               cl-ds.alg:to-list))
          (old-column-names (coerce (column-names table) 'vector))
          (used (make-array (length new-names-vector) :initial-element nil))
          (new-column-names (copy-array old-column-names))
          ((:labels find-new-name (index))
           (let* ((old-name (aref old-column-names index))
-                 (position (or (position old-name new-names-vector :test 'equal :key #'first)
-                               (position index new-names-vector :test 'equal :key #'first))))
+                 (position (or (position old-name new-names-vector
+                                         :test 'equal :key #'first)
+                               (position index new-names-vector
+                                         :test 'equal :key #'first))))
             (if (null position)
-                (aref old-column-names index)
+                (progn
+                  (aref old-column-names index))
                 (progn
                   (setf (aref used position) t)
                   (second (aref new-names-vector position)))))))
     (iterate
       (for index from 0 below (length old-column-names))
-      (ensure (aref old-column-names index) index)
+      (for column-name = (aref old-column-names index))
+      (cond ((null column-name)
+             (setf (aref old-column-names index) index))
+            ((symbolp column-name)
+             (setf (aref old-column-names index) (symbol-name column-name)))
+            ((stringp column-name) t))
       (for new-name = (find-new-name index))
       (setf (aref new-column-names index) new-name))
     (unless (every #'identity used)

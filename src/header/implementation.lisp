@@ -24,6 +24,11 @@
   (column-signature header (name-to-index header name)))
 
 
+(defmethod column-signature ((header standard-header)
+                             (name string))
+  (column-signature header (name-to-index header name)))
+
+
 (defmethod initialize-instance :after ((object column-signature)
                                        &key &allow-other-keys)
   (bind (((:slots %type %predicate %name) object))

@@ -150,10 +150,8 @@ Well, let's just plot this, finally!
 (vellum:visualize :plotly
                   (vellum-plot:stack *plot-data*
                                      (vellum-plot:aesthetics
-                                      :x (vellum-plot:axis
-                                          :label "Day from the start")
-                                      :y (vellum-plot:axis
-                                          :label "Value"))
+                                      :x (vellum-plot:axis :label "Day from the start")
+                                      :y (vellum-plot:axis :label "Value"))
                                      (vellum-plot:line
                                       :mapping (vellum-plot:mapping :x 'day :y 'in-icu-currently))
                                      (vellum-plot:line

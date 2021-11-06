@@ -29,12 +29,13 @@ ODD    DIFFERENT-KEY  5  6  7
                         (:even (evenp number))
                         (:odd (oddp number)))))
     (cl-ds.alg:to-list)
-    (vellum:to-table :columns '(group another-key number))))
+    (vellum:to-table :columns '(group another-key numbers))
+    (vellum:rename-columns 'group 'not-a-group)))
 
 (vellum:show :text *grouped-and-filtered*)
 #|
-GROUP  ANOTHER-KEY    NUMBER
-============================
-ODD    DIFFERENT-KEY  (5 7)
-EVEN   ANOTHER-KEY    (0 2)
+NOT-A-GROUP  ANOTHER-KEY    NUMBERS
+===================================
+ODD          DIFFERENT-KEY  (5 7)
+EVEN         ANOTHER-KEY    (0 2)
 |#
