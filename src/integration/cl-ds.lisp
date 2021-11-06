@@ -66,17 +66,19 @@
             (vellum.column:make-sparse-material-column
              :element-type (vellum.header:column-type header i))))
     (let* ((iterator (vellum.column:make-iterator columns))
-           (vellum.header:*row* (make 'vellum.table:setfable-table-row
-                                      :iterator iterator)))
+           (row (make 'vellum.table:setfable-table-row :iterator iterator))
+           (box-row (box row)))
       (fill-columns-buffer-impl
        range 0 columns-buffer
        (lambda ()
          (iterate
            (for i from 0 below column-count)
            (setf (vellum.column:iterator-at iterator i)
-                 (aref columns-buffer i))
-           (funcall function)
-           (finally (vellum.column:move-iterator iterator 1))))
+                 (aref columns-buffer i)))
+         (vellum.header:with-header (header)
+           (let ((vellum.header:*row* box-row))
+             (funcall function row)))
+         (vellum.column:move-iterator iterator 1))
        key)
       (vellum.column:finish-iterator iterator)
       (make class

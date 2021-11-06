@@ -12,4 +12,6 @@
                (:module "table"
                 :components ((:test-file "tests")))
                (:module "api"
+                :components ((:test-file "tests")))
+               (:module "integration"
                 :components ((:test-file "tests")))))
