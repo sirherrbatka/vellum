@@ -56,8 +56,6 @@
               (cl-ds.alg.meta:extract-result aggregator)))
       (finally (return result)))))
 
-(cl:in-package #:vellum)
-
 
 (defun empty-column (header-class &rest row-parameters)
   (vellum.table:make-table :header (make-header header-class row-parameters)
