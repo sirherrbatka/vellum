@@ -32,13 +32,13 @@
 
 
 (declaim (inline rr))
-(defun rr (index &optional (row (row)))
-  (row-at (header) row index))
+(defun rr (index &optional (row (row)) (header (header)))
+  (row-at header row index))
 
 
 (declaim (inline (setf rr)))
-(defun (setf rr) (new-value index &optional (row (row)))
-  (setf (row-at (header) row index) new-value))
+(defun (setf rr) (new-value index &optional (row (row)) (header (header)))
+  (setf (row-at header row index) new-value))
 
 
 (defun current-row-as-vector (&optional (header (header)) (row (row)))
@@ -79,3 +79,23 @@
   (~>> header
        vellum.header:column-specs
        (mapcar (lambda (x) (getf x :name)))))
+
+
+(declaim (inline setf-predicate-check))
+(defun setf-predicate-check (new-value header column)
+  (tagbody main
+     (block nil
+       (restart-case (check-predicate header column new-value)
+         (keep-old-value ()
+           :report "Skip assigning the new value."
+           (return (values nil nil)))
+         (set-to-null ()
+           :report "Set the row position to :null."
+           (setf new-value :null)
+           (go main))
+         (provide-new-value (v)
+           :report "Enter the new value."
+           :interactive read-new-value
+           (setf new-value v)
+           (go main)))))
+  (values new-value t))

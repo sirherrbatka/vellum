@@ -287,8 +287,10 @@
                                        (header vellum.header:standard-header)
                                        (row setfable-table-row)
                                        (position integer))
-  (setf (~> row read-iterator (vellum.column:iterator-at position))
-        new-value))
+  (bind (((:values new-value ok) (vellum.header:setf-predicate-check new-value header position)))
+    (when ok
+      (setf (~> row read-iterator (vellum.column:iterator-at position))
+            new-value))))
 
 
 (defmethod iterator ((frame standard-table) in-place)

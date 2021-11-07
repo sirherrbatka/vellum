@@ -70,20 +70,22 @@
            (transform-row transformation
                           (lambda (&rest all) (declare (ignore all))
                             (iterate
+                              (with existing-row = (vellum.header:row))
                               (for i from 0 below (length row))
                               (for value = (aref row i))
-                              (setf (vellum.header:rr i) value))
-                            (let ((*transform-control* (lambda (operation)
-                                                         (cond
-                                                           ((eq operation :finish)
-                                                            (return-from main))
-                                                           ((eq operation :drop)
-                                                            (iterate
-                                                              (for i from 0 below (vellum.header:column-count header))
-                                                              (setf (vellum.header:rr i) :null))
-                                                            (return-from function))
-                                                           (t (funcall prev-control operation))))))
-                              (funcall function (standard-transformation-row transformation)))))))))
+                              (setf (vellum.header:rr i existing-row header) value))
+                            (when body
+                              (let ((*transform-control* (lambda (operation)
+                                                           (cond
+                                                             ((eq operation :finish)
+                                                              (return-from main))
+                                                             ((eq operation :drop)
+                                                              (iterate
+                                                                (for i from 0 below (vellum.header:column-count header))
+                                                                (setf (vellum.header:rr i) :null))
+                                                              (return-from function))
+                                                             (t (funcall prev-control operation))))))
+                                (funcall function (standard-transformation-row transformation))))))))))
     (transformation-result transformation)))
 
 

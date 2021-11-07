@@ -12,6 +12,7 @@
    #:bind-row
    #:bind-row-closure
    #:brr
+   #:setf-predicate-check
    #:check-column-signatures-compatibility
    #:check-predicate
    #:column-count
