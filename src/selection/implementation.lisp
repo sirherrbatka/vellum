@@ -106,6 +106,18 @@
          (lambda (x) (vellum.header:rr x))))))
 
 
+(defun s-list (header &rest forms)
+  (~> (apply #'s forms)
+      (vellum.selection:address-range
+       (lambda (spec)
+         (vellum.header:ensure-index header
+                                     (if (listp spec)
+                                         (first spec)
+                                         spec)))
+       (vellum.header:column-count header))
+      cl-ds.alg:to-list))
+
+
 (define-condition name-when-selecting-row (cl-ds:invalid-value)
   ())
 

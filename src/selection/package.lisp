@@ -8,6 +8,8 @@
    #:between
    #:content
    #:name-when-selecting-row
+   #:selector
    #:rs
    #:vs
-   #:s))
+   #:s
+   #:s-list))

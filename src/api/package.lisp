@@ -19,6 +19,7 @@
    #:order-by
    #:to-matrix
    #:rename-columns
+   #:s-list
    #:aggregate-rows
    #:%aggregate-rows
    #:aggregate-columns

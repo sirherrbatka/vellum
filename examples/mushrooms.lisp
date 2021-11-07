@@ -90,10 +90,7 @@ Other (dense but perhaps cryptic) way to do the exact same thing.
 |#
 (defparameter *encoders*
   (vellum:pipeline ((vellum:aggregate-rows (vellum:select *source-data* :columns (vellum:s *train-data-columns*))
-                                           '(cap-shape cap-surface cap-color bruises? odor gill-attachment gill-spacing gill-size
-                                             gill-color stalk-shape stalk-root stalk-surface-above-ring stalk-surface-below-ring
-                                             stalk-color-above-ring stalk-color-below-ring veil-type veil-color ring-number
-                                             ring-type spore-print-color population habitat)
+                                           (vellum:s *train-data-columns*)
                                            ((cl-ds.alg:enumerate :test 'equal))))
     (cl-ds.alg:on-each (lambda (encoder-dicts)
                          (map 'vector #'make-one-hot-encoder
