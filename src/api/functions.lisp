@@ -352,8 +352,7 @@
                                (position index new-names-vector
                                          :test 'equal :key #'first))))
             (if (null position)
-                (progn
-                  (aref old-column-names index))
+                (aref old-column-names index)
                 (progn
                   (setf (aref used position) t)
                   (second (aref new-names-vector position)))))))
