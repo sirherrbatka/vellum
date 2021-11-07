@@ -1,6 +1,64 @@
 (cl:in-package #:vellum)
 
 
+(defun s-list (table &rest forms)
+  (apply #'vellum.selection:s-list
+         (vellum.table:header table)
+         forms))
+
+
+(defun %aggregate-rows (table &rest params)
+  (bind ((pairs (batches params 2))
+         (row-count (row-count table))
+         (header (vellum.table:header table))
+         ((:flet ensure-name (id))
+          (if (numberp id)
+              (vellum.header:index-to-name header
+                                           id)
+              id))
+         (ensure-index (curry #'vellum.header:ensure-index header))
+         ((:flet materialize-selectors (x))
+          (if (typep x 'vellum.selection:selector)
+              (~> (vellum.selection:address-range x ensure-index
+                                                  (vellum.header:column-count header))
+                  cl-ds.alg:to-list)
+              x))
+         (names (~>> pairs
+                     (mapcar (compose #'materialize-selectors #'first))
+                     flatten
+                     (cl-ds.utils:transform #'ensure-name)))
+         (result (vellum.table:make-table
+                  :header (apply #'vellum.header:make-header
+                                 'vellum.header:standard-header
+                                 (mapcar (curry #'list :name)
+                                         names)))))
+    (iterate
+      (for i from 0)
+      (for (name (aggregator-constructor . params)) in pairs)
+      (setf name (materialize-selectors name))
+      (unless (listp name)
+        (setf name (list name)))
+      (cl-ds.utils:transform #'ensure-name name)
+      (iterate
+        (for id in name)
+        (for column = (vellum.table:column-at table id))
+        (for aggregator = (funcall aggregator-constructor))
+        (if (getf params :skip-nulls)
+            (cl-ds.alg.meta:across-aggregate
+             column
+             (curry #'cl-ds.alg.meta:pass-to-aggregation aggregator))
+            (iterate
+              (for i from 0 below row-count)
+              (cl-ds.alg.meta:pass-to-aggregation
+               aggregator
+               (vellum.column:column-at column i))))
+        (setf (at result 0 id)
+              (cl-ds.alg.meta:extract-result aggregator)))
+      (finally (return result)))))
+
+(cl:in-package #:vellum)
+
+
 (defun empty-column (header-class &rest row-parameters)
   (vellum.table:make-table :header (make-header header-class row-parameters)
                            :columns row-parameters))
@@ -8,8 +66,7 @@
 
 (defun order-by (table column comparator &rest columns-comparators)
   (let* ((content (make-array (row-count table)))
-         ((vellum.table:header table)
-                                                id (vellum.table:header table))
+         (header (vellum.table:header table))
          (comparators (~>> (batches columns-comparators 2)
                            (mapcar #'second)
                            (cons comparator)
@@ -23,8 +80,7 @@
                                                    non-negative-integer))
                                  (if (or (symbolp x)
                                          (stringp x))
-                                     (vellum.header:name-to-index (vellum.table:header table)
-                                                id x)
+                                     (vellum.header:name-to-index header x)
                                      x)))
                        nreverse))
          (i 0))
@@ -39,18 +95,15 @@
       (setf content
             (stable-sort content comparator
                          :key (lambda (v) (aref v index)))))
-    (to-table (cl-ds:whole-range content) :header (vellum.table:header table)
-                                                id)))
+    (to-table (cl-ds:whole-range content) :header header)))
 
 
 (defun collect-column-specs (frame-specs)
   (iterate outer
     (declare (ignorable columns))
     (for (label frame . columns) in frame-specs)
-    (for (vellum.table:header table)
-                                                id = (vellum.table:header frame))
-    (for column-specs = (vellum.header:column-specs (vellum.table:header table)
-                                                id))
+    (for header = (vellum.table:header frame))
+    (for column-specs = (vellum.header:column-specs header))
     (iterate
       (for x in column-specs)
       (for name = (getf x :name))
@@ -85,12 +138,10 @@
     (finally (return (cl-ds:whole-range result)))))
 
 
-(defun hash-join-implementation (frame-specs (vellum.table:header table)
-                                                id class test function)
+(defun hash-join-implementation (frame-specs header class test function)
   (bind ((frames-count (length frame-specs))
          (hash-table (make-hash-table :test test))
-         (fresh-table (vellum.table:make-table :class class :header (vellum.table:header table)
-                                                id))
+         (fresh-table (vellum.table:make-table :class class :header header))
          ((:flet key-values (columns))
           (if (endp (rest columns))
               (let ((column (first columns)))
@@ -146,12 +197,10 @@
                    (class 'vellum.table:standard-table)
                    (header-class 'vellum.header:standard-header)
                    (columns (collect-column-specs frame-specs))
-                   ((vellum.table:header table)
-                                                id (apply #'vellum.header:make-header
+                   (header (apply #'vellum.header:make-header
                                   header-class columns))
                    (test 'eql))
-  (hash-join-implementation frame-specs (vellum.table:header table)
-                                                id
+  (hash-join-implementation frame-specs header
                             class test
                             #'cartesian-product))
 
@@ -161,8 +210,7 @@
                    (class 'vellum.table:standard-table)
                    (header-class 'vellum.header:standard-header)
                    (columns (collect-column-specs frame-specs))
-                   ((vellum.table:header table)
-                                                id (apply #'vellum.header:make-header
+                   (header (apply #'vellum.header:make-header
                                   header-class columns))
                    (test 'eql))
   (bind ((lengths (map 'vector
@@ -186,8 +234,7 @@
                          (aref result i) data)
                    (finally (return (cl-ds:whole-range result)))))
                 (t (cartesian-product input)))))
-    (hash-join-implementation frame-specs (vellum.table:header table)
-                                                id
+    (hash-join-implementation frame-specs header
                               class test
                               #'join-product)))
 
@@ -228,23 +275,7 @@
 (defun %aggregate-rows (table &rest params)
   (bind ((pairs (batches params 2))
          (row-count (row-count table))
-         (header (vellum.table:header table))
-         ((:flet ensure-name (id))
-          (if (numberp id)
-              (vellum.header:index-to-name header
-                                           id)
-              id))
-         (ensure-index (curry #'vellum.header:ensure-index header))
-         ((:flet materialize-selectors (x))
-          (if (typep x 'vellum.selection:selector)
-              (~> (vellum.selection:address-range x ensure-index
-                                                  (vellum.header:column-count header))
-                  cl-ds.alg:to-list)
-              x))
-         (names (~>> pairs
-                     (mapcar (compose #'materialize-selectors #'first))
-                     flatten
-                     (cl-ds.utils:transform #'ensure-name)))
+         (names (flatten (mapcar #'first pairs)))
          (result (vellum.table:make-table
                   :header (apply #'vellum.header:make-header
                                  'vellum.header:standard-header
@@ -253,10 +284,8 @@
     (iterate
       (for i from 0)
       (for (name (aggregator-constructor . params)) in pairs)
-      (setf name (materialize-selectors name))
       (unless (listp name)
         (setf name (list name)))
-      (cl-ds.utils:transform #'ensure-name name)
       (iterate
         (for id in name)
         (for column = (vellum.table:column-at table id))
@@ -347,9 +376,3 @@
                   (mapcar #'second))))
     (vellum:select table
       :columns (map 'list #'list old-column-names new-column-names))))
-
-
-(defun s-list (table &rest forms)
-  (apply #'vellum.selection:s-list
-         (vellum.table:header table)
-         forms))
