@@ -6,16 +6,22 @@
   t)
 
 
-(defclass column-signature ()
-  ((%type :initarg :type
-          :reader read-type)
-   (%predicate :initarg :predicate
-               :reader read-predicate)
-   (%name :initarg :name
-          :reader read-name))
-  (:default-initargs :type t
-                     :name nil
-                     :predicate 'constantly-t))
+(defstruct column-signature
+  (type t)
+  (predicate 'constantly-t)
+  (name nil :type (or symbol string)))
+
+
+(defun read-predicate (column-signature)
+  (column-signature-predicate column-signature))
+
+
+(defun read-name (column-signature)
+  (column-signature-name column-signature))
+
+
+(defun read-type (column-signature)
+  (column-signature-type column-signature))
 
 
 (defstruct standard-header

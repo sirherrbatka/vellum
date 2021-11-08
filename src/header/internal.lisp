@@ -17,27 +17,25 @@
     (finally (return result))))
 
 
-(defun make-signature (signature-class c)
-  (apply #'make signature-class
+(defun make-signature (c)
+  (apply #'make-column-signature
          (cond ((listp c) c)
                ((atom c) `(:name ,c)))))
 
 
 (defun extracting-signature (header)
-  (let ((column-signature-class 'column-signature))
-    (lambda (column)
-      (let* ((existing-signature (column-signature header
-                                                   (if (listp column)
-                                                       (first column)
-                                                       column))))
-        (if (listp column)
-            (let ((new-spec (second column)))
-              (list existing-signature
-                    (make-signature column-signature-class
-                                    (append (cond ((listp new-spec) new-spec)
-                                                  ((atom new-spec) (list :name new-spec)))
-                                            (column-signature-spec existing-signature)))
-                    (first column)))
+  (lambda (column)
+    (let* ((existing-signature (column-signature header
+                                                 (if (listp column)
+                                                     (first column)
+                                                     column))))
+      (if (listp column)
+          (let ((new-spec (second column)))
             (list existing-signature
-                  existing-signature
-                  column))))))
+                  (make-signature (append (cond ((listp new-spec) new-spec)
+                                                ((atom new-spec) (list :name new-spec)))
+                                          (column-signature-spec existing-signature)))
+                  (first column)))
+          (list existing-signature
+                existing-signature
+                column)))))

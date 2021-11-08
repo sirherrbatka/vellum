@@ -80,7 +80,7 @@
 (defun make-header (&rest columns)
   (let* ((result (make-standard-header))
          (column-signatures (map 'vector
-                                 (curry #'make-signature 'column-signature)
+                                 #'make-signature
                                  columns))
          (length (length column-signatures))
          (names (iterate
