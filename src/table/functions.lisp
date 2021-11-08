@@ -18,7 +18,6 @@
                      (columns '() columns-p)
                      (header (if columns-p
                                  (apply #'vellum.header:make-header
-                                        'vellum.header:standard-header
                                         columns)
                                  (vellum.header:header))))
   (make-table* class header))

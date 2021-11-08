@@ -123,6 +123,7 @@
                                       (curry #'vellum.header:ensure-index
                                              header))
                              old-ids)))
+      (assert (= (length column-indexes) (length new-columns)))
       (cl-ds.utils:quasi-clone* frame
         :header new-header
         :columns new-columns))))

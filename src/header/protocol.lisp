@@ -13,8 +13,6 @@
 
 (defgeneric check-predicate (header column value))
 
-(defgeneric make-header (class &rest columns))
-
 (defgeneric column-count (header))
 
 (defgeneric make-row (range data))
@@ -28,8 +26,6 @@
 (defgeneric alter-columns (header columns))
 
 (defgeneric column-specs (header))
-
-(defgeneric bind-row-closure (bind-row-object &key header))
 
 (defgeneric check-column-signatures-compatibility
     (old-signature new-signature))

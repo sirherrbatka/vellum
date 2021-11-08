@@ -1,10 +1,6 @@
 (cl:in-package #:vellum.header)
 
 
-(defclass fundamental-header ()
-  ())
-
-
 (defun constantly-t (&rest ignored)
   (declare (ignore ignored))
   t)
@@ -22,22 +18,23 @@
                      :predicate 'constantly-t))
 
 
-(defclass standard-header (fundamental-header)
-  ((%column-signature-class :initarg :column-signature-class
-                            :initform 'column-signature
-                            :reader read-column-signature-class)
-   (%column-signatures :initarg :column-signatures
-                       :reader read-column-signatures)
-   (%column-names :type hash-table
-                  :initarg :column-names
-                  :reader read-column-names)))
+(defstruct standard-header
+  column-signatures
+  (column-names (make-hash-table :test 'equal) :type hash-table))
+
+
+(defun read-column-signatures (header)
+  (standard-header-column-signatures header))
+
+
+(defun read-column-names (header)
+  (standard-header-column-names header))
 
 
 (defmethod cl-ds.utils:cloning-information append
     ((header standard-header))
-  '((:column-signature-class read-column-signature-class)
-    (:column-signatures read-column-signatures)
-    (:column-names read-column-names)))
+  '((:column-signatures standard-header-column-signatures)
+    (:column-names standard-header-column-names)))
 
 
 (defmethod cl-ds.utils:cloning-information append

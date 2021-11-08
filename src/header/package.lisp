@@ -22,7 +22,6 @@
    #:constantly-t
    #:ensure-index
    #:frame-range-mixin
-   #:fundamental-header
    #:header
    #:headers-incompatible
    #:index-to-name

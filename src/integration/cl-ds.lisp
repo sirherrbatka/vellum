@@ -89,12 +89,10 @@
 (defmethod vellum:to-table ((range cl-ds.alg:group-by-result-range)
                            &key
                              (key #'identity)
-                             (header-class 'vellum:standard-header)
                              (class 'vellum.table:standard-table)
                              (columns '())
                              (body nil)
                              (header (apply #'vellum:make-header
-                                            header-class
                                             (gather-column-data range columns '())))
                              &allow-other-keys)
   (common-to-table range key class header body))
@@ -103,12 +101,10 @@
 (defmethod vellum:to-table ((range cl-ds.alg:summary-result-range)
                            &key
                              (key #'identity)
-                             (header-class 'vellum:standard-header)
                              (class 'vellum.table:standard-table)
                              (columns '())
                              (body nil)
                              (header (apply #'vellum:make-header
-                                            header-class
                                             (gather-column-data range columns '())))
                             &allow-other-keys)
   (common-to-table range key class header body))

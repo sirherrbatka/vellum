@@ -4,21 +4,19 @@
 (cl-ds.alg.meta:define-aggregation-function
     to-table to-table-function
 
-    (:range &key body key class header-class columns header restarts-enabled)
+    (:range &key body key class columns header restarts-enabled)
 
     (:range &key
      (key #'identity)
      (body nil)
      (class 'standard-table)
      (restarts-enabled t)
-     (header-class 'vellum.header:standard-header)
      (columns '())
-     (header (apply #'vellum.header:make-header
-                    header-class columns)))
+     (header (apply #'vellum.header:make-header columns)))
 
     (%function %transformation %done)
 
-    ((setf %function (vellum.header:bind-row-closure
+    ((setf %function (bind-row-closure
                       body :header header)
            %done nil
            %transformation (~> (table-from-header class header)
@@ -57,7 +55,7 @@
                        (restarts-enabled t)
                        &allow-other-keys)
   (let* ((header (vellum.header:read-header range))
-         (function (vellum.header:bind-row-closure body :header header))
+         (function (bind-row-closure body :header header))
          (transformation (~> (table-from-header class header)
                              (transformation nil :in-place t
                                              :restarts-enabled restarts-enabled)))
@@ -92,13 +90,10 @@
 (defmethod to-table ((input sequence)
                      &key (key #'identity)
                        (class 'vellum.table:standard-table)
-                       (header-class 'vellum.header:standard-header)
                        (columns '())
                        (body nil)
                        (restarts-enabled t)
-                       (header (apply #'vellum.header:make-header
-                                      header-class
-                                      columns)))
+                       (header (apply #'vellum.header:make-header columns)))
   (to-table (cl-ds:whole-range input)
             :key key
             :class class
@@ -110,12 +105,10 @@
 (defmethod to-table ((input array)
                      &key (class 'vellum.table:standard-table)
                        (key #'identity)
-                       (header-class 'vellum.header:standard-header)
                        (columns '())
                        (body nil)
                        (restarts-enabled t)
                        (header (apply #'vellum.header:make-header
-                                      header-class
                                       columns)))
   (unless (= 2 (array-rank input))
     (error 'cl-ds:invalid-argument-value
@@ -124,7 +117,7 @@
            :format-control "TO-TABLE works only on 2 dimensional arrays."))
   (let* ((number-of-columns (length columns))
          (columns (make-array (length columns)))
-         (function (vellum.header:bind-row-closure body :header header))
+         (function (bind-row-closure body :header header))
          (table (make class
                       :header header
                       :columns columns)))
@@ -134,7 +127,7 @@
             (vellum.column:make-sparse-material-column
              :element-type (vellum.header:column-type header i))))
     (transform table
-               (vellum.header:bind-row ()
+               (bind-row ()
                  (unless (< *current-row* (array-dimension input 0))
                    (finish-transformation))
                  (iterate

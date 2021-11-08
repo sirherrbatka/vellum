@@ -75,3 +75,30 @@
            (setf new-value v)
            (go main)))))
   (values new-value t))
+
+
+(defun make-header (&rest columns)
+  (let* ((result (make-standard-header))
+         (column-signatures (map 'vector
+                                 (curry #'make-signature 'column-signature)
+                                 columns))
+         (length (length column-signatures))
+         (names (iterate
+                  (with result = (make-hash-table
+                                  :test 'equal
+                                  :size length))
+                  (for i from 0 below length)
+                  (for column = (aref column-signatures i))
+                  (for name = (read-name column))
+                  (when (null name) (next-iteration))
+                  (when (symbolp name)
+                    (setf name (symbol-name name)))
+                  (check-type name string)
+                  (unless (null (shiftf (gethash name result) i))
+                    (error 'name-duplicated
+                           :format-arguments (list name)
+                           :value name))
+                  (finally (return result)))))
+    (setf (standard-header-column-signatures result) column-signatures
+          (standard-header-column-names result) names)
+    result))

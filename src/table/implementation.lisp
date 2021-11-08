@@ -140,8 +140,7 @@
                                             x
                                             (cl-ds.common.abstract:read-ownership-tag x)))
                                          (read-columns frame)))
-         (bind-row-closure (vellum.header:bind-row-closure
-                            bind-row :header (header frame)))
+         (bind-row-closure (bind-row-closure bind-row :header (header frame)))
          (marker-column (vellum.column:make-sparse-material-column
                          :element-type 'boolean))
          (iterator (iterator frame in-place))
@@ -574,3 +573,23 @@
         (show :text object :output stream))
       (call-next-method))
   object)
+
+
+(defmethod bind-row-closure ((bind-row bind-row)
+                             &key (header (header)))
+  (funcall (optimized-closure bind-row)
+           header))
+
+
+(defmethod bind-row-closure ((bind-row (eql nil))
+                             &key header)
+  (declare (ignore header))
+  (lambda (&rest all)
+    (declare (ignore all))
+    nil))
+
+
+(defmethod bind-row-closure (fn
+                             &key header)
+  (declare (ignore header))
+  (ensure-function fn))

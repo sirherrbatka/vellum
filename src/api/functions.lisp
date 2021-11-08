@@ -29,7 +29,6 @@
                      (cl-ds.utils:transform #'ensure-name)))
          (result (vellum.table:make-table
                   :header (apply #'vellum.header:make-header
-                                 'vellum.header:standard-header
                                  (mapcar (curry #'list :name)
                                          names)))))
     (iterate
@@ -57,8 +56,8 @@
       (finally (return result)))))
 
 
-(defun empty-column (header-class &rest row-parameters)
-  (vellum.table:make-table :header (make-header header-class row-parameters)
+(defun empty-column (&rest row-parameters)
+  (vellum.table:make-table :header (apply #'make-header row-parameters)
                            :columns row-parameters))
 
 
@@ -193,10 +192,8 @@
 (defmethod join ((algorithm (eql :hash)) (method (eql :inner)) (frame-specs list)
                  &key
                    (class 'vellum.table:standard-table)
-                   (header-class 'vellum.header:standard-header)
                    (columns (collect-column-specs frame-specs))
-                   (header (apply #'vellum.header:make-header
-                                  header-class columns))
+                   (header (apply #'vellum.header:make-header columns))
                    (test 'eql))
   (hash-join-implementation frame-specs header
                             class test
@@ -206,10 +203,8 @@
 (defmethod join ((algorithm (eql :hash)) (method (eql :left)) (frame-specs list)
                  &key
                    (class 'vellum.table:standard-table)
-                   (header-class 'vellum.header:standard-header)
                    (columns (collect-column-specs frame-specs))
-                   (header (apply #'vellum.header:make-header
-                                  header-class columns))
+                   (header (apply #'vellum.header:make-header columns))
                    (test 'eql))
   (bind ((lengths (map 'vector
                        (compose #'vellum:column-count #'second)
@@ -246,8 +241,7 @@
                                       (~> frame vellum.table:header class-of)
                                       x))
                               ((or string symbol)
-                               (~> frame vellum.table:header class-of
-                                   (vellum:empty-column :name x)))))
+                               (vellum:empty-column :name x))))
                           column-specs)))
 
 
@@ -278,7 +272,6 @@
   (bind ((column-count (column-count table))
          (result (vellum.table:make-table
                   :header (vellum.header:make-header
-                           'vellum.header:standard-header
                            `(:predicate ,predicate
                              :name ,name
                              :type ,type)))))

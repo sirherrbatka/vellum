@@ -69,34 +69,6 @@
             (symbol-name name)))))
 
 
-(defmethod make-header (class &rest columns)
-  (let* ((result (make class))
-         (signature-class (read-column-signature-class result))
-         (column-signatures (map 'vector
-                                 (curry #'make-signature signature-class)
-                                 columns))
-         (length (length column-signatures))
-         (names (iterate
-                  (with result = (make-hash-table
-                                  :test 'equal
-                                  :size length))
-                  (for i from 0 below length)
-                  (for column = (aref column-signatures i))
-                  (for name = (read-name column))
-                  (when (null name) (next-iteration))
-                  (when (symbolp name)
-                    (setf name (symbol-name name)))
-                  (check-type name string)
-                  (unless (null (shiftf (gethash name result) i))
-                    (error 'name-duplicated
-                           :format-arguments (list name)
-                           :value name))
-                  (finally (return result)))))
-    (setf (slot-value result '%column-signatures) column-signatures
-          (slot-value result '%column-names) names)
-    result))
-
-
 (defmethod column-type ((header standard-header)
                         column)
   (~>> (column-signature header column)
@@ -292,8 +264,8 @@
   (let* ((names (unique-names more-headers))
          (signatures (apply #'concatenate 'vector
                             (mapcar #'read-column-signatures more-headers))))
-    (make 'standard-header :column-names names
-                           :column-signatures signatures)))
+    (make-standard-header :column-names names
+                          :column-signatures signatures)))
 
 
 (defmethod select-columns ((header standard-header)
@@ -317,9 +289,8 @@
         (error 'name-duplicated
                :format-arguments (list name)
                :value name)))
-    (values (make (class-of header)
-                  :column-signatures (map 'vector #'second selected)
-                  :column-names names)
+    (values (make-standard-header :column-signatures (map 'vector #'second selected)
+                                  :column-names names)
             (map 'vector #'third selected))))
 
 
@@ -357,9 +328,8 @@
         (error 'name-duplicated
                :format-arguments (list name)
                :value name)))
-    (values (make (class-of header)
-                  :column-signatures new-columns
-                  :column-names names)
+    (values (make-standard-header :column-signatures new-columns
+                                  :column-names names)
             (map 'vector #'third altered))))
 
 
@@ -369,27 +339,7 @@
     (collect (column-signature-spec signature))))
 
 
-(defmethod bind-row-closure ((bind-row bind-row)
-                             &key (header (header)))
-  (funcall (optimized-closure bind-row)
-           header))
-
-
-(defmethod bind-row-closure ((bind-row (eql nil))
-                             &key header)
-  (declare (ignore header))
-  (lambda (&rest all)
-    (declare (ignore all))
-    nil))
-
-
-(defmethod bind-row-closure (fn
-                             &key header)
-  (declare (ignore header))
-  (ensure-function fn))
-
-
-(defmethod check-predicate ((header fundamental-header)
+(defmethod check-predicate ((header standard-header)
                             column
                             value)
   (let ((predicate (column-predicate header column)))

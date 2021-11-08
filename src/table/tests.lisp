@@ -52,6 +52,7 @@
 
   (prove:is (vellum:at *replica* 0 0) 2)
   (prove:is (vellum:at *replica* 1 0) 3)
+
   (prove:is (vellum:at *replica* 2 0) 4)
 
   (vellum:transform *table*

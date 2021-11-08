@@ -24,7 +24,7 @@
 
 
 (defun extracting-signature (header)
-  (let ((column-signature-class (read-column-signature-class header)))
+  (let ((column-signature-class 'column-signature))
     (lambda (column)
       (let* ((existing-signature (column-signature header
                                                    (if (listp column)
