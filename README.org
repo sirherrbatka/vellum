@@ -21,8 +21,7 @@ Data Frame is composed of header and columns. The header can be thought of as a 
 #+BEGIN_SRC common-lisp
   (defparameter *table*
     (vellum:make-table
-     :header (vellum:make-header 'vellum.header:standard-header
-                                 '(:name first-column)
+     :header (vellum:make-header '(:name first-column)
                                  '(:name second-column :type fixnum))))
 #+END_SRC
 
