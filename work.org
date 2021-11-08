@@ -11,7 +11,9 @@
    CLOSED: [2021-11-08 pon 17:25]
 ** TODO Replace generic functions of column signature with normal functions.
 ** TODO Replace generic functions of header with normal functions.
-** TODO Remove predicates feature.
-** TODO Add optimized expansion to the bind-row.
+** DONE Remove predicates feature.
+   CLOSED: [2021-11-08 pon 18:41]
+** DONE Add optimized expansion to the bind-row.
+   CLOSED: [2021-11-08 pon 18:41]
 ** DONE Move RR and row-at from header to table.
    CLOSED: [2021-11-08 pon 16:41]

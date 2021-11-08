@@ -35,8 +35,7 @@
                              &key
                                name
                                skip-nulls
-                               (type t)
-                               (predicate ''vellum.header:constantly-t))
+                               (type t))
   (bind (((function . body) expression))
     `(%aggregate-columns ,table
                          (cl-ds.alg.meta:aggregator-constructor
@@ -44,8 +43,7 @@
                           (list '() ,@body))
                          :skip-nulls ,skip-nulls
                          :type ,type
-                         :name ,name
-                         :predicate ,predicate)))
+                         :name ,name)))
 
 
 (defmacro drop-row-when (predicate)

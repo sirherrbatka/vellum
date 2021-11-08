@@ -35,8 +35,10 @@
 
 
 (defstruct sparse-material-column-iterator
-  (initialization-status (make-array 0 :element-type 'boolean)
-   :type (simple-array boolean (*)))
+  (initialization-status (make-array 0)
+   :type simple-vector)
+  (column-types (make-array 0)
+   :type simple-vector)
   transformation
   (columns #() :type simple-vector)
   (stacks #() :type simple-vector)
@@ -46,8 +48,8 @@
   (indexes (make-array 0 :element-type 'fixnum)
    :type (simple-array fixnum (*)))
   (initial-index 0 :type fixnum)
-  (touched (make-array 0 :element-type 'boolean)
-   :type (simple-array boolean (*)))
+  (touched (make-array 0)
+   :type simple-vector)
   (buffers #() :type simple-vector)
   (changes #() :type simple-vector))
 
@@ -65,6 +67,10 @@
 (declaim (inline (setf access-index)))
 (declaim (inline columns))
 (declaim (inline read-indexes))
+(declaim (inline read-column-types))
+
+(defun read-column-types (iterator)
+  (sparse-material-column-iterator-column-types iterator))
 
 (defun read-initialization-status (iterator)
   (sparse-material-column-iterator-initialization-status iterator))

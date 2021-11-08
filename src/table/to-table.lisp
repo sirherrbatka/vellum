@@ -63,12 +63,12 @@
     (block main
       (cl-ds:across
        range
-       (lambda (row &aux (vellum.header:*validate-predicates* nil))
+       (lambda (row)
          (block function
            (transform-row transformation
-                          (lambda (&rest all) (declare (ignore all))
+                          (lambda (existing-row)
+                            (declare (type table-row existing-row))
                             (iterate
-                              (with existing-row = (vellum.header:row))
                               (for i from 0 below (length row))
                               (for value = (aref row i))
                               (setf (rr i existing-row header) value))
@@ -123,7 +123,7 @@
                       :columns columns)))
     (iterate
       (for i from 0 below number-of-columns)
-      (setf (aref columns i)
+      (setf (svref columns i)
             (vellum.column:make-sparse-material-column
              :element-type (vellum.header:column-type header i))))
     (transform table

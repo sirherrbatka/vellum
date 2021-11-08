@@ -1,17 +1,7 @@
 (cl:in-package #:vellum.header)
 
 
-(defgeneric name-to-index (header name))
-
-(defgeneric index-to-name (header index))
-
 (defgeneric column-type (header column))
-
-(defgeneric column-signature (header column))
-
-(defgeneric column-predicate (header column))
-
-(defgeneric check-predicate (header column value))
 
 (defgeneric column-count (header))
 

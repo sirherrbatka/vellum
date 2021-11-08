@@ -107,3 +107,40 @@
 (defun make-bind-row (optimized-closure non-optimized-closure)
   (lret ((result (make 'bind-row :optimized-closure optimized-closure)))
     (c2mop:set-funcallable-instance-function result non-optimized-closure)))
+
+
+(declaim (inline row-at))
+(defun row-at (header row name)
+  (declare (optimize (speed 3)))
+  (let ((column (if (integerp name)
+                    name
+                    (vellum.header:name-to-index header name))))
+    (if (typep row 'sequence)
+        (let ((length (length row)))
+          (unless (< column length)
+            (error 'no-column
+                   :bounds (iota length)
+                   :argument 'column
+                   :value column
+                   :format-arguments (list column)))
+          (elt row column))
+        (~> row read-iterator (vellum.column:iterator-at column)))))
+
+
+(declaim (inline (setf row-at)))
+(defun (setf row-at) (new-value header row name)
+  (declare (optimize (speed 3)))
+  (let ((column (if (integerp name)
+                    name
+                    (vellum.header:name-to-index header name))))
+    (if (typep row 'sequence)
+        (let ((length (length row)))
+          (unless (< column length)
+            (error 'no-column
+                   :bounds (iota length)
+                   :argument 'column
+                   :value column
+                   :format-arguments (list column)))
+          (setf (elt row column) new-value))
+        (setf (~> row read-iterator (vellum.column:iterator-at column))
+              new-value))))

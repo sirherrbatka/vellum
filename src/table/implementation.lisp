@@ -250,48 +250,6 @@
           :columns (ensure-replicas columns new-columns)))))
 
 
-(defmethod row-at ((header vellum.header:standard-header)
-                   (row table-row)
-                   (position string))
-  (row-at header row (vellum.header:name-to-index header
-                                                  position)))
-
-
-(defmethod row-at ((header vellum.header:standard-header)
-                   (row table-row)
-                   position)
-  (row-at header row
-          (vellum.header:name-to-index header
-                                       position)))
-
-
-(defmethod (setf row-at) (new-value
-                          (header vellum.header:standard-header)
-                          (row setfable-table-row)
-                          position)
-  (setf (row-at header row
-                (vellum.header:name-to-index header
-                                             position))
-        new-value))
-
-
-(defmethod row-at ((header vellum.header:standard-header)
-                   (row table-row)
-                   (position integer))
-  (~> row read-iterator (vellum.column:iterator-at position)))
-
-
-(defmethod (setf row-at) (new-value
-                          (header vellum.header:standard-header)
-                          (row setfable-table-row)
-                          (position integer))
-  (bind (((:values new-value ok)
-          (vellum.header:setf-predicate-check new-value header position)))
-    (when ok
-      (setf (~> row read-iterator (vellum.column:iterator-at position))
-            new-value))))
-
-
 (defmethod iterator ((frame standard-table) in-place)
   (~> frame read-columns
       (make-iterator

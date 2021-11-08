@@ -46,7 +46,8 @@
                generated
                columns)
           (lambda (&optional (,!row (vellum.header:row)))
-            (declare (ignorable ,!row))
+            (declare (ignorable ,!row)
+                     (type table-row ,!row))
             (let* (,@(mapcar (lambda (name column)
                                `(,name (row-at ,!header ,!row ,column)))
                              names

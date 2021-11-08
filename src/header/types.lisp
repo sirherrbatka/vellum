@@ -1,19 +1,9 @@
 (cl:in-package #:vellum.header)
 
 
-(defun constantly-t (&rest ignored)
-  (declare (ignore ignored))
-  t)
-
-
 (defstruct column-signature
   (type t)
-  (predicate 'constantly-t)
   (name nil :type (or symbol string)))
-
-
-(defun read-predicate (column-signature)
-  (column-signature-predicate column-signature))
 
 
 (defun read-name (column-signature)
@@ -41,13 +31,6 @@
     ((header standard-header))
   '((:column-signatures standard-header-column-signatures)
     (:column-names standard-header-column-names)))
-
-
-(defmethod cl-ds.utils:cloning-information append
-    ((signature column-signature))
-  '((:type read-type)
-    (:name read-name)
-    (:predicate read-predicate)))
 
 
 (defclass frame-range-mixin ()

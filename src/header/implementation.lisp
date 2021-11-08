@@ -1,84 +1,10 @@
 (cl:in-package #:vellum.header)
 
 
-(defmethod name-to-index ((header standard-header)
-                          (name string))
-  (let* ((names (read-column-names header))
-         (index (gethash name names)))
-    (when (null index)
-      (error 'no-column
-             :bounds (hash-table-keys names)
-             :argument 'name
-             :value name
-             :format-arguments (list name)))
-    index))
-
-
-(defmethod name-to-index ((header standard-header)
-                          (name symbol))
-  (name-to-index header (symbol-name name)))
-
-
-(defmethod column-signature ((header standard-header)
-                             (name symbol))
-  (column-signature header (name-to-index header name)))
-
-
-(defmethod column-signature ((header standard-header)
-                             (name string))
-  (column-signature header (name-to-index header name)))
-
-
-(defmethod initialize-instance :after ((object column-signature)
-                                       &key &allow-other-keys)
-  (bind (((:slots %type %predicate %name) object))
-    (check-type %type (or list symbol))
-    (check-type %name (or symbol string))
-    (check-type %predicate (or symbol function))
-    (ensure-function %predicate)))
-
-
-(defmethod column-signature ((header standard-header)
-                             (index integer))
-  (check-type index non-negative-integer)
-  (let* ((column-signatures (read-column-signatures header))
-         (length (length column-signatures)))
-    (unless (< index length)
-      (error 'no-column
-             :bounds `(< 0 ,length)
-             :argument 'index
-             :value index
-             :format-arguments (list index)))
-    (~> column-signatures (aref index))))
-
-
-(defmethod index-to-name ((header standard-header)
-                          (index integer))
-  (check-type index non-negative-integer)
-  (let* ((signature (column-signature header index))
-         (name (read-name signature)))
-    (if (null name)
-        (error 'no-column
-               :bounds `(< 0 ,(~> header read-column-signatures length))
-               :argument 'index
-               :value index
-               :format-control "No name for column ~a."
-               :format-arguments (list index))
-        (if (stringp name)
-            name
-            (symbol-name name)))))
-
-
 (defmethod column-type ((header standard-header)
                         column)
   (~>> (column-signature header column)
        read-type))
-
-
-(defmethod column-predicate ((header standard-header)
-                             column)
-  (~>> (column-signature header column)
-       read-predicate))
 
 
 (defmethod column-count ((header standard-header))
@@ -179,83 +105,8 @@
                        (validate-row data)))
     (for elt in data)
     (for i from 0)
-    (tagbody main
-       (restart-case (check-predicate header i elt)
-         (set-to-null ()
-           :report "Set the row position to :null."
-           (setf elt :null)
-           (go main))
-         (provide-new-value (v)
-           :report "Enter the new value."
-           :interactive vellum.header:read-new-value
-           (setf elt v)
-           (go main))))
     (setf (aref result i) elt)
     (finally (return result))))
-
-
-(defmethod row-at ((header standard-header)
-                   (row sequence)
-                   (column integer))
-  (check-type column non-negative-integer)
-  (let ((length (length row)))
-    (unless (< column length)
-      (error 'no-column
-             :bounds (iota length)
-             :argument 'column
-             :value column
-             :format-arguments (list column)))
-    (elt row column)))
-
-
-(defmethod (setf row-at) (new-value
-                          (header standard-header)
-                          (row sequence)
-                          (column integer))
-  (declare (type (array t (*)) row))
-  (check-type column non-negative-integer)
-  (let ((length (length row)))
-    (unless (< column length)
-      (error 'no-column
-             :bounds (iota length)
-             :argument 'column
-             :value column
-             :format-arguments (list column)))
-    (bind (((:values new-value ok) (setf-predicate-check new-value header column)))
-      (when ok
-        (setf (elt row column) new-value)))))
-
-
-(defmethod (setf row-at) (new-value
-                          (header standard-header)
-                          (row sequence)
-                          (column symbol))
-  (declare (type (array t (*)) row))
-  (setf (row-at header row (name-to-index header column))
-        new-value))
-
-
-(defmethod (setf row-at) (new-value
-                          (header standard-header)
-                          (row sequence)
-                          (column string))
-  (declare (type (array t (*)) row))
-  (setf (row-at header row (name-to-index header column))
-        new-value))
-
-
-(defmethod row-at ((header standard-header)
-                   (row sequence)
-                   (column symbol))
-  (~>> (name-to-index header column)
-       (row-at header row)))
-
-
-(defmethod row-at ((header standard-header)
-                   (row sequence)
-                   (column string))
-  (~>> (name-to-index header column)
-       (row-at header row)))
 
 
 (defmethod concatenate-headers ((header standard-header)
@@ -339,20 +190,6 @@
     (collect (column-signature-spec signature))))
 
 
-(defmethod check-predicate ((header standard-header)
-                            column
-                            value)
-  (let ((predicate (column-predicate header column)))
-    (unless (eq predicate 'constantly-t)
-      (when *validate-predicates*
-        (unless (funcall predicate value)
-          (let ((index (ensure-index header column)))
-            (error 'predicate-failed
-                   :column-number index
-                   :format-arguments (list value column)
-                   :value value)))))))
-
-
 (defmethod check-column-signatures-compatibility
     ((first-signature column-signature)
      (second-signature column-signature))
@@ -366,5 +203,4 @@
 
 (defmethod column-signature-spec ((signature column-signature))
   (list :name (read-name signature)
-        :predicate (read-predicate signature)
         :type (read-type signature)))

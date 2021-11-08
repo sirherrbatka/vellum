@@ -32,18 +32,9 @@
    no-row
    (:description "Error signalled when trying to reference current row, but it is not binded."))
 
-  (type
-   predicate-failed
-   (:description "Error signalled when trying to set the column value in row to somethining rejected by the predicate."))
-
   (function
    read-new-value
    (:description "This function is used only in order to provide interactive restarts."))
-
-  (function
-   check-predicate
-   (:description "Calls the column predicate on the value "
-    :exceptional-situations "Signals NO-COLUMN when the COLUMN is not present in the current HEADER. Signals PREDICAT-FAILED when the predicate function returns nil."))
 
   (function
    ensure-index

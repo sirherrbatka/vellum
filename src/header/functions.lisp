@@ -57,26 +57,6 @@
        (mapcar (lambda (x) (getf x :name)))))
 
 
-(declaim (inline setf-predicate-check))
-(defun setf-predicate-check (new-value header column)
-  (tagbody main
-     (block nil
-       (restart-case (check-predicate header column new-value)
-         (keep-old-value ()
-           :report "Skip assigning the new value."
-           (return (values nil nil)))
-         (set-to-null ()
-           :report "Set the row position to :null."
-           (setf new-value :null)
-           (go main))
-         (provide-new-value (v)
-           :report "Enter the new value."
-           :interactive read-new-value
-           (setf new-value v)
-           (go main)))))
-  (values new-value t))
-
-
 (defun make-header (&rest columns)
   (let* ((result (make-standard-header))
          (column-signatures (map 'vector
@@ -102,3 +82,48 @@
     (setf (standard-header-column-signatures result) column-signatures
           (standard-header-column-names result) names)
     result))
+
+
+(defun index-to-name (header index)
+  (check-type index non-negative-integer)
+  (let* ((signature (column-signature header index))
+         (name (read-name signature)))
+    (if (null name)
+        (error 'no-column
+               :bounds `(< 0 ,(~> header read-column-signatures length))
+               :argument 'index
+               :value index
+               :format-control "No name for column ~a."
+               :format-arguments (list index))
+        (if (stringp name)
+            name
+            (symbol-name name)))))
+
+
+(defun name-to-index (header name)
+  (let* ((names (read-column-names header))
+         (index (gethash (etypecase name
+                           (symbol (symbol-name name))
+                           (string name))
+                         names)))
+    (when (null index)
+      (error 'no-column
+             :bounds (hash-table-keys names)
+             :argument 'name
+             :value name
+             :format-arguments (list name)))
+    index))
+
+
+(defun column-signature (header name)
+  (unless (integerp name)
+    (setf name (name-to-index header name)))
+  (let* ((column-signatures (read-column-signatures header))
+         (length (length column-signatures)))
+    (unless (< name length)
+      (error 'no-column
+             :bounds `(< 0 ,length)
+             :argument 'name
+             :value name
+             :format-arguments (list name)))
+    (~> column-signatures (aref name))))

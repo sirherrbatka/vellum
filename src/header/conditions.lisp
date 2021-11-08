@@ -16,12 +16,6 @@
   (:default-initargs :format-control "No active header."))
 
 
-(define-condition predicate-failed (cl-ds:invalid-value)
-  ((%column-number :initarg :column-number
-                   :reader column-number))
-  (:default-initargs :format-control "Predicate for ~a in the column ~a returned nil."))
-
-
 (define-condition invalid-name (cl-ds:invalid-value)
   ())
 

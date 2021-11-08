@@ -7,19 +7,14 @@
   (:export
    #:*header*
    #:*row*
-   #:*validate-predicates*
    #:alter-columns
-   #:setf-predicate-check
    #:check-column-signatures-compatibility
-   #:check-predicate
    #:column-count
    #:column-names
-   #:column-predicate
    #:column-signature
    #:column-specs
    #:column-type
    #:concatenate-headers
-   #:constantly-t
    #:ensure-index
    #:frame-range-mixin
    #:header
@@ -34,7 +29,6 @@
    #:name-to-index
    #:no-column
    #:no-header
-   #:predicate-failed
    #:provide-new-value
    #:read-header
    #:read-name

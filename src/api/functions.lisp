@@ -109,7 +109,6 @@
                           (format nil "~a/~a" label name)))
       (in outer (collecting
                   (list :name new-name
-                        :predicate (getf x :predicate)
                         :type (getf x :type)))))))
 
 
@@ -266,14 +265,12 @@
 
 (defun %aggregate-columns (table aggregator-constructor
                            &key (skip-nulls nil) (type t)
-                           name
-                             (predicate 'vellum.header:constantly-t))
+                             name)
   (declare (optimize (speed 3)))
   (bind ((column-count (column-count table))
          (result (vellum.table:make-table
                   :header (vellum.header:make-header
-                           `(:predicate ,predicate
-                             :name ,name
+                           `(:name ,name
                              :type ,type)))))
     (declare (type fixnum column-count))
     (~> (transform (hstack* table (list result) :isolate nil)
