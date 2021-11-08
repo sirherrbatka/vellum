@@ -15,11 +15,31 @@
 
 (-> iterator-at (sparse-material-column-iterator fixnum) t)
 (defun iterator-at (iterator column)
-  (ensure-column-initialization iterator column)
-  (bind ((buffers (read-buffers iterator))
-         (offset (offset (index iterator))))
-    (declare (type simple-vector buffers))
-    (~> (the iterator-buffer (aref buffers column)) (aref offset))))
+  (declare (optimize (speed 3) (compilation-speed 0)
+                     (space 0) (debug 0) (safety 0))
+           (type integer column)
+           (type sparse-material-column-iterator iterator))
+  (bind ((status (read-initialization-status iterator))
+         (columns (read-columns iterator))
+         (stacks (read-stacks iterator))
+         (buffers (read-buffers iterator))
+         (depths (read-depths iterator))
+         (buffer (aref buffers column))
+         (touched (read-touched iterator))
+         (index (index iterator))
+         (offset (offset index)))
+    (unless (aref status column)
+      (setf (aref status column) t)
+      (initialize-iterator-column
+       iterator
+       index
+       (aref columns column)
+       (aref stacks column)
+       (aref buffers column)
+       (aref depths column)
+       (aref touched column)
+       column))
+    (aref buffer offset)))
 
 
 (-> (setf iterator-at) (t sparse-material-column-iterator fixnum) t)
@@ -28,14 +48,35 @@
                      (space 0) (debug 0) (safety 0))
            (type integer column)
            (type sparse-material-column-iterator iterator))
-  (ensure-column-initialization iterator column)
   (bind ((buffers (read-buffers iterator))
          (index (the fixnum (index iterator)))
          (offset (the fixnum (offset index)))
          (buffer (aref buffers column))
          (column-types (read-column-types iterator))
-         (old-value (svref buffer offset)))
-    (declare (type simple-vector buffers))
+         (status (read-initialization-status iterator))
+         (columns (read-columns iterator))
+         (stacks (read-stacks iterator))
+         (length (length status))
+         (depths (read-depths iterator))
+         (touched (read-touched iterator)))
+    (declare (type simple-vector buffers status))
+    (unless (< -1 column length)
+      (error 'no-such-column
+             :bounds `(0 ,length)
+             :argument 'column
+             :value column
+             :format-control "There is no such column."))
+    (unless (aref status column)
+      (setf (aref status column) t)
+      (initialize-iterator-column
+       iterator
+       index
+       (aref columns column)
+       (aref stacks column)
+       (aref buffers column)
+       (aref depths column)
+       (aref touched column)
+       column))
     (unless (or (eq (svref column-types column) t)
                 (eq :null new-value)
                 (typep new-value
@@ -50,18 +91,19 @@
                                 cl-ds:type-specialization)
              :column column
              :datum new-value))
-    (setf (svref buffer offset) new-value)
-    (unless (eql new-value old-value)
-      (let ((columns (read-columns iterator))
-            (transformation (ensure-function (read-transformation iterator)))
-            (changes (read-changes iterator))
-            (touched (read-touched iterator)))
-        (declare (type simple-vector columns changes)
-                 (type simple-vector touched))
-        (unless (svref touched column)
-          (setf #1=(svref columns column) (funcall transformation #1#)))
-        (setf (~> (svref changes column) (svref offset)) t
-              (svref touched column) t)))
+    (let ((old-value (svref buffer offset)))
+      (setf (svref buffer offset) new-value)
+      (unless (eql new-value old-value)
+        (let ((columns (read-columns iterator))
+              (transformation (ensure-function (read-transformation iterator)))
+              (changes (read-changes iterator))
+              (touched (read-touched iterator)))
+          (declare (type simple-vector columns changes)
+                   (type simple-vector touched))
+          (unless (svref touched column)
+            (setf #1=(svref columns column) (funcall transformation #1#)))
+          (setf (~> (svref changes column) (svref offset)) t
+                (svref touched column) t))))
     new-value))
 
 
@@ -95,11 +137,14 @@
 
 (-> move-iterator-to (sparse-material-column-iterator non-negative-fixnum) t)
 (defun move-iterator-to (iterator new-index)
+  (declare (optimize (speed 3) (safety 0)))
   (bind ((new-depth (calculate-depth new-index))
          (depths (read-depths iterator))
          (length (length depths)))
     (declare (type fixnum length)
              (type (simple-array fixnum (*)) depths))
+    (when (zerop length)
+      (return-from move-iterator-to nil))
     (let ((indexes (read-indexes iterator))
           (depths (read-depths iterator))
           (stacks (read-stacks iterator))
@@ -441,6 +486,7 @@
    :changes (~> iterator read-changes copy-array)
    :touched (~> iterator read-touched copy-array)
    :indexes (~> iterator read-indexes copy-array)
+   :column-types (~> iterator read-column-types copy-array)
    :initialization-status (~> iterator
                               read-initialization-status
                               copy-array)))

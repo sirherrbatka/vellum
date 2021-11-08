@@ -48,13 +48,8 @@
     (:columns read-columns)))
 
 
-(defclass table-row ()
-  ((%iterator :initarg :iterator
-              :reader read-iterator)))
-
-
-(defclass setfable-table-row (table-row)
-  ())
+(defstruct table-row iterator)
+(defstruct (setfable-table-row (:include table-row)))
 
 
 (defclass standard-table-range (cl-ds:fundamental-forward-range)

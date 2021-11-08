@@ -115,16 +115,18 @@
   (let ((column (if (integerp name)
                     name
                     (vellum.header:name-to-index header name))))
-    (if (typep row 'sequence)
-        (let ((length (length row)))
-          (unless (< column length)
-            (error 'no-column
+    (etypecase row
+      (sequence
+       (let ((length (length row)))
+         (unless (< column length)
+           (error 'no-column
                    :bounds (iota length)
                    :argument 'column
                    :value column
                    :format-arguments (list column)))
-          (elt row column))
-        (~> row read-iterator (vellum.column:iterator-at column)))))
+         (elt row column)))
+      (table-row
+       (~> row table-row-iterator (vellum.column:iterator-at column))))))
 
 
 (declaim (inline (setf row-at)))
@@ -133,14 +135,16 @@
   (let ((column (if (integerp name)
                     name
                     (vellum.header:name-to-index header name))))
-    (if (typep row 'sequence)
-        (let ((length (length row)))
-          (unless (< column length)
-            (error 'no-column
+    (etypecase row
+      (sequence
+       (let ((length (length row)))
+         (unless (< column length)
+           (error 'no-column
                    :bounds (iota length)
                    :argument 'column
                    :value column
                    :format-arguments (list column)))
-          (setf (elt row column) new-value))
-        (setf (~> row read-iterator (vellum.column:iterator-at column))
-              new-value))))
+         (setf (elt row column) new-value)))
+      (setfable-table-row
+       (setf (~> row setfable-table-row-iterator (vellum.column:iterator-at column))
+             new-value)))))

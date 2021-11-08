@@ -144,7 +144,7 @@
          (marker-column (vellum.column:make-sparse-material-column
                          :element-type 'boolean))
          (iterator (iterator frame in-place))
-         (row (make 'setfable-table-row :iterator iterator)))
+         (row (make-setfable-table-row :iterator iterator)))
     (vellum.column:move-iterator iterator start)
     (make-standard-transformation
      :marker-column marker-column
@@ -264,19 +264,19 @@
     (if (~> columns length zerop)
         (make 'cl-ds:empty-range)
         (make 'standard-table-range
-              :table-row (make 'table-row :iterator (iterator container t))
+              :table-row (make-table-row :iterator (iterator container t))
               :row-count row-count
               :header header))))
 
 
+(defmethod read-iterator ((range standard-table-range))
+  (~> range read-table-row table-row-iterator))
+
+
 (defmethod cl-ds:clone ((range standard-table-range))
   (cl-ds.utils:quasi-clone* range
-    :table-row (make 'table-row
-                     :iterator (cl-ds:clone (read-iterator range)))))
-
-
-(defmethod read-iterator ((range standard-table-range))
-  (~> range read-table-row read-iterator))
+    :table-row (make-table-row
+                :iterator (cl-ds:clone (read-iterator range)))))
 
 
 (defmethod cl-ds:peek-front ((range standard-table-range))
@@ -357,7 +357,7 @@
     (return-from cl-ds:traverse frame))
   (with-table (frame)
     (let* ((iterator (iterator frame t))
-           (row (make-instance 'table-row :iterator iterator)))
+           (row (make-table-row :iterator iterator)))
       (vellum.header:set-row row)
       (iterate
         (declare (type fixnum i))

@@ -73,36 +73,6 @@
   (move-stack (max depth new-depth) new-index stack))
 
 
-(-> ensure-column-initialization (sparse-material-column-iterator fixnum) t)
-(defun ensure-column-initialization (iterator column)
-  (bind ((status (read-initialization-status iterator))
-         (length (length status)))
-    (declare (type (simple-array boolean (*)) status)
-             (type fixnum length))
-    (unless (< -1 column length)
-      (error 'no-such-column
-             :bounds `(0 ,length)
-             :argument 'column
-             :value column
-             :format-control "There is no such column."))
-    (unless (aref status column)
-      (setf (aref status column) t)
-      (let ((columns (read-columns iterator))
-            (stacks (read-stacks iterator))
-            (buffers (read-buffers iterator))
-            (depths (read-depths iterator))
-            (touched (read-touched iterator)))
-        (initialize-iterator-column
-         iterator
-         (access-index iterator)
-         (aref columns column)
-         (aref stacks column)
-         (aref buffers column)
-         (aref depths column)
-         (aref touched column)
-         column)))))
-
-
 (defun calculate-depth (index)
   (~> index
       integer-length
@@ -119,15 +89,16 @@
                        changes
                        buffers
                        initialization-status
-                       &key (force-initialization nil))
+                       &key
+                         (force-initialization nil)
+                         (promoted (index-promoted (aref indexes column-index)
+                                                   new-index)))
   (declare (optimize (speed 3) (compilation-speed 0)
                      (space 0) (debug 0) (safety 0))
            (type fixnum column-index new-index)
            (type simple-vector stacks columns changes buffers initialization-status)
            (type (simple-array fixnum (*)) depths indexes))
-  (let* ((index (aref (read-indexes iterator)
-                        column-index))
-         (promoted (index-promoted index new-index)))
+  (let ((index (aref (read-indexes iterator) column-index)))
     (declare (type fixnum index)
              (type boolean promoted))
     (when (or (= new-index index)
@@ -237,8 +208,11 @@
                                 i)))
 
 
+(declaim (inline index-promoted))
 (defun index-promoted (old-index new-index)
-  (declare (type fixnum old-index new-index))
+  (declare (type fixnum old-index new-index)
+           (optimize (speed 3) (safety 0) (space 0)
+                     (compilation-speed 0) (debug 0)))
   (not (eql (ceiling (the fixnum (1+ old-index))
                      cl-ds.common.rrb:+maximum-children-count+)
             (ceiling (the fixnum (1+ new-index))
@@ -888,10 +862,11 @@
   (aref stack 0))
 
 
-(defun mutate-leaf (column old-node change buffer)
-  (let* ((new-size (- cl-ds.common.rrb:+maximum-children-count+
-                      (count :null buffer)))
-         (old-content (cl-ds.common.rrb:sparse-rrb-node-content old-node))
+(declaim (inline mutate-leaf))
+(defun mutate-leaf (column old-node change buffer
+                    &optional (new-size (- cl-ds.common.rrb:+maximum-children-count+
+                                           (count :null buffer))))
+  (let* ((old-content (cl-ds.common.rrb:sparse-rrb-node-content old-node))
          (old-size (array-dimension old-content 0))
          (bitmask 0)
          (new-content (if (>= old-size new-size)
@@ -919,55 +894,70 @@
           (cl-ds.common.rrb:sparse-rrb-node-bitmask old-node) bitmask)))
 
 
-(defun make-leaf (iterator column old-node change buffer)
-  (declare (type simple-vector buffer))
+(declaim (inline make-leaf))
+(defun make-leaf (iterator column old-node change buffer
+                  &optional (new-size (- cl-ds.common.rrb:+maximum-children-count+
+                                         (count :null buffer))))
+  (declare (type simple-vector buffer change))
   (unless (null old-node)
-    (iterate
-      (declare (type fixnum i))
-      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-      (for changed = (aref change i))
-      (unless (or changed
-                  (not (cl-ds.common.rrb:sparse-rrb-node-contains old-node
-                                                                  i)))
-        (setf (aref buffer i) (cl-ds.common.rrb:sparse-nref old-node i)))))
-  (let* ((new-size (- cl-ds.common.rrb:+maximum-children-count+
-                      (count :null buffer)))
-         (new-content (make-array new-size
-                                  :element-type (column-type column)))
+    (macrolet ((unrolled ()
+                 `(progn
+                    ,@(iterate
+                        (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+                        (collect `(let ((changed (svref change ,i)))
+                                    (unless (or changed
+                                                (not (cl-ds.common.rrb:sparse-rrb-node-contains old-node
+                                                                                                ,i)))
+                                      (setf (svref buffer ,i) (cl-ds.common.rrb:sparse-nref old-node ,i)))))))))
+      (unrolled)))
+  (let ((new-content (make-array new-size :element-type (column-type column)))
          (bitmask 0))
     (declare (type fixnum bitmask)
              (type (simple-array * (*)) new-content))
-    (iterate
-      (declare (type fixnum index i))
-      (with index = 0)
-      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-      (for v = (aref buffer i))
-      (unless (eql v :null)
-        (setf (aref new-content index) v
-              bitmask (dpb 1 (byte 1 i) bitmask)
-              index (the fixnum (1+ index)))))
+    (macrolet ((unrolled ()
+                 `(let ((index 0))
+                    (declare (type fixnum index))
+                    ,@(iterate
+                        (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+                        (collect `(let ((v (aref buffer ,i)))
+                                    (unless (eql v :null)
+                                      (setf (aref new-content index) v
+                                            bitmask (dpb 1 (byte 1 ,i) bitmask)
+                                            index (the fixnum (1+ index))))))))))
+      (unrolled))
     (make-node iterator column bitmask :content new-content)))
 
 
 (defun change-leaf (iterator depth stack column change buffer)
+  (declare (optimize (speed 3) (safety 0) (space 0)
+                     (debug 0) (compilation-speed 0)))
   (declare (type iterator-buffer buffer)
            (type fixnum depth)
            (type iterator-stack stack))
-  (cond ((every (curry #'eql :null) buffer)
-         (setf (aref stack depth) nil))
-        (t
-         (let* ((tag (cl-ds.common.abstract:read-ownership-tag column))
-                (old-node (aref stack depth)))
-           (if (or (null old-node)
-                   (not (cl-ds.common.abstract:acquire-ownership old-node
-                                                                 tag)))
-               (setf (aref stack depth)
-                     (make-leaf iterator column old-node change buffer))
-               (mutate-leaf column old-node change buffer)))))
+  (macrolet ((unrolled ()
+               `(let ((result #.cl-ds.common.rrb:+maximum-children-count+))
+                  ,@(iterate
+                      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+                      (collecting `(when (eq :null (svref buffer ,i))
+                                     (decf result))))
+                  result)))
+    (let ((new-size (unrolled)))
+      (cond ((zerop new-size)
+             (setf (aref stack depth) nil))
+            (t
+             (let* ((tag (cl-ds.common.abstract:read-ownership-tag column))
+                    (old-node (aref stack depth)))
+               (if (or (null old-node)
+                       (not (cl-ds.common.abstract:acquire-ownership old-node
+                                                                     tag)))
+                   (setf (aref stack depth)
+                         (make-leaf iterator column old-node change buffer new-size))
+                   (mutate-leaf column old-node change buffer new-size)))))))
   nil)
 
 
 (defun change-leafs (iterator)
+  (declare (optimize (speed 3) (safety 0) (space 0)))
   (let* ((initialization-status (read-initialization-status iterator))
          (depths (read-depths iterator))
          (stacks (read-stacks iterator))
@@ -1026,6 +1016,7 @@
 
 (-> reduce-stack (sparse-material-column-iterator fixnum fixnum iterator-stack sparse-material-column) t)
 (defun reduce-stack (iterator index depth stack column)
+  (declare (optimize (speed 3) (safety 0)))
   (let ((prev-node (aref stack depth)))
     (iterate
       (declare (type fixnum i bits))
@@ -1180,8 +1171,8 @@
               (skip (cl-ds.common.rrb:sparse-nref node 0)
                     (1- s))))
          (tree-index-bound (cl-ds.dicts.srrb:scan-index-bound column))
-         (index-bound (* #1=cl-ds.common.rrb:+maximum-children-count+
-                         (1+ (ceiling tree-index-bound #1#))))
+         (index-bound (* #.cl-ds.common.rrb:+maximum-children-count+
+                         (1+ (ceiling tree-index-bound #.cl-ds.common.rrb:+maximum-children-count+))))
          (root (cl-ds.dicts.srrb:access-tree column)))
     (setf (cl-ds.dicts.srrb:access-tree-index-bound column) tree-index-bound
           (cl-ds.dicts.srrb:access-index-bound column) index-bound

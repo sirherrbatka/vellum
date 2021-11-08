@@ -48,3 +48,5 @@
 (defgeneric alter-columns (table &rest columns))
 
 (defgeneric bind-row-closure (bind-row-object &key header))
+
+(defgeneric read-iterator (object))
