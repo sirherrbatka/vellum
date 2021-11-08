@@ -11,3 +11,4 @@
 ** TODO Replace generic functions of header with normal functions.
 ** TODO Remove predicates feature.
 ** TODO Add optimized expansion to the bind-row.
+** TODO Move RR and row-at from header to table.
