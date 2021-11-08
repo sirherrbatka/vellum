@@ -16,7 +16,7 @@ None of the above issues alone is substantial enough to be considered a real pro
 The main goal of the Vellum was to create a lispy data frame library, and therefore it should come with no surprise that the design is very different from a more famous Pandas for python. Although I attempted to emulate R lang workflow, Common Lisp, even with all of its awesomeness, lacks some of the R features (namely first-class expressions and environments) therefore the end result can be considered to be quite a bit unique. You are probably considering this is a drawback. However, I hope to demonstrate that Vellum is a approachable library.
 
 ** Header + Columns = Data Frame
-Data Frame is composed of header and columns. The header can be thought of as a data schema, containing column names, column types, and predicates for stored values and is required to create a table. Let's construct an empty data frame.
+Data Frame is composed of header and columns. The header can be thought of as a data schema, containing column names, and column types for stored values and is required to create a table. Let's construct an empty data frame.
 
 #+BEGIN_SRC common-lisp
   (defparameter *table*
