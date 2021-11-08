@@ -28,17 +28,12 @@
   (:reexport #:vellum.selection
              #:between
              #:rs
-             #:s
-             #:vs)
+             #:s)
   (:reexport #:cl-ds
              #:replica)
   (:reexport #:vellum.header
-             #:bind-row
-             #:bind-row-closure
-             #:brr
              #:header
              #:make-header
-             #:rr
              #:skip-row
              #:standard-header
              #:with-header)
@@ -47,6 +42,9 @@
              #:*transform-in-place*
              #:alter-columns
              #:at
+             #:bind-row
+             #:bind-row-closure
+             #:brr
              #:column-count
              #:column-name
              #:column-names
@@ -62,8 +60,10 @@
              #:row-count
              #:row-to-list
              #:row-to-vector
+             #:rr
              #:select
              #:show
+             #:vs
              #:to-table
              #:transform
              #:transform-row

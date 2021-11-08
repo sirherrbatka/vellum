@@ -35,7 +35,7 @@
                                             ((eq operation :drop)
                                              (iterate
                                                (for i from 0 below (length row))
-                                               (setf (vellum.header:rr i) :null))
+                                               (setf (rr i) :null))
                                              (return-from main))
                                             (t nil)))))
            (transform-row %transformation
@@ -43,7 +43,7 @@
                             (iterate
                               (for i from 0 below (length row))
                               (for value = (elt row i))
-                              (setf (vellum.header:rr i) value))
+                              (setf (rr i) value))
                             (let ((*transform-control* transform-control))
                               (funcall %function (standard-transformation-row %transformation)))))))))
 
@@ -73,7 +73,7 @@
                               (with existing-row = (vellum.header:row))
                               (for i from 0 below (length row))
                               (for value = (aref row i))
-                              (setf (vellum.header:rr i existing-row header) value))
+                              (setf (rr i existing-row header) value))
                             (when body
                               (let ((*transform-control* (lambda (operation)
                                                            (cond
@@ -82,7 +82,7 @@
                                                              ((eq operation :drop)
                                                               (iterate
                                                                 (for i from 0 below (vellum.header:column-count header))
-                                                                (setf (vellum.header:rr i) :null))
+                                                                (setf (rr i) :null))
                                                               (return-from function))
                                                              (t (funcall prev-control operation))))))
                                 (funcall function (standard-transformation-row transformation))))))))))
@@ -139,7 +139,7 @@
                    (finish-transformation))
                  (iterate
                    (for i from 0 below number-of-columns)
-                   (setf (vellum.header:rr i) (funcall key (aref input *current-row* i))))
+                   (setf (rr i) (funcall key (aref input *current-row* i))))
                  (funcall function))
                :end nil
                :restarts-enabled restarts-enabled

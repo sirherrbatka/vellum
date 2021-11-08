@@ -55,9 +55,3 @@
 (defmethod cl-ds.utils:cloning-information append
     ((range frame-range-mixin))
   '((:header read-header)))
-
-
-(defclass bind-row ()
-  ((%optimized-closure :initarg :optimized-closure
-                       :reader optimized-closure))
-  (:metaclass closer-mop:funcallable-standard-class))

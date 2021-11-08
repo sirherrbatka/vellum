@@ -9,9 +9,6 @@
    #:*row*
    #:*validate-predicates*
    #:alter-columns
-   #:bind-row
-   #:bind-row-closure
-   #:brr
    #:setf-predicate-check
    #:check-column-signatures-compatibility
    #:check-predicate
@@ -23,7 +20,6 @@
    #:column-type
    #:concatenate-headers
    #:constantly-t
-   #:current-row-as-vector
    #:ensure-index
    #:frame-range-mixin
    #:fundamental-header
@@ -45,8 +41,6 @@
    #:read-name
    #:read-new-value
    #:row
-   #:row-at
-   #:rr
    #:select-columns
    #:set-row
    #:set-to-null

@@ -10,12 +10,15 @@
    #:*transform-in-place*
    #:alter-columns
    #:at
+   #:bind-row
    #:bind-row-closure
+   #:brr
    #:column-at
    #:column-count
    #:column-name
    #:column-names
    #:column-type
+   #:current-row-as-vector
    #:drop-row
    #:erase!
    #:finish-transformation
@@ -30,9 +33,11 @@
    #:nullify
    #:remove-nulls
    #:retry
+   #:row-at
    #:row-count
    #:row-to-list
    #:row-to-vector
+   #:rr
    #:select
    #:setfable-table-row
    #:show

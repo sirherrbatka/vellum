@@ -31,30 +31,6 @@
   *header*)
 
 
-(declaim (inline rr))
-(defun rr (index &optional (row (row)) (header (header)))
-  (row-at header row index))
-
-
-(declaim (inline (setf rr)))
-(defun (setf rr) (new-value index &optional (row (row)) (header (header)))
-  (setf (row-at header row index) new-value))
-
-
-(defun current-row-as-vector (&optional (header (header)) (row (row)))
-  (iterate
-    (with column-count = (column-count header))
-    (with result = (make-array column-count))
-    (for i from 0 below column-count)
-    (setf (aref result i) (rr i row))
-    (finally (return result))))
-
-
-(defun make-bind-row (optimized-closure non-optimized-closure)
-  (lret ((result (make 'bind-row :optimized-closure optimized-closure)))
-    (c2mop:set-funcallable-instance-function result non-optimized-closure)))
-
-
 (defun ensure-index (header index/name)
   (check-type index/name (or symbol string non-negative-integer))
   (if (numberp index/name)

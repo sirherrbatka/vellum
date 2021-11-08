@@ -113,19 +113,4 @@
 
   (function
    validate-active-header
-   (:description "Signals NO-HEADER error when the *HEADER* is NIL."))
-
-  (function
-   rr
-   (:description "Extracts value from the current row."
-    :exceptional-situations "Signals NO-COLUMN, NO-HEADER, NO-ROW exception if: column is not found in the current header, there is no active header, there is no active row."))
-
-  (function
-   make-bind-row
-   (:description "Conrstucts the BIND-ROW instance. This function is typically not called explicitly but instead part of the BIND-ROW macros macroexpansion."))
-
-  (function
-   brr
-   (:description "Expands to a closure extracting COLUMN from the CURRENT-ROW if only one argument has been passed to the macro, or expands to a closure extracting multiple values packed into a list, elementwise."
-    :exceptional-situations "Expanded closure signals NO-COLUMN, NO-HEADER, NO-ROW exception if: column is not found in the current header, there is no active header, there is no active row."
-    :notes "Expanded closure is not thread safe.")))
+    (:description "Signals NO-HEADER error when the *HEADER* is NIL.")))

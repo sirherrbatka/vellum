@@ -96,16 +96,6 @@
                                         x))))))
 
 
-(defun vs (&rest forms)
-  (let ((header (vellum.header:header)))
-    (~> (apply #'s forms)
-        (address-range
-         (lambda (x) (vellum.header:ensure-index header x))
-         (vellum.header:column-count header))
-        (cl-ds.alg:on-each
-         (lambda (x) (vellum.header:rr x))))))
-
-
 (defun s-list (header &rest forms)
   (~> (apply #'s forms)
       (vellum.selection:address-range

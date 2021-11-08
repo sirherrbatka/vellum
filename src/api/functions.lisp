@@ -84,7 +84,7 @@
          (i 0))
     (transform table
                (vellum:bind-row ()
-                 (setf (aref content i) (vellum.header:current-row-as-vector))
+                 (setf (aref content i) (vellum.table:current-row-as-vector))
                  (incf i))
                :in-place t)
     (iterate

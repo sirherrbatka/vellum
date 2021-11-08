@@ -46,3 +46,7 @@
 (defgeneric show (as table &key &allow-other-keys))
 
 (defgeneric alter-columns (table &rest columns))
+
+(defgeneric row-at (header row position))
+
+(defgeneric (setf row-at) (new-value header row position))

@@ -17,10 +17,6 @@
 
 (defgeneric column-count (header))
 
-(defgeneric row-at (header row position))
-
-(defgeneric (setf row-at) (new-value header row position))
-
 (defgeneric make-row (range data))
 
 (defgeneric make-value (header source index))

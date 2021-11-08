@@ -73,3 +73,9 @@
   '((:table-row read-table-row)
     (:header read-header)
     (:row-count read-row-count)))
+
+
+(defclass bind-row ()
+  ((%optimized-closure :initarg :optimized-closure
+                       :reader optimized-closure))
+  (:metaclass closer-mop:funcallable-standard-class))
