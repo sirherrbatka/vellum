@@ -1,5 +1,13 @@
 * DONE Validate column signature slots in the initialize-instance.
   CLOSED: [2019-03-10 nie 16:52]
 ** signal error if signature is wrong
-* TODO Columns should conceptually have unlimited size
+* DONE Columns should conceptually have unlimited size
+  CLOSED: [2021-11-08 pon 08:28]
 ** This may conflict with the way iterator currently works.
+* TODO Performance
+** TODO Replace column signature class with struct.
+** TODO Replace header class with struct.
+** TODO Replace generic functions of column signature with normal functions.
+** TODO Replace generic functions of header with normal functions.
+** TODO Remove predicates feature.
+** TODO Add optimized expansion to the bind-row.
