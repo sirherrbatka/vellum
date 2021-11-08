@@ -118,20 +118,22 @@
                      (aref columns column-index)
                      (aref changes column-index)
                      (aref buffers column-index))
-        (iterate
-          (declare (type iterator-change change)
-                   (type simple-vector change)
-                   (type fixnum i))
-          (with change = (aref changes column-index))
-          (for i from 0 below (length change))
-          (setf (svref change i) nil))
-        (iterate
-          (declare (type iterator-buffer buffer)
-                   (type simple-vector buffer)
-                   (type fixnum i))
-          (with buffer = (svref buffers column-index))
-          (for i from 0 below (length buffer))
-          (setf (svref buffer i) :null))
+        (let ((change (svref changes column-index)))
+          (declare (type iterator-change change))
+          (macrolet ((unrolled ()
+                       `(progn
+                          ,@(iterate
+                              (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+                              (collecting `(setf (svref change ,i) nil))))))
+            (unrolled)))
+        (let ((buffer (svref buffers column-index)))
+          (declare (type simple-vector buffer))
+          (macrolet ((unrolled ()
+                       `(progn
+                          ,@(iterate
+                              (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+                              (collecting `(setf (svref buffer ,i) :null))))))
+            (unrolled)))
         (reduce-stack iterator index
                       (aref depths column-index)
                       (svref stacks column-index)
