@@ -7,8 +7,6 @@
 
 (defgeneric make-row (range data))
 
-(defgeneric make-value (header source index))
-
 (defgeneric concatenate-headers (header &rest more-headers))
 
 (defgeneric select-columns (header columns))
