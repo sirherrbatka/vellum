@@ -270,38 +270,6 @@
     result))
 
 
-(defun %aggregate-rows (table &rest params)
-  (bind ((pairs (batches params 2))
-         (row-count (row-count table))
-         (names (flatten (mapcar #'first pairs)))
-         (result (vellum.table:make-table
-                  :header (apply #'vellum.header:make-header
-                                 'vellum.header:standard-header
-                                 (mapcar (curry #'list :name)
-                                         names)))))
-    (iterate
-      (for i from 0)
-      (for (name (aggregator-constructor . params)) in pairs)
-      (unless (listp name)
-        (setf name (list name)))
-      (iterate
-        (for id in name)
-        (for column = (vellum.table:column-at table id))
-        (for aggregator = (funcall aggregator-constructor))
-        (if (getf params :skip-nulls)
-            (cl-ds.alg.meta:across-aggregate
-             column
-             (curry #'cl-ds.alg.meta:pass-to-aggregation aggregator))
-            (iterate
-              (for i from 0 below row-count)
-              (cl-ds.alg.meta:pass-to-aggregation
-               aggregator
-               (vellum.column:column-at column i))))
-        (setf (at result 0 id)
-              (cl-ds.alg.meta:extract-result aggregator)))
-      (finally (return result)))))
-
-
 (defun %aggregate-columns (table aggregator-constructor
                            &key (skip-nulls nil) (type t)
                            name
