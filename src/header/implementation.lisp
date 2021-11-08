@@ -35,40 +35,6 @@
       (call-next-method)))
 
 
-(defmethod cl-ds:traverse ((range frame-range-mixin) function)
-  (if (null *header*)
-      (let* ((header (read-header range))
-             (bind-row-closure (bind-row-closure function
-                                                 :header header)))
-        (with-header (header)
-          (call-next-method
-           range (lambda (data)
-                   (restart-case (let ((row (make-row range data)))
-                                   (set-row row)
-                                   (funcall bind-row-closure row))
-                     (skip-row ()
-                       :report "Skip this row."
-                       nil))))))
-      (call-next-method)))
-
-
-(defmethod cl-ds:across ((range frame-range-mixin) function)
-  (if (null *header*)
-      (let* ((header (read-header range))
-             (bind-row-closure (bind-row-closure function
-                                                 :header header)))
-        (with-header (header)
-          (call-next-method
-           range (lambda (data)
-                   (restart-case (let ((row (make-row range data)))
-                                   (set-row row)
-                                   (funcall bind-row-closure row))
-                     (skip-row ()
-                       :report "Skip this row."
-                       nil))))))
-    (call-next-method)))
-
-
 (defmethod make-row ((range frame-range-mixin)
                      (data vector))
   (iterate
@@ -77,7 +43,6 @@
                        (make-array :initial-element :null)))
     (for elt in-vector data)
     (for i from 0)
-    (check-predicate header i elt)
     (setf (aref result i) elt)
     (finally (return result))))
 

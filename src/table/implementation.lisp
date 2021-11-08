@@ -551,3 +551,38 @@
                              &key header)
   (declare (ignore header))
   (ensure-function fn))
+
+
+
+(defmethod cl-ds:traverse ((range vellum.header:frame-range-mixin) function)
+  (if (null vellum.header:*header*)
+      (let* ((header (vellum.header:read-header range))
+             (bind-row-closure (bind-row-closure function
+                                                 :header header)))
+        (vellum.header:with-header (header)
+          (call-next-method
+           range (lambda (data)
+                   (restart-case (let ((row (vellum.header:make-row range data)))
+                                   (vellum.header:set-row row)
+                                   (funcall bind-row-closure row))
+                     (vellum.header:skip-row ()
+                       :report "Skip this row."
+                       nil))))))
+      (call-next-method)))
+
+
+(defmethod cl-ds:across ((range vellum.header:frame-range-mixin) function)
+  (if (null vellum.header:*header*)
+      (let* ((header (vellum.header:read-header range))
+             (bind-row-closure (bind-row-closure function
+                                                 :header header)))
+        (vellum.header:with-header (header)
+          (call-next-method
+           range (lambda (data)
+                   (restart-case (let ((row (vellum.header:make-row range data)))
+                                   (vellum.header:set-row row)
+                                   (funcall bind-row-closure row))
+                     (vellum.header:skip-row ()
+                       :report "Skip this row."
+                       nil))))))
+      (call-next-method)))
