@@ -937,13 +937,12 @@
            (type fixnum depth)
            (type iterator-stack stack))
   (macrolet ((unrolled ()
-               `(let ((result #.cl-ds.common.rrb:+maximum-children-count+))
-                  ,@(iterate
-                      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-                      (collecting `(when (eq :null (svref buffer ,i))
-                                     (decf result))))
-                  result)))
-    (let ((new-size (unrolled)))
+               `(+ ,@(iterate
+                       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+                       (collecting `(if (eq :null (svref buffer ,i))
+                                        0
+                                        1))))))
+    (let ((new-size (the fixnum (unrolled))))
       (cond ((zerop new-size)
              (setf (aref stack depth) nil))
             (t
@@ -1052,7 +1051,7 @@
       (return-from fill-buffer nil))
     (iterate
       (declare (type fixnum i))
-      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+      (for i from 0 below #.cl-ds.common.rrb:+maximum-children-count+)
       (for present = (cl-ds.common.rrb:sparse-rrb-node-contains node i))
       (setf (aref buffer i)
             (if present
