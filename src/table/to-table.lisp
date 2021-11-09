@@ -67,7 +67,7 @@
          (block function
            (transform-row transformation
                           (lambda (existing-row)
-                            (declare (type table-row existing-row))
+                            (declare (type setfable-table-row existing-row))
                             (iterate
                               (for i from 0 below (length row))
                               (for value = (aref row i))

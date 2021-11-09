@@ -111,11 +111,12 @@
 
 (declaim (inline row-at))
 (defun row-at (header row name)
-  (declare (optimize (speed 3)))
   (let ((column (if (integerp name)
                     name
                     (vellum.header:name-to-index header name))))
     (etypecase row
+      (table-row
+       (~> row table-row-iterator (vellum.column:iterator-at column)))
       (sequence
        (let ((length (length row)))
          (unless (< column length)
@@ -124,18 +125,18 @@
                    :argument 'column
                    :value column
                    :format-arguments (list column)))
-         (elt row column)))
-      (table-row
-       (~> row table-row-iterator (vellum.column:iterator-at column))))))
+         (elt row column))))))
 
 
 (declaim (inline (setf row-at)))
 (defun (setf row-at) (new-value header row name)
-  (declare (optimize (speed 3)))
   (let ((column (if (integerp name)
                     name
                     (vellum.header:name-to-index header name))))
     (etypecase row
+      (setfable-table-row
+       (setf (~> row setfable-table-row-iterator (vellum.column:iterator-at column))
+             new-value))
       (sequence
        (let ((length (length row)))
          (unless (< column length)
@@ -144,7 +145,4 @@
                    :argument 'column
                    :value column
                    :format-arguments (list column)))
-         (setf (elt row column) new-value)))
-      (setfable-table-row
-       (setf (~> row setfable-table-row-iterator (vellum.column:iterator-at column))
-             new-value)))))
+         (setf (elt row column) new-value))))))
