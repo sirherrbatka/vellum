@@ -26,6 +26,8 @@
    #:header
    #:hstack
    #:hstack*
+   #:make-table-row
+   #:make-setfable-table-row
    #:iterator
    #:make-table
    #:make-table*
