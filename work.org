@@ -4,16 +4,19 @@
 * DONE Columns should conceptually have unlimited size
   CLOSED: [2021-11-08 pon 08:28]
 ** This may conflict with the way iterator currently works.
-* TODO Performance
+* DONE Performance
+  CLOSED: [2021-11-09 wto 18:47]
 ** DONE Replace column signature class with struct.
    CLOSED: [2021-11-08 pon 17:25]
 ** DONE Replace header class with struct.
    CLOSED: [2021-11-08 pon 17:25]
-** TODO Replace generic functions of column signature with normal functions.
-** TODO Replace generic functions of header with normal functions.
+** DONE Replace generic functions of column signature with normal functions.
+   CLOSED: [2021-11-09 wto 18:47]
+** DONE Replace generic functions of header with normal functions.
+   CLOSED: [2021-11-09 wto 18:47]
 ** DONE Remove predicates feature.
    CLOSED: [2021-11-08 pon 18:41]
 ** DONE Add optimized expansion to the bind-row.
-   CLOSED: [2021-11-08 pon 18:41]
+   CLOSED: [2021-11-09 wto 18:47]
 ** DONE Move RR and row-at from header to table.
    CLOSED: [2021-11-08 pon 16:41]
