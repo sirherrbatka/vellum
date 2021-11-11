@@ -282,7 +282,8 @@
       (when (null n)
         (next-iteration))
       (in outer (maximizing index into max-index))
-      (for existing-mask = (cl-ds.common.rrb:sparse-rrb-node-bitmask n))
+      (for existing-mask = (cl-ds.common.rrb:sparse-rrb-node-bitmask
+                            (the cl-ds.common.rrb:sparse-rrb-node-tagged n)))
       (for mask = (gethash index result 0))
       (setf (gethash index result) (logior mask existing-mask)))
     (finally (return-from outer (values result max-index)))))
@@ -355,7 +356,7 @@
 
 
 (-> node (concatenation-state t fixnum)
-    (or null cl-ds.common.rrb:sparse-rrb-node))
+    (or null cl-ds.common.rrb:sparse-rrb-node-tagged))
 (defun node (state column index)
   (declare (type concatenation-state state)
            (type fixnum index))
@@ -373,9 +374,9 @@
       new-value)))
 
 
-(-> (setf node) ((or null cl-ds.common.rrb:sparse-rrb-node)
+(-> (setf node) ((or null cl-ds.common.rrb:sparse-rrb-node-tagged)
                  concatenation-state fixnum fixnum)
-    (or null cl-ds.common.rrb:sparse-rrb-node))
+    (or null cl-ds.common.rrb:sparse-rrb-node-tagged))
 (defun (setf node) (new-value state column index)
   (declare (optimize (speed 3)))
   (assert (or (null new-value)
@@ -580,9 +581,7 @@
                                 to-mask column-index)
   (declare (optimize (speed 3)))
   (with-concatenation-state (state)
-    (bind ((from-parent (parent-index from))
-           (to-parent (parent-index to))
-           (column (aref columns column-index))
+    (bind ((column (aref columns column-index))
            (column-tag (cl-ds.common.abstract:read-ownership-tag column))
            (from-node (node state column-index from))
            (to-node (node state column-index to))
@@ -837,7 +836,7 @@
   (declare (type fixnum depth new-index)
            (type iterator-stack stack))
   (assert (>= new-index 0))
-  (assert (typep node '(or null cl-ds.common.rrb:sparse-rrb-node)))
+  (assert (typep node '(or null cl-ds.common.rrb:sparse-rrb-node-tagged)))
   (when (null node)
     (return-from move-stack nil))
   (iterate outer
@@ -858,7 +857,7 @@
         (for j from i to depth)
         (setf (aref stack j) nil))
       (leave))
-    (setf node (the cl-ds.common.rrb:sparse-rrb-node
+    (setf node (the cl-ds.common.rrb:sparse-rrb-node-tagged
                     (cl-ds.common.rrb:sparse-nref node offset))
           (aref stack i) node))
   (aref stack 0))
@@ -868,6 +867,7 @@
 (defun mutate-leaf (column old-node change buffer
                     &optional (new-size (- cl-ds.common.rrb:+maximum-children-count+
                                            (count :null buffer))))
+  (declare (type cl-ds.common.rrb:sparse-rrb-node-tagged old-node))
   (let* ((old-content (cl-ds.common.rrb:sparse-rrb-node-content old-node))
          (old-size (array-dimension old-content 0))
          (bitmask 0)
@@ -984,8 +984,8 @@
 
 
 (defun copy-on-write-node (iterator parent child position tag column)
-  (assert (typep parent '(or null cl-ds.common.rrb:sparse-rrb-node)))
-  (assert (typep child '(or null cl-ds.common.rrb:sparse-rrb-node)))
+  (assert (typep parent '(or null cl-ds.common.rrb:sparse-rrb-node-tagged)))
+  (assert (typep child '(or null cl-ds.common.rrb:sparse-rrb-node-tagged)))
   (flet ((empty-node (node)
            (or (null node)
                (zerop (cl-ds.common.rrb:sparse-rrb-node-size node)))))
@@ -1046,6 +1046,7 @@
            (type iterator-stack stack)
            (type iterator-buffer buffer))
   (let ((node (aref stack depth)))
+    (declare (type (or null cl-ds.common.rrb:sparse-rrb-node-tagged) node))
     (when (null node)
       (map-into buffer (constantly :null))
       (return-from fill-buffer nil))

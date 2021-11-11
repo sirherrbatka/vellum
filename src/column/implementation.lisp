@@ -109,6 +109,8 @@
 
 (defun untouch (iterator)
   (iterate
+    (declare (type (or null cl-ds.common.rrb:sparse-rrb-node-tagged)
+                   node))
     (with depths = (read-depths iterator))
     (with offset = (offset (index iterator)))
     (with changes = (read-changes iterator))
@@ -274,7 +276,7 @@
     (for stack-head = (first-elt stack))
     (setf (cl-ds.dicts.srrb:access-tree column)
           (if (or (null stack-head)
-                  (~> stack-head
+                  (~> (the cl-ds.common.rrb:sparse-rrb-node-tagged stack-head)
                       cl-ds.common.rrb:sparse-rrb-node-size
                       zerop))
               cl-ds.meta:null-bucket
@@ -384,7 +386,7 @@
                 (funcall function :null)))
           (return-from cl-ds:across container))
          ((:labels map-leaf (leaf index))
-          (declare (type cl-ds.common.rrb:sparse-rrb-node leaf)
+          (declare (type cl-ds.common.rrb:sparse-rrb-node-tagged leaf)
                    (type fixnum index)
                    (type function function))
           (iterate
@@ -409,7 +411,7 @@
                                         (the fixnum (* cl-ds.common.rrb:+bit-count+ level)))))
             (funcall function :null)))
          ((:labels map-subtree (subtree level index))
-          (declare (type cl-ds.common.rrb:sparse-rrb-node subtree)
+          (declare (type cl-ds.common.rrb:sparse-rrb-node-tagged subtree)
                    (type function function)
                    (type fixnum level))
           (let ((level-1 (1- level))
