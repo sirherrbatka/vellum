@@ -127,3 +127,8 @@
              :value name
              :format-arguments (list name)))
     (~> column-signatures (aref name))))
+
+
+(defun column-type (header column)
+  (~>> (column-signature header column)
+       read-type))

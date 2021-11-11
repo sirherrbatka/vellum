@@ -1,8 +1,6 @@
 (cl:in-package #:vellum.header)
 
 
-(defgeneric column-type (header column))
-
 (defgeneric column-count (header))
 
 (defgeneric make-row (range data))

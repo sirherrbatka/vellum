@@ -1,12 +1,6 @@
 (cl:in-package #:vellum.header)
 
 
-(defmethod column-type ((header standard-header)
-                        column)
-  (~>> (column-signature header column)
-       read-type))
-
-
 (defmethod column-count ((header standard-header))
   (~> header read-column-signatures length))
 
