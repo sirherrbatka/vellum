@@ -5,7 +5,7 @@
 
 (quicklisp:quickload :vellum-tests :silent t)
 
-(setf prove:*enable-colors* nil)
+(setf prove:*enable-colors* t)
 
 (unwind-protect
      (let ((*error-output* (make-broadcast-stream)))
