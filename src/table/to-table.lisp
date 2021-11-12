@@ -59,6 +59,7 @@
          (transformation (~> (table-from-header class header)
                              (transformation nil :in-place t
                                              :restarts-enabled restarts-enabled)))
+         (column-count (vellum.header:column-count header))
          (prev-control (ensure-function *transform-control*))
          (table (standard-transformation-table transformation)))
     (declare (type vellum.header:standard-header header))
@@ -80,19 +81,20 @@
                 (setf (rr i existing-row header) value))
               (when body
                 (with-table (table)
-                  (vellum.header:set-row (standard-transformation-row transformation))
-                  (let ((*transform-control* (lambda (operation)
-                                               (cond
-                                                 ((eq operation :finish)
-                                                  (return-from main))
-                                                 ((eq operation :drop)
-                                                  (iterate
-                                                    (declare (type fixnum i))
-                                                    (for i from 0 below (vellum.header:column-count header))
-                                                    (setf (rr i) :null))
-                                                  (return-from function))
-                                                 (t (funcall prev-control operation))))))
-                    (funcall function (standard-transformation-row transformation)))))))))))
+                  (let ((row (standard-transformation-row transformation)))
+                    (vellum.header:set-row row)
+                    (let ((*transform-control* (lambda (operation)
+                                                 (cond
+                                                   ((eq operation :finish)
+                                                    (return-from main))
+                                                   ((eq operation :drop)
+                                                    (iterate
+                                                      (declare (type fixnum i))
+                                                      (for i from 0 below column-count)
+                                                      (setf (rr i row header) :null))
+                                                    (return-from function))
+                                                   (t (funcall prev-control operation))))))
+                      (funcall function (standard-transformation-row transformation))))))))))))
     (transformation-result transformation)))
 
 
