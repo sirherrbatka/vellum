@@ -55,7 +55,7 @@
                        (restarts-enabled t)
                        &allow-other-keys)
   (let* ((header (vellum.header:read-header range))
-         (function (bind-row-closure body :header header))
+         (function (ensure-function (bind-row-closure body :header header)))
          (transformation (~> (table-from-header class header)
                              (transformation nil :in-place t
                                              :restarts-enabled restarts-enabled)))
