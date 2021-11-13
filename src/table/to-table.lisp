@@ -76,7 +76,7 @@
                        (optimize (speed 3) (safety 0)))
               (iterate
                 (declare (type fixnum i))
-                (for i from 0 below (length row))
+                (for i from 0 below (min column-count (length row)))
                 (for value = (aref row i))
                 (setf (rr i existing-row header) value))
               (when body
