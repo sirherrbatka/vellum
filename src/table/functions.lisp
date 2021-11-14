@@ -133,10 +133,21 @@
   (let ((column (if (integerp name)
                     name
                     (vellum.header:name-to-index header name))))
+    (declare (type fixnum column))
     (etypecase row
       (setfable-table-row
        (setf (~> row setfable-table-row-iterator (vellum.column:iterator-at column))
              new-value))
+      (simple-vector
+        (locally (declare (optimize (speed 3) (safety 0)))
+          (let ((length (length row)))
+            (unless (< column length)
+              (error 'no-column
+                     :bounds (iota length)
+                     :argument 'column
+                     :value column
+                     :format-arguments (list column)))
+            (setf (aref row column) new-value))))
       (sequence
        (let ((length (length row)))
          (unless (< column length)

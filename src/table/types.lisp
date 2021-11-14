@@ -49,6 +49,8 @@
 
 
 (defstruct table-row iterator)
+(declaim (inline setfable-table-row-iterator))
+(declaim (inline table-row-iterator))
 (defstruct (setfable-table-row (:include table-row)))
 
 
