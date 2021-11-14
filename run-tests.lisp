@@ -5,10 +5,10 @@
 
 (quicklisp:quickload :vellum-tests :silent t)
 
-(setf prove:*enable-colors* t)
-
 (unwind-protect
-     (let ((*error-output* (make-broadcast-stream)))
+     (let ((*error-output* (make-broadcast-stream))
+           (prove:*enable-colors* t)
+           (prove:*default-reporter* :dot))
        (handler-bind
            ((lparallel.kernel:no-kernel-error
               (lambda (c)
