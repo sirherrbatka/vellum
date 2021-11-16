@@ -141,9 +141,10 @@
       (simple-vector
         (locally (declare (optimize (speed 3) (safety 0)))
           (let ((length (length row)))
+            (declare (type fixnum length))
             (unless (< column length)
               (error 'no-column
-                     :bounds (iota length)
+                     :bounds `(0 ,length)
                      :argument 'column
                      :value column
                      :format-arguments (list column)))
