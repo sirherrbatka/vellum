@@ -114,9 +114,22 @@
   (let ((column (if (integerp name)
                     name
                     (vellum.header:name-to-index header name))))
+    (declare (type integer column))
     (etypecase row
       (table-row
        (~> row table-row-iterator (vellum.column:iterator-at column)))
+      (simple-vector
+       (let ((length (length row)))
+         (declare (type fixnum length))
+         (unless (< column length)
+           (error 'no-column
+                  :bounds `(0 ,length)
+                  :argument 'column
+                  :value column
+                  :format-arguments (list column)))
+         (locally (declare (optimize (speed 3) (safety 0)
+                                     (space 0) (debug 0)))
+           (aref row column))))
       (sequence
        (let ((length (length row)))
          (unless (< column length)
@@ -133,21 +146,22 @@
   (let ((column (if (integerp name)
                     name
                     (vellum.header:name-to-index header name))))
-    (declare (type fixnum column))
+    (declare (type integer column))
     (etypecase row
       (setfable-table-row
        (setf (~> row setfable-table-row-iterator (vellum.column:iterator-at column))
              new-value))
       (simple-vector
-        (locally (declare (optimize (speed 3) (safety 0)))
-          (let ((length (length row)))
-            (declare (type fixnum length))
-            (unless (< column length)
-              (error 'no-column
-                     :bounds `(0 ,length)
-                     :argument 'column
-                     :value column
-                     :format-arguments (list column)))
+        (let ((length (length row)))
+          (declare (type fixnum length))
+          (unless (< column length)
+            (error 'no-column
+                   :bounds `(0 ,length)
+                   :argument 'column
+                   :value column
+                   :format-arguments (list column)))
+          (locally (declare (optimize (speed 3) (safety 0)
+                                      (space 0) (debug 0)))
             (setf (aref row column) new-value))))
       (sequence
        (let ((length (length row)))
