@@ -7,6 +7,8 @@
 
 (unwind-protect
      (let ((*error-output* (make-broadcast-stream))
+           (prove:*test-result-output* *standard-output*)
+           (*standard-output* (make-broadcast-stream))
            (prove:*enable-colors* t)
            (prove:*default-reporter* :dot))
        (handler-bind
