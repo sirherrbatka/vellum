@@ -35,6 +35,7 @@
    #:nullify
    #:remove-nulls
    #:retry
+   #:row
    #:row-at
    #:row-count
    #:row-to-list
