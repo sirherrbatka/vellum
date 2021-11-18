@@ -121,7 +121,7 @@
       (simple-vector
        (let ((length (length row)))
          (declare (type fixnum length))
-         (unless (< column length)
+         (unless (< -1 column length)
            (error 'no-column
                   :bounds `(0 ,length)
                   :argument 'column
@@ -132,7 +132,7 @@
            (aref row column))))
       (sequence
        (let ((length (length row)))
-         (unless (< column length)
+         (unless (< -1 column length)
            (error 'no-column
                    :bounds (iota length)
                    :argument 'column
@@ -154,7 +154,7 @@
       (simple-vector
         (let ((length (length row)))
           (declare (type fixnum length))
-          (unless (< column length)
+          (unless (< -1 column length)
             (error 'no-column
                    :bounds `(0 ,length)
                    :argument 'column
@@ -165,7 +165,7 @@
             (setf (aref row column) new-value))))
       (sequence
        (let ((length (length row)))
-         (unless (< column length)
+         (unless (< -1 column length)
            (error 'no-column
                    :bounds (iota length)
                    :argument 'column

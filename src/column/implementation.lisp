@@ -28,6 +28,12 @@
          (touched (read-touched iterator))
          (index (index iterator))
          (offset (offset index)))
+    (unless (< -1 column length)
+      (error 'no-such-column
+             :bounds `(0 ,length)
+             :argument 'column
+             :value column
+             :format-control "There is no such column."))
     (unless (aref status column)
       (setf (aref status column) t)
       (initialize-iterator-column
