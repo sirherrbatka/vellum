@@ -21,6 +21,7 @@
            (type sparse-material-column-iterator iterator))
   (bind ((status (read-initialization-status iterator))
          (columns (read-columns iterator))
+         (length (length columns))
          (stacks (read-stacks iterator))
          (buffers (read-buffers iterator))
          (depths (read-depths iterator))
