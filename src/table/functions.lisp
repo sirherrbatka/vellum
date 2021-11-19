@@ -1,5 +1,80 @@
 (cl:in-package #:vellum.table)
 
+(declaim (inline row-at))
+(defun row-at (header row name)
+  (let ((column (if (integerp name)
+                    name
+                    (vellum.header:name-to-index header name))))
+    (declare (type integer column))
+    (etypecase row
+      (table-row
+       (~> row table-row-iterator (vellum.column:iterator-at column)))
+      (simple-vector
+       (let ((length (length row)))
+         (declare (type fixnum length))
+         (unless (< -1 column length)
+           (error 'no-column
+                  :bounds `(0 ,length)
+                  :argument 'column
+                  :value column
+                  :format-arguments (list column)))
+         (locally (declare (optimize (speed 3) (safety 0)
+                                     (space 0) (debug 0)))
+           (aref row column))))
+      (sequence
+       (let ((length (length row)))
+         (unless (< -1 column length)
+           (error 'no-column
+                   :bounds (iota length)
+                   :argument 'column
+                   :value column
+                   :format-arguments (list column)))
+         (elt row column))))))
+
+
+(declaim (inline (setf row-at)))
+(defun (setf row-at) (new-value header row name)
+  (let ((column (if (integerp name)
+                    name
+                    (vellum.header:name-to-index header name))))
+    (declare (type integer column))
+    (etypecase row
+      (setfable-table-row
+       (setf (~> row setfable-table-row-iterator (vellum.column:iterator-at column))
+             new-value))
+      (simple-vector
+        (let ((length (length row)))
+          (declare (type fixnum length))
+          (unless (< -1 column length)
+            (error 'no-column
+                   :bounds `(0 ,length)
+                   :argument 'column
+                   :value column
+                   :format-arguments (list column)))
+          (locally (declare (optimize (speed 3) (safety 0)
+                                      (space 0) (debug 0)))
+            (setf (aref row column) new-value))))
+      (sequence
+       (let ((length (length row)))
+         (unless (< -1 column length)
+           (error 'no-column
+                   :bounds (iota length)
+                   :argument 'column
+                   :value column
+                   :format-arguments (list column)))
+         (setf (elt row column) new-value))))))
+
+(declaim (inline rr))
+(defun rr (index
+           &optional (row (vellum.header:row)) (header (vellum.header:header)))
+  (row-at header row index))
+
+
+(declaim (inline (setf rr)))
+(defun (setf rr) (new-value index
+                  &optional (row (vellum.header:row)) (header (vellum.header:header)))
+  (setf (row-at header row index) new-value))
+
 
 (defun finish-transformation ()
   (funcall *transform-control* :finish))
@@ -72,18 +147,6 @@
   (~> table vellum.table:header vellum.header:column-names))
 
 
-(declaim (inline rr))
-(defun rr (index
-           &optional (row (vellum.header:row)) (header (vellum.header:header)))
-  (row-at header row index))
-
-
-(declaim (inline (setf rr)))
-(defun (setf rr) (new-value index
-                  &optional (row (vellum.header:row)) (header (vellum.header:header)))
-  (setf (row-at header row index) new-value))
-
-
 (defun current-row-as-vector (&optional
                                 (header (vellum.header:header))
                                 (row (vellum.header:row)))
@@ -107,68 +170,3 @@
 (defun make-bind-row (optimized-closure non-optimized-closure)
   (lret ((result (make 'bind-row :optimized-closure optimized-closure)))
     (c2mop:set-funcallable-instance-function result non-optimized-closure)))
-
-
-(declaim (inline row-at))
-(defun row-at (header row name)
-  (let ((column (if (integerp name)
-                    name
-                    (vellum.header:name-to-index header name))))
-    (declare (type integer column))
-    (etypecase row
-      (table-row
-       (~> row table-row-iterator (vellum.column:iterator-at column)))
-      (simple-vector
-       (let ((length (length row)))
-         (declare (type fixnum length))
-         (unless (< -1 column length)
-           (error 'no-column
-                  :bounds `(0 ,length)
-                  :argument 'column
-                  :value column
-                  :format-arguments (list column)))
-         (locally (declare (optimize (speed 3) (safety 0)
-                                     (space 0) (debug 0)))
-           (aref row column))))
-      (sequence
-       (let ((length (length row)))
-         (unless (< -1 column length)
-           (error 'no-column
-                   :bounds (iota length)
-                   :argument 'column
-                   :value column
-                   :format-arguments (list column)))
-         (elt row column))))))
-
-
-(declaim (inline (setf row-at)))
-(defun (setf row-at) (new-value header row name)
-  (let ((column (if (integerp name)
-                    name
-                    (vellum.header:name-to-index header name))))
-    (declare (type integer column))
-    (etypecase row
-      (setfable-table-row
-       (setf (~> row setfable-table-row-iterator (vellum.column:iterator-at column))
-             new-value))
-      (simple-vector
-        (let ((length (length row)))
-          (declare (type fixnum length))
-          (unless (< -1 column length)
-            (error 'no-column
-                   :bounds `(0 ,length)
-                   :argument 'column
-                   :value column
-                   :format-arguments (list column)))
-          (locally (declare (optimize (speed 3) (safety 0)
-                                      (space 0) (debug 0)))
-            (setf (aref row column) new-value))))
-      (sequence
-       (let ((length (length row)))
-         (unless (< -1 column length)
-           (error 'no-column
-                   :bounds (iota length)
-                   :argument 'column
-                   :value column
-                   :format-arguments (list column)))
-         (setf (elt row column) new-value))))))

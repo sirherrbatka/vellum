@@ -534,7 +534,7 @@
 
 
 (defmethod bind-row-closure ((bind-row bind-row)
-                             &key (header (header)))
+                             &key (header (vellum.header:header)))
   (funcall (optimized-closure bind-row)
            header))
 

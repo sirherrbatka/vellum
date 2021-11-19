@@ -1,6 +1,16 @@
 (cl:in-package #:vellum.column)
 
 
+(defstruct concatenation-state
+  iterator
+  (changed-parents #() :type vector)
+  (masks (make-hash-table) :type hash-table) ; logior from all masks on a tree level, see gather-masks function
+  (max-index 0 :type non-negative-fixnum)
+  (nodes #() :type vector)
+  (parents nil :type (or null concatenation-state))
+  (columns #() :type simple-vector))
+
+
 (defun make-node (iterator column bitmask
                   &key
                     type
@@ -77,6 +87,39 @@
   (~> index
       integer-length
       (floor cl-ds.common.rrb:+bit-count+)))
+
+
+(declaim (inline index-promoted))
+(defun index-promoted (old-index new-index)
+  (declare (type fixnum old-index new-index)
+           (optimize (speed 3) (safety 0) (space 0)
+                     (compilation-speed 0) (debug 0)))
+  (not (eql (ceiling (the fixnum (1+ old-index))
+                     cl-ds.common.rrb:+maximum-children-count+)
+            (ceiling (the fixnum (1+ new-index))
+                     cl-ds.common.rrb:+maximum-children-count+))))
+
+
+(declaim (inline fill-buffer))
+(-> fill-buffer (fixnum iterator-buffer iterator-stack) t)
+(defun fill-buffer (depth buffer stack)
+  (declare (type fixnum depth)
+           (type iterator-stack stack)
+           (type iterator-buffer buffer))
+  (let ((node (aref stack depth)))
+    (declare (type (or null cl-ds.common.rrb:sparse-rrb-node-tagged) node))
+    (when (null node)
+      (map-into buffer (constantly :null))
+      (return-from fill-buffer nil))
+    (iterate
+      (declare (type fixnum i))
+      (for i from 0 below #.cl-ds.common.rrb:+maximum-children-count+)
+      (for present = (cl-ds.common.rrb:sparse-rrb-node-contains node i))
+      (setf (aref buffer i)
+            (if present
+                (cl-ds.common.rrb:sparse-nref node i)
+                :null)))
+    node))
 
 
 (declaim (inline move-column-to))
@@ -210,17 +253,6 @@
                                 i)))
 
 
-(declaim (inline index-promoted))
-(defun index-promoted (old-index new-index)
-  (declare (type fixnum old-index new-index)
-           (optimize (speed 3) (safety 0) (space 0)
-                     (compilation-speed 0) (debug 0)))
-  (not (eql (ceiling (the fixnum (1+ old-index))
-                     cl-ds.common.rrb:+maximum-children-count+)
-            (ceiling (the fixnum (1+ new-index))
-                     cl-ds.common.rrb:+maximum-children-count+))))
-
-
 (defun children (nodes)
   (declare (optimize (speed 3)))
   (lret ((result (make-hash-table)))
@@ -295,16 +327,6 @@
       (for (key value) in-hashtable table)
       (setf (gethash key table) 0)))
   state)
-
-
-(defstruct concatenation-state
-  iterator
-  (changed-parents #() :type vector)
-  (masks (make-hash-table) :type hash-table) ; logior from all masks on a tree level, see gather-masks function
-  (max-index 0 :type non-negative-fixnum)
-  (nodes #() :type vector)
-  (parents nil :type (or null concatenation-state))
-  (columns #() :type simple-vector))
 
 
 (defun concatenation-state-masks-logcount (state)
@@ -1039,28 +1061,6 @@
   (aref stack 0))
 
 
-(declaim (inline fill-buffer))
-(-> fill-buffer (fixnum iterator-buffer iterator-stack) t)
-(defun fill-buffer (depth buffer stack)
-  (declare (type fixnum depth)
-           (type iterator-stack stack)
-           (type iterator-buffer buffer))
-  (let ((node (aref stack depth)))
-    (declare (type (or null cl-ds.common.rrb:sparse-rrb-node-tagged) node))
-    (when (null node)
-      (map-into buffer (constantly :null))
-      (return-from fill-buffer nil))
-    (iterate
-      (declare (type fixnum i))
-      (for i from 0 below #.cl-ds.common.rrb:+maximum-children-count+)
-      (for present = (cl-ds.common.rrb:sparse-rrb-node-contains node i))
-      (setf (aref buffer i)
-            (if present
-                (cl-ds.common.rrb:sparse-nref node i)
-                :null)))
-    node))
-
-
 (declaim (notinline fill-buffers))
 (-> fill-buffers (sparse-material-column-iterator) t)
 (defun fill-buffers (iterator)
@@ -1205,62 +1205,3 @@
 (defun range-iterator (range position)
   (lret ((iterator (~> range read-column list make-iterator)))
     (move-iterator iterator position)))
-
-
-(defmethod cl-ds:reset! ((range sparse-material-column-range))
-  (setf (access-iterator range) (range-iterator range
-                                                (read-initial-position range))
-        (access-position range) (read-initial-position range))
-  range)
-
-
-(defmethod cl-ds:clone ((range sparse-material-column-range))
-  (make 'sparse-material-column
-        :iterator (range-iterator range
-                                  (access-position range))
-        :column (read-column range)
-        :position (access-position range)))
-
-
-(defmethod cl-ds:consume-front ((range sparse-material-column-range))
-  (let* ((iterator (access-iterator range))
-         (column (read-column range))
-         (position (access-position range))
-         (more (< position (cl-ds:size column))))
-    (values (if more
-                (prog1
-                    (iterator-at iterator 0)
-                  (setf (access-position range) (1+ position))
-                  (move-iterator iterator 1))
-                nil)
-            more)))
-
-
-(defmethod cl-ds:drop-front ((range sparse-material-column-range)
-                             count)
-  (check-type count non-negative-fixnum)
-  (let* ((column (read-column range))
-         (count (clamp count 0 (- (cl-ds:size column)
-                                  (access-position range)))))
-    (when (zerop count)
-      (return-from cl-ds:drop-front (values range count)))
-    (move-iterator (access-iterator range) count)
-    (values range count)))
-
-
-(defmethod cl-ds:peek-front ((range sparse-material-column-range))
-  (let* ((iterator (access-iterator range))
-         (column (read-column range))
-         (position (access-position range))
-         (more (< position (column-size column))))
-    (values (if more
-                (iterator-at iterator 0)
-                nil)
-            more)))
-
-
-(defun make-sparse-material-column-range (column)
-  (make 'sparse-material-column-range
-        :iterator (make-iterator `(,column))
-        :column column
-        :position 0))

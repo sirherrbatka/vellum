@@ -23,11 +23,11 @@
                (:module "header"
                 :components ((:file "package")
                              (:file "variables")
+                             (:file "types")
                              (:file "macros")
                              (:file "protocol")
                              (:file "utils")
                              (:file "functions")
-                             (:file "types")
                              (:file "conditions")
                              (:file "internal")
                              (:file "implementation")

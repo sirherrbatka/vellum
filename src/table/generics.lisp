@@ -13,11 +13,11 @@
 
 (defgeneric (setf at) (new-value frame row column))
 
-(defgeneric transform (frame function &key in-place start end))
+(defgeneric transform (frame function &key in-place start end restarts-enabled))
 
 (defgeneric iterator (frame in-place))
 
-(defgeneric transformation (frame bind-row &key in-place start))
+(defgeneric transformation (frame bind-row &key in-place start restarts-enabled))
 
 (defgeneric transform-row (transformation &optional bind-row-closure))
 
