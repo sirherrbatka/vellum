@@ -13,11 +13,11 @@
   (setf (sparse-material-column-at column index) new-value))
 
 
-(-> iterator-at (sparse-material-column-iterator fixnum) t)
-(defun iterator-at (iterator column)
+(-> iterator-at (sparse-material-column-iterator fixnum &optional fixnum) t)
+(defun iterator-at (iterator column &optional buffer-offset)
   (declare (optimize (speed 3) (compilation-speed 0)
                      (space 0) (debug 0) (safety 0))
-           (type integer column)
+           (type fixnum column)
            (type sparse-material-column-iterator iterator))
   (bind ((status (read-initialization-status iterator))
          (columns (read-columns iterator))
@@ -28,7 +28,7 @@
          (buffer (aref buffers column))
          (touched (read-touched iterator))
          (index (index iterator))
-         (offset (offset index)))
+         (offset (+ buffer-offset (offset index))))
     (unless (< -1 column length)
       (error 'no-such-column
              :bounds `(0 ,length)
@@ -49,15 +49,15 @@
     (aref buffer offset)))
 
 
-(-> (setf iterator-at) (t sparse-material-column-iterator fixnum) t)
-(defun (setf iterator-at) (new-value iterator column)
+(-> (setf iterator-at) (t sparse-material-column-iterator fixnum &optional fixnum) t)
+(defun (setf iterator-at) (new-value iterator column &optional buffer-offset)
   (declare (optimize (speed 3) (compilation-speed 0)
                      (space 0) (debug 0) (safety 0))
-           (type integer column)
+           (type fixnum column)
            (type sparse-material-column-iterator iterator))
   (bind ((buffers (read-buffers iterator))
          (index (the fixnum (index iterator)))
-         (offset (the fixnum (offset index)))
+         (offset (the fixnum (+ buffer-offset (offset index))))
          (buffer (aref buffers column))
          (column-types (read-column-types iterator))
          (status (read-initialization-status iterator))

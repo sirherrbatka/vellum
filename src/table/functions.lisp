@@ -8,7 +8,9 @@
     (declare (type integer column))
     (etypecase row
       (table-row
-       (~> row table-row-iterator (vellum.column:iterator-at column)))
+       (let ((buffer-offset (table-row-offset row)))
+         (~> row setfable-table-row-iterator
+             (vellum.column:iterator-at column buffer-offset))))
       (simple-vector
        (let ((length (length row)))
          (declare (type fixnum length))
@@ -40,8 +42,10 @@
     (declare (type integer column))
     (etypecase row
       (setfable-table-row
-       (setf (~> row setfable-table-row-iterator (vellum.column:iterator-at column))
-             new-value))
+       (let ((buffer-offset (setfable-table-row-offset row)))
+         (setf (~> row setfable-table-row-iterator
+                   (vellum.column:iterator-at column buffer-offset))
+               new-value)))
       (simple-vector
         (let ((length (length row)))
           (declare (type fixnum length))
