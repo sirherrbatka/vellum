@@ -14,7 +14,7 @@
 
 
 (-> iterator-at (sparse-material-column-iterator fixnum &optional fixnum) t)
-(defun iterator-at (iterator column &optional buffer-offset)
+(defun iterator-at (iterator column &optional (buffer-offset 0))
   (declare (optimize (speed 3) (compilation-speed 0)
                      (space 0) (debug 0) (safety 0))
            (type fixnum column)
@@ -50,7 +50,7 @@
 
 
 (-> (setf iterator-at) (t sparse-material-column-iterator fixnum &optional fixnum) t)
-(defun (setf iterator-at) (new-value iterator column &optional buffer-offset)
+(defun (setf iterator-at) (new-value iterator column &optional (buffer-offset 0))
   (declare (optimize (speed 3) (compilation-speed 0)
                      (space 0) (debug 0) (safety 0))
            (type fixnum column)

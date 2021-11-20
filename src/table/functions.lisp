@@ -9,7 +9,7 @@
     (etypecase row
       (table-row
        (let ((buffer-offset (table-row-offset row)))
-         (~> row setfable-table-row-iterator
+         (~> row table-row-iterator
              (vellum.column:iterator-at column buffer-offset))))
       (simple-vector
        (let ((length (length row)))

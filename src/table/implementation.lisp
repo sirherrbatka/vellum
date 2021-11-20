@@ -32,6 +32,7 @@
 
 
 (defmethod vstack* ((frame standard-table) more-frames)
+  (declare (optimize (debug 3) (safety 3)))
   (let* ((new-columns
            (map 'vector
                 (lambda (column &aux (new (cl-ds:replica column t)))

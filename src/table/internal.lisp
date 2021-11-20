@@ -46,10 +46,13 @@
 
 
 (defun transform-row-impl (transformation
-                           &optional (function (standard-transformation-bind-row-closure
-                                                transformation))
-                             (move-iterator t))
-  (declare (type standard-transformation transformation))
+                           &optional
+                             (function (standard-transformation-bind-row-closure
+                                        transformation))
+                             (move-iterator t)
+                             transform-control)
+  (declare (type standard-transformation transformation)
+           (optimize (debug 3)))
   (cl-ds.utils:with-slots-for (transformation standard-transformation)
     (bind ((prev-control (ensure-function *transform-control*))
            ((:flet move-iterator ())
@@ -58,27 +61,28 @@
               (vellum.column:move-iterator iterator 1)))
            (index (vellum.column:sparse-material-column-iterator-index iterator))
            (*transform-control*
-            (lambda (operation)
-              (cond ((eq operation :drop)
-                     #1=(iterate
-                          (declare (type fixnum i))
-                          (for i from 0 below column-count)
-                          (setf (vellum.column:iterator-at iterator i)
-                                :null)
-                          (finally
-                           (setf (vellum.column:column-at marker-column index) t
-                                 dropped t)
-                           (move-iterator)
-                           (return-from transform-row-impl transformation))))
-                    ((eq operation :finish)
-                     (funcall prev-control operation)
-                     (return-from transform-row-impl transformation))
-                    ((eq operation :nullify)
-                     (iterate
-                       (declare (type fixnum i))
-                       (for i from 0 below column-count)
-                       (setf (vellum.column:iterator-at iterator i) :null)))
-                    (t (funcall prev-control operation))))))
+            (or transform-control
+                (lambda (operation)
+                  (cond ((eq operation :drop)
+                         #1=(iterate
+                              (declare (type fixnum i))
+                              (for i from 0 below column-count)
+                              (setf (vellum.column:iterator-at iterator i)
+                                    :null)
+                              (finally
+                               (setf (vellum.column:column-at marker-column index) t
+                                     dropped t)
+                               (move-iterator)
+                               (return-from transform-row-impl transformation))))
+                        ((eq operation :finish)
+                         (funcall prev-control operation)
+                         (return-from transform-row-impl transformation))
+                        ((eq operation :nullify)
+                         (iterate
+                           (declare (type fixnum i))
+                           (for i from 0 below column-count)
+                           (setf (vellum.column:iterator-at iterator i) :null)))
+                        (t (funcall prev-control operation)))))))
       (tagbody main
          (unless restarts-enabled
            (funcall function row)
@@ -212,7 +216,7 @@
       (transformation-result transformation))))
 
 
-(defun parallel-transform-impl (frame bind-row restarts-enabled in-place start end)
+(defun parallel-transform-impl (frame bind-row in-place start end)
   (bind ((done nil)
          (iterator (iterator frame in-place))
          (transformations (iterate
@@ -224,7 +228,7 @@
                                                   :start start
                                                   :offset i
                                                   :iterator iterator
-                                                  :restarts-enabled restarts-enabled
+                                                  :restarts-enabled nil
                                                   :in-place in-place))))
          (main-lock (bt:make-lock))
          (done-index most-positive-fixnum)
@@ -246,7 +250,7 @@
                    (*current-row* current-index)
                    (function (standard-transformation-bind-row-closure transformation)))
               (unless (or (and (not (null end))
-                               (>= (+ current-row offset) end))
+                               (>= current-index end))
                           (bt:with-lock-held (main-lock)
                             (and done
                                  (>= current-index done-index))))
@@ -269,4 +273,4 @@
             (write-columns new-columns frame)
             frame)
           (cl-ds.utils:quasi-clone* frame
-            :columns (ensure-replicas columns new-columns)))))))
+            :columns (ensure-replicas columns new-columns))))))

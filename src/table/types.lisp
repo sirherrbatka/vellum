@@ -48,9 +48,9 @@
     (:columns read-columns)))
 
 
-(-> setfable-table-row-iterator (setfable-table-row)
+(-> setfable-table-row-iterator (t)
     vellum.column:sparse-material-column-iterator)
-(-> table-row-iterator (table-row)
+(-> table-row-iterator (t)
     vellum.column:sparse-material-column-iterator)
 (defstruct table-row
   iterator
