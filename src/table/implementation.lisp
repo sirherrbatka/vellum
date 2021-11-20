@@ -205,28 +205,7 @@
   (when (~> frame column-count zerop)
     (return-from transform
       (if in-place frame (cl-ds.utils:clone frame))))
-  (with-table (frame)
-    (let* ((done nil)
-           (transformation (transformation frame
-                                           bind-row
-                                           :start start
-                                           :restarts-enabled restarts-enabled
-                                           :in-place in-place))
-           (row (standard-transformation-row transformation))
-           (*transform-control*
-             (lambda (operation)
-               (cond ((eq operation :finish)
-                      (setf done t))
-                     (t (funcall *transform-control* operation))))))
-      (vellum.header:set-row row)
-      (iterate
-        (declare (type fixnum *current-row*))
-        (for *current-row* from start)
-        (until (or done
-                   (and (not (null end))
-                        (>= *current-row* end))))
-        (transform-row-impl transformation))
-      (transformation-result transformation))))
+  (transform-impl frame bind-row restarts-enabled in-place start end))
 
 
 (defmethod remove-nulls ((frame standard-table)
