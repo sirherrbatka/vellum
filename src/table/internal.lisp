@@ -45,6 +45,7 @@
       new-columns)))
 
 
+(declaim (inline transform-row-impl))
 (defun transform-row-impl (transformation
                            &optional
                              (function (standard-transformation-bind-row-closure
@@ -52,7 +53,7 @@
                              (move-iterator t)
                              transform-control)
   (declare (type standard-transformation transformation)
-           (optimize (debug 3)))
+           (optimize (speed 3)))
   (cl-ds.utils:with-slots-for (transformation standard-transformation)
     (bind ((prev-control (ensure-function *transform-control*))
            ((:flet move-iterator ())
