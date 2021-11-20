@@ -131,6 +131,8 @@
                            &key
                              (in-place *transform-in-place*)
                              (restarts-enabled t)
+                             (offset 0)
+                             (iterator (iterator frame in-place))
                              (start 0))
   (when (~> frame read-columns length zerop)
     (error 'cl-ds:operation-not-allowed
@@ -143,8 +145,8 @@
          (bind-row-closure (bind-row-closure bind-row :header (header frame)))
          (marker-column (vellum.column:make-sparse-material-column
                          :element-type 'boolean))
-         (iterator (iterator frame in-place))
-         (row (make-setfable-table-row :iterator iterator)))
+         (row (make-setfable-table-row :iterator iterator
+                                       :offset offset)))
     (vellum.column:move-iterator iterator start)
     (make-standard-transformation
      :marker-column marker-column

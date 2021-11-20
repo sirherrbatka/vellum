@@ -210,3 +210,63 @@
                         (>= *current-row* end))))
         (transform-row-impl transformation))
       (transformation-result transformation))))
+
+
+(defun parallel-transform-impl (frame bind-row restarts-enabled in-place start end)
+  (bind ((done nil)
+         (iterator (iterator frame in-place))
+         (transformations (iterate
+                            (with result = (make-array cl-ds.common.rrb:+maximum-children-count+))
+                            (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+                            (setf (aref result i)
+                                  (transformation frame
+                                                  bind-row
+                                                  :start start
+                                                  :offset i
+                                                  :iterator iterator
+                                                  :restarts-enabled restarts-enabled
+                                                  :in-place in-place))))
+         (main-lock (bt:make-lock))
+         (done-index most-positive-fixnum)
+         (transform-control
+          (lambda (operation)
+            (cond ((eq operation :finish)
+                   (bt:with-lock-held (main-lock)
+                     (setf done t)
+                     (minf done-index *current-row*)))
+                  (t (funcall *transform-control* operation)))))
+         (current-row start)
+         (columns (vellum.column:columns iterator))
+         ((:flet transform-row-impl (transformation))
+          (with-table (frame)
+            (let* ((*transform-control* transform-control)
+                   (row (standard-transformation-row transformation))
+                   (offset (table-row-offset row))
+                   (current-index (+ current-row offset))
+                   (*current-row* current-index)
+                   (function (standard-transformation-bind-row-closure transformation)))
+              (unless (or (and (not (null end))
+                               (>= (+ current-row offset) end))
+                          (bt:with-lock-held (main-lock)
+                            (and done
+                                 (>= current-index done-index))))
+                (vellum.header:set-row row)
+                (transform-row-impl transformation function nil))))))
+    (iterate
+      (declare (type fixnum *current-row*))
+      (for i from start by cl-ds.common.rrb:+maximum-children-count+)
+      (setf current-row i)
+      (until (or done
+                 (and (not (null end))
+                      (>= current-row end))))
+      (lparallel:pmap nil #'transform-row-impl transformations))
+    (vellum.column:finish-iterator iterator)
+    (let ((new-columns (vellum.column:columns iterator)))
+      (when (some #'standard-transformation-dropped transformations)
+        cl-ds.utils:todo)
+      (if in-place
+          (progn
+            (write-columns new-columns frame)
+            frame)
+          (cl-ds.utils:quasi-clone* frame
+            :columns (ensure-replicas columns new-columns)))))))
