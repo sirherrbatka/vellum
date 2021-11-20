@@ -230,7 +230,8 @@
                                                   :offset i
                                                   :iterator iterator
                                                   :restarts-enabled nil
-                                                  :in-place in-place))))
+                                                  :in-place in-place))
+                            (finally (return result))))
          (main-lock (bt:make-lock))
          (done-index most-positive-fixnum)
          (transform-control
@@ -257,6 +258,7 @@
                                  (>= current-index done-index))))
                 (vellum.header:set-row row)
                 (transform-row-impl transformation function nil))))))
+    (vellum.column:initialize-iterator-columns iterator)
     (iterate
       (declare (type fixnum *current-row*))
       (for i from start by cl-ds.common.rrb:+maximum-children-count+)
@@ -264,7 +266,9 @@
       (until (or done
                  (and (not (null end))
                       (>= current-row end))))
-      (lparallel:pmap nil #'transform-row-impl transformations))
+      (lparallel:pmap nil #'transform-row-impl transformations)
+      (vellum.column:move-iterator iterator
+                                   cl-ds.common.rrb:+maximum-children-count+))
     (vellum.column:finish-iterator iterator)
     (let ((new-columns (vellum.column:columns iterator)))
       (when (some #'standard-transformation-dropped transformations)

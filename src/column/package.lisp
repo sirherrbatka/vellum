@@ -18,6 +18,7 @@
    #:make-iterator
    #:make-sparse-material-column
    #:sparse-material-column-iterator
+   #:initialize-iterator-columns
    #:sparse-material-column-iterator-index
    #:move-iterator
    #:move-iterator-to

@@ -568,3 +568,24 @@
         :iterator (make-iterator `(,column))
         :column column
         :position 0))
+
+
+(-> initialize-iterator-columns (sparse-material-column-iterator) t)
+(defun initialize-iterator-columns (iterator)
+  (iterate
+    (declare (type fixnum i))
+    (with index = (access-index iterator))
+    (with stacks = (read-stacks iterator))
+    (with columns = (read-columns iterator))
+    (with buffers = (read-buffers iterator))
+    (with depths = (read-depths iterator))
+    (with touched = (read-touched iterator))
+    (for i from 0 below (length stacks))
+    (initialize-iterator-column iterator
+                                index
+                                (aref columns i)
+                                (aref stacks i)
+                                (aref buffers i)
+                                (aref depths i)
+                                (aref touched i)
+                                i)))

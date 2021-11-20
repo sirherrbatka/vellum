@@ -201,6 +201,7 @@
                       &key
                         (restarts-enabled t)
                         (in-place *transform-in-place*)
+                        (parallel nil)
                         (start 0)
                         (end (row-count frame)))
   (check-type start non-negative-fixnum)
@@ -208,7 +209,14 @@
   (when (~> frame column-count zerop)
     (return-from transform
       (if in-place frame (cl-ds.utils:clone frame))))
-  (transform-impl frame bind-row restarts-enabled in-place start end))
+  (if parallel
+      (if restarts-enabled
+          (error 'cl-ds:incompatible-arguments
+                 :format-control "Restarts can't be enabled during parallel transformation."
+                 :parameters '(restarts-enabled parallel)
+                 :values (list restarts-enabled parallel))
+        (parallel-transform-impl frame bind-row in-place start end))
+      (transform-impl frame bind-row restarts-enabled in-place start end)))
 
 
 (defmethod remove-nulls ((frame standard-table)

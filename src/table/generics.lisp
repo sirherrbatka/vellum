@@ -17,7 +17,8 @@
 
 (defgeneric iterator (frame in-place))
 
-(defgeneric transformation (frame bind-row &key in-place start restarts-enabled))
+(defgeneric transformation (frame bind-row &key in-place start restarts-enabled parallel
+                                             offset iterator))
 
 (defgeneric transform-row (transformation &optional bind-row-closure))
 
