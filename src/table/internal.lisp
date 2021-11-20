@@ -258,7 +258,6 @@
                                  (>= current-index done-index))))
                 (vellum.header:set-row row)
                 (transform-row-impl transformation function nil))))))
-    (vellum.column:initialize-iterator-columns iterator)
     (iterate
       (declare (type fixnum *current-row*))
       (for i from start by cl-ds.common.rrb:+maximum-children-count+)
@@ -266,6 +265,7 @@
       (until (or done
                  (and (not (null end))
                       (>= current-row end))))
+      (vellum.column:initialize-iterator-columns iterator)
       (lparallel:pmap nil #'transform-row-impl transformations)
       (vellum.column:move-iterator iterator
                                    cl-ds.common.rrb:+maximum-children-count+))

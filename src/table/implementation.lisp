@@ -215,7 +215,7 @@
                  :format-control "Restarts can't be enabled during parallel transformation."
                  :parameters '(restarts-enabled parallel)
                  :values (list restarts-enabled parallel))
-        (parallel-transform-impl frame bind-row in-place start end))
+          (parallel-transform-impl frame bind-row in-place start end))
       (transform-impl frame bind-row restarts-enabled in-place start end)))
 
 
