@@ -47,13 +47,15 @@
 
 (defun transform-row-impl (transformation
                            &optional (function (standard-transformation-bind-row-closure
-                                                transformation)))
+                                                transformation))
+                             (move-iterator t))
   (declare (type standard-transformation transformation))
   (cl-ds.utils:with-slots-for (transformation standard-transformation)
     (bind ((prev-control (ensure-function *transform-control*))
            ((:flet move-iterator ())
             (incf count)
-            (vellum.column:move-iterator iterator 1))
+            (when move-iterator
+              (vellum.column:move-iterator iterator 1)))
            (index (vellum.column:sparse-material-column-iterator-index iterator))
            (*transform-control*
             (lambda (operation)
