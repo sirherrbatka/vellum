@@ -48,9 +48,17 @@
     (:columns read-columns)))
 
 
-(defstruct table-row iterator)
+(-> setfable-table-row-iterator (setfable-table-row)
+    vellum.column:sparse-material-column-iterator)
+(-> table-row-iterator (table-row)
+    vellum.column:sparse-material-column-iterator)
+(defstruct table-row
+  iterator
+  (offset 0 :type fixnum))
 (declaim (inline setfable-table-row-iterator))
+(declaim (inline setfable-table-row-offset))
 (declaim (inline table-row-iterator))
+(declaim (inline table-row-offset))
 (defstruct (setfable-table-row (:include table-row)))
 
 
