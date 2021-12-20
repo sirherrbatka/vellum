@@ -151,7 +151,7 @@
                                 (header (vellum.header:header))
                                 (row (vellum.header:row)))
   (iterate
-    (with column-count = (column-count header))
+    (with column-count = (vellum.header:column-count header))
     (with result = (make-array column-count))
     (for i from 0 below column-count)
     (setf (aref result i) (rr i row))

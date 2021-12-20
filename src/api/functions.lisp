@@ -85,7 +85,8 @@
                (vellum:bind-row ()
                  (setf (aref content i) (vellum.table:current-row-as-vector))
                  (incf i))
-               :in-place t)
+               :in-place t
+               :restarts-enabled nil)
     (iterate
       (for index in indexes)
       (for comparator in comparators)
