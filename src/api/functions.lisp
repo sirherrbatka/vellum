@@ -57,7 +57,7 @@
 
 
 (defun empty-column (&rest row-parameters)
-  (vellum.table:make-table :header (apply #'make-header row-parameters)
+  (vellum.table:make-table :header (make-header row-parameters)
                            :columns row-parameters))
 
 
@@ -238,7 +238,6 @@
                             (etypecase x
                               (list
                                (apply #'vellum:empty-column
-                                      (~> frame vellum.table:header class-of)
                                       x))
                               ((or string symbol)
                                (vellum:empty-column :name x))))
