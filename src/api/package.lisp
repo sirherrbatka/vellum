@@ -42,6 +42,7 @@
              #:*transform-in-place*
              #:alter-columns
              #:at
+             #:retry
              #:bind-row
              #:bind-row-closure
              #:brr
