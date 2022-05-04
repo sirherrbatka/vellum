@@ -85,7 +85,7 @@
                          (error (e)
                            (error 'transformation-error
                                   :cause e)))
-           (skip-row ()
+           (vellum.header:skip-row ()
              :report "Omit this row."
              (vellum.column:untouch iterator)
              (go end))
