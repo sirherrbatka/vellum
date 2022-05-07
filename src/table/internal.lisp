@@ -85,6 +85,10 @@
                          (error (e)
                            (error 'transformation-error
                                   :cause e)))
+           (finish-transformation ()
+             :report "Finish transformation."
+             (vellum.column:untouch iterator)
+             (finish-transformation))
            (vellum.header:skip-row ()
              :report "Omit this row."
              (vellum.column:untouch iterator)
