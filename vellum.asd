@@ -7,7 +7,7 @@
   :depends-on ( #:iterate       #:serapeum
                 #:lparallel     #:closer-mop
                 #:metabang-bind #:alexandria
-                (:version #:cl-data-structures ((>= 1.0.0)))
+                (:version #:cl-data-structures ((>= "1.3.0")))
                 #:documentation-utils-extensions)
   :serial T
   :pathname "src"
