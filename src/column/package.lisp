@@ -8,6 +8,7 @@
    #:augment-iterator
    #:column-at
    #:column-size
+   #:insert-tail
    #:column-type
    #:column-type-error
    #:columns

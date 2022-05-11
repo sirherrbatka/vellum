@@ -568,3 +568,8 @@
         :iterator (make-iterator `(,column))
         :column column
         :position 0))
+
+
+(defun insert-tail (column)
+  (~>> column cl-ds.common.abstract:read-ownership-tag
+       (cl-ds.dicts.srrb:transactional-insert-tail! column)))

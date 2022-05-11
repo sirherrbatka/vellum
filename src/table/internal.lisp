@@ -1,19 +1,14 @@
 (cl:in-package #:vellum.table)
 
 
-(defun insert-tail (column)
-  (~>> column cl-ds.common.abstract:read-ownership-tag
-       (cl-ds.dicts.srrb:transactional-insert-tail! column)))
-
-
 (defun column-transformation-closure (in-place)
   (if in-place
       (lambda (column)
         (lret ((result (cl-ds:replica column nil)))
-          (insert-tail result)))
+          (vellum.column:insert-tail result)))
       (lambda (column)
         (lret ((result (cl-ds:replica column t)))
-          (insert-tail result)))))
+          (vellum.column:insert-tail result)))))
 
 
 (defun make-iterator (columns &key (transformation #'identity))

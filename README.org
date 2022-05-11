@@ -442,3 +442,12 @@ Postmodern is a really nice library, but doquery insists on driving its own iter
 
 ** The future
 Support for additional data sources and storage formats will be added into seperated systems in the vellum project itself. I actually already added support for constructing data frames out of the postmodern queries as well as CSV file handling build with fare-csv library. I would like to also support parquet files (with the help of cl-apache-arrow). Stay tuned.
+
+** See also...
+https://github.com/sirherrbatka/vellum-plain-odbc/
+https://github.com/sirherrbatka/vellum-postmodern/
+https://github.com/sirherrbatka/vellum-csv/
+https://github.com/sirherrbatka/vellum-binary/
+
+** I want to help!
+Great! If you want to implement a new input/output format this is always welcomed. If you have improvement ideas for the main system, don't hesitate to open issue on github.
