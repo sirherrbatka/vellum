@@ -260,7 +260,7 @@
   (let* ((columns (read-columns container))
          (row-count (row-count container))
          (header (header container)))
-    (map nil #'insert-tail columns)
+    (map nil #'vellum.column:insert-tail columns)
     (if (~> columns length zerop)
         (make 'cl-ds:empty-range)
         (make 'standard-table-range
