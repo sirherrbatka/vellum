@@ -13,7 +13,7 @@
                   &allow-other-keys))
 
 
-(defgeneric visualize (format data destination))
+(defgeneric visualize (format data destination &rest options &key))
 
 
 (defmethod join :before (algorithm method (frame-specs list) &key &allow-other-keys)
