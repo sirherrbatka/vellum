@@ -452,5 +452,9 @@ https://github.com/sirherrbatka/vellum-csv/
 
 https://github.com/sirherrbatka/vellum-binary/
 
+https://github.com/sirherrbatka/vellum-plot/
+
+https://github.com/sirherrbatka/vellum-clim/
+
 ** I want to help!
 Great! If you want to implement a new input/output format this is always welcomed. If you have improvement ideas for the main system, don't hesitate to open issue on github.
