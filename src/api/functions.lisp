@@ -331,3 +331,23 @@
                   (mapcar #'second))))
     (vellum:select table
       :columns (map 'list #'list old-column-names new-column-names))))
+
+
+(defun some-null-column-p* (&optional
+                              (row (vellum.header:row))
+                              (header vellum.header:*header*))
+  "Returns true if there is at least one :NULL column in the current row."
+  (iterate
+    (for i from 0 below (vellum.header:column-count header))
+    (when (eq :null (vellum.table:row-at header row i))
+      (leave t))
+    (finally (return nil))))
+
+
+(defun every-null-column-p* (&optional
+                               (row (vellum.header:row))
+                               (header vellum.header:*header*))
+  "Returns true if there if all columns within the current row are :NULL."
+  (iterate
+    (for i from 0 below (vellum.header:column-count header))
+    (constantly (eq :null (vellum.table:row-at header row i)))))

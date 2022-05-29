@@ -48,3 +48,11 @@
 
 (defmacro drop-row-when (predicate)
   `(when ,predicate (vellum:drop-row)))
+
+
+(define-symbol-macro some-null-column-p
+  (some-null-column-p*))
+
+
+(define-symbol-macro every-null-column-p
+  (every-null-column-p*))

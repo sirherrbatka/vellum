@@ -21,6 +21,10 @@
    #:rename-columns
    #:s-list
    #:aggregate-rows
+   #:some-null-column-p
+   #:every-null-column-p
+   #:some-null-column-p*
+   #:every-null-column-p*
    #:%aggregate-rows
    #:aggregate-columns
    #:%aggregate-columns
