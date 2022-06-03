@@ -8,6 +8,27 @@
          ,@body))))
 
 
+(defgeneric proxy-aggregator* (name options aggregator rest))
+
+
+(defun proxy-aggregator (aggregator rest)
+  (if (endp rest)
+      aggregator
+      (bind ((((name . options) . rest) rest))
+        (proxy-aggregator* name options aggregator rest))))
+
+
+(defmethod proxy-aggregator* ((name (eql 'distinct))
+                             options
+                             aggregator
+                             rest)
+  (proxy-aggregator `(cl-ds.alg.meta:layer-aggregator-constructor
+                       (function cl-ds.alg:distinct)
+                       ,aggregator
+                       (list ,@options))
+                    rest))
+
+
 (defun rewrite-bind-row-form (form)
   (let* ((gathered-constructor-forms (make-hash-table :test 'eql))
          (gathered-constructor-variables (make-hash-table :test 'eql))
@@ -21,11 +42,12 @@
             :on-macroexpanded-form
             (lambda (f e) (declare (ignore e))
               (if (and (listp pre-form) (eq (car pre-form) 'vellum.table::aggregate))
-                  (bind (((into (name what . options)) (cdr pre-form))
-                         (constructor-form `(cl-ds.alg.meta:aggregator-constructor
-                                             '() nil
-                                             (function ,name)
-                                             (list '() ,@options)))
+                  (bind (((into (name what . options) . proxies) (rest pre-form))
+                         (constructor-form (proxy-aggregator `(cl-ds.alg.meta:aggregator-constructor
+                                                              '() nil
+                                                              (function ,name)
+                                                              (list '() ,@options))
+                                                             proxies))
                          (old-form (shiftf (gethash into gathered-constructor-forms)
                                            constructor-form))
                          (constructor-variable (ensure (gethash into gathered-constructor-variables)
@@ -39,6 +61,11 @@
     (values result
             gathered-constructor-variables
             gathered-constructor-forms)))
+
+
+(defmacro aggregate (into (name what &rest options) &body body)
+  (declare (ignore into name what options body))
+  `(error "Aggregation not allowed in this call."))
 
 
 (defmacro bind-row (selected-columns &body body)
@@ -75,8 +102,8 @@
                    constructor-variables
                    constructor-forms)
           (rewrite-bind-row-form
-           `(macrolet ((aggregate (into (name what &rest options))
-                         (declare (ignore options name))
+           `(macrolet ((aggregate (into (name what &rest options) &body body)
+                         (declare (ignore options name body))
                          `(cl-ds.alg.meta:pass-to-aggregation ,what ,into)))
               (prog1 (progn ,@body)
                 ,@(mapcar (lambda (column name gensym)
@@ -88,7 +115,7 @@
          (let-constructors
           (iterate
             (for (key value) in-hashtable constructor-variables)
-            (collecting (list value `(funcall ,(gethash key constructor-forms)))))))
+            (collecting (list value `(cl-ds.alg.meta:call-constructor ,(gethash key constructor-forms)))))))
     `(make-bind-row
       (lambda (&optional (vellum.header:*header* (vellum.header:header)))
         (let (,@(mapcar #'generate-column-index
@@ -125,16 +152,13 @@
                          gensyms
                          names))
           (declare (ignorable ,!row))
-          (macrolet ((aggregate (into (name what &rest options))
-                       (declare (ignore into name what options))
-                       `(error "Aggregation not allowed in this call.")))
-            (prog1 (progn ,@body)
-              ,@(mapcar (lambda (column name gensym)
-                          `(unless (eql ,name ,gensym)
-                             (setf (row-at vellum.header:*header* ,!row ,column) ,name)))
-                        generated
-                        names
-                        gensyms))))))))
+          (prog1 (progn ,@body)
+            ,@(mapcar (lambda (column name gensym)
+                        `(unless (eql ,name ,gensym)
+                           (setf (row-at vellum.header:*header* ,!row ,column) ,name)))
+                      generated
+                      names
+                      gensyms)))))))
 
 
 (defmacro brr (column &rest other-columns)
