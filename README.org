@@ -131,16 +131,15 @@ Transform/bind-row can be also used for concise table aggregation syntax it offe
 #+BEGIN_SRC common-lisp
   (vellum:transform (vellum:to-table '((1 2) (3 4))
                                    :columns '(a b))
-                  (vellum:bind-row (a b)
-                    (vellum:aggregate a-max (cl-ds.alg:extremum a #'>))
-                    (vellum:aggregate b-max (cl-ds.alg:extremum b #'>)))
-                  :restrats-enabled nil
-                  :in-place t)
+                   (vellum:bind-row (a b)
+                     (vellum:aggregate a-max (cl-ds.alg:extremum a #'>))
+                     (vellum:aggregate b-max (cl-ds.alg:extremum b #'>)))
+                   :in-place t)
   #|
   => #<2 columns × 1 rows. Printed rows from 0 below 1:
   A-MAX  B-MAX
   ============
-  1      2
+  2      4
   >
   |#
 #+END_SRC
