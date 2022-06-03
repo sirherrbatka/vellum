@@ -44,6 +44,7 @@
   (:reexport #:vellum.table
              #:*current-row*
              #:*transform-in-place*
+             #:aggregate
              #:alter-columns
              #:at
              #:retry

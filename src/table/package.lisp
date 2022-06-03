@@ -32,6 +32,7 @@
    #:make-table
    #:make-table*
    #:no-transformation
+   #:aggregate
    #:nullify
    #:remove-nulls
    #:retry

@@ -26,7 +26,8 @@
   (columns #() :type simple-vector)
   (column-count 0 :type fixnum)
   (count 0 :type fixnum)
-  bind-row-closure)
+  bind-row-closure
+  (aggregation-results '() :type list))
 
 
 (cl-ds.utils:define-list-of-slots standard-transformation ()
@@ -40,6 +41,7 @@
   (row standard-transformation-row)
   (iterator standard-transformation-iterator)
   (columns standard-transformation-columns)
+  (aggregation-results standard-transformation-aggregation-results)
   (count standard-transformation-count))
 
 

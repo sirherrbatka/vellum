@@ -97,10 +97,9 @@ Notice that this time I've left the original frame untouched. Other keyword argu
                           (let ((line (read-line stream nil nil)))
                             (if (null line)
                                 (vellum:finish-transformation)
-                                (destructuring-bind ((new-weight new-height) (parse-data-line line))
-                                    (setf weight new-weight
-                                          height new-height
-                                          bmi (/ weight (* height height)))))))
+                                (progn
+                                  (iterate:dsetq ((weight height) (parse-data-line line)))
+                                  (setf bmi (/ weight (* height height)))))))
                         :end nil)))
 #+END_SRC
 
@@ -126,6 +125,25 @@ One more thing: you can actually use name different from :name in the column. Th
 #+END_SRC
 
 Transform handles errors by wrapping those into TRANSFORMATION-ERROR and establishing restarts: SKIP-ROW, RETRY, DROP-ROW, and FINISH-TRANSFORMATION. TRANSFORMATION-ERROR is subclass of the MORE-CONDITIONS:CHAINABLE-CONDITION and therefore to extract the reason behind error you should either use function MORE-CONDITIONS:CAUSE, MORE-CONDITIONS:ROOT-CAUSE. This makes debugging errors in your code somewhat annoying, but don't worry: You can disable this behavior by passing NIL as :RESTARTS-ENABLED.
+
+Transform/bind-row can be also used for concise table aggregation syntax it offers. For example, to extract maximum of column...
+
+#+BEGIN_SRC common-lisp
+  (vellum:transform (vellum:to-table '((1 2) (3 4))
+                                     :columns '(a b))
+                    (vellum:bind-row (a b)
+                      (vellum:aggregate a-max (cl-ds.alg:extremum a #'<))
+                      (vellum:aggregate b-max (cl-ds.alg:extremum b #'<)))))
+  :restarts-enabled nil
+  :in-place t)
+  #|
+  => #<2 columns × 1 rows. Printed rows from 0 below 1:
+  A-MAX  B-MAX
+  ============
+  1      2
+  >
+  |#
+#+END_SRC
 
 ** TO-TABLE and COPY-FROM
 Instead of bothering with TRANSFORM just to create table, one can use either TO-TABLE or COPY-FROM. They actually do almost the same thing. TO-TABLE is a CL-DS aggregation function, meaning that it works on all kinds of CL-DS ranges (as long as they return CL:SEQUENCE) and SEQUENCEs holding SEQUENCEs. The inner SEQUENCE is a row. It is probabbly easier to demonstrate.

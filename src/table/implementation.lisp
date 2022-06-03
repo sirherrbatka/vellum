@@ -135,12 +135,12 @@
   (when (~> frame read-columns length zerop)
     (error 'cl-ds:operation-not-allowed
            :format-control "Can't transform frame without a columns."))
-  (let* ((columns (cl-ds.utils:transform (lambda (x)
+  (bind ((columns (cl-ds.utils:transform (lambda (x)
                                            (cl-ds.dicts.srrb:transactional-insert-tail!
                                             x
                                             (cl-ds.common.abstract:read-ownership-tag x)))
                                          (read-columns frame)))
-         (bind-row-closure (bind-row-closure bind-row :header (header frame)))
+         ((:values bind-row-closure aggregation-results) (bind-row-closure bind-row :header (header frame)))
          (marker-column (vellum.column:make-sparse-material-column
                          :element-type 'boolean))
          (iterator (iterator frame in-place))
@@ -154,6 +154,7 @@
      :restarts-enabled restarts-enabled
      :table frame
      :row row
+     :aggregation-results aggregation-results
      :in-place in-place
      :start start
      :columns columns)))
@@ -188,9 +189,17 @@
       (if in-place
           (progn
             (write-columns new-columns table)
-            table)
-          (cl-ds.utils:quasi-clone* table
-            :columns (ensure-replicas columns new-columns))))))
+            (if (endp aggregation-results)
+                table
+                (to-table (list (mapcar (compose #'cl-ds.alg.meta:extract-result #'second)
+                                        aggregation-results))
+                          :columns (mapcar #'first aggregation-results))))
+          (if (endp aggregation-results)
+              (cl-ds.utils:quasi-clone* table
+                :columns (ensure-replicas columns new-columns))
+              (to-table (list (mapcar (compose #'cl-ds.alg.meta:extract-result #'second)
+                                      aggregation-results))
+                        :columns (mapcar #'first aggregation-results)))))))
 
 
 (defmethod transform ((frame standard-table)

@@ -8,6 +8,7 @@
                 #:lparallel     #:closer-mop
                 #:metabang-bind #:alexandria
                 (:version #:cl-data-structures ((>= "1.3.0")))
+                #:agnostic-lizard
                 #:documentation-utils-extensions)
   :serial T
   :pathname "src"
