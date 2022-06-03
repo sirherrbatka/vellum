@@ -134,8 +134,8 @@ Transform/bind-row can be also used for concise table aggregation syntax it offe
                     (vellum:bind-row (a b)
                       (vellum:aggregate a-max (cl-ds.alg:extremum a #'<))
                       (vellum:aggregate b-max (cl-ds.alg:extremum b #'<)))))
-  :restarts-enabled nil
-  :in-place t)
+                    :restarts-enabled nil
+                    :in-place t)
   #|
   => #<2 columns × 1 rows. Printed rows from 0 below 1:
   A-MAX  B-MAX
