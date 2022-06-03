@@ -7,7 +7,7 @@
   :depends-on ( #:iterate       #:serapeum
                 #:lparallel     #:closer-mop
                 #:metabang-bind #:alexandria
-                (:version #:cl-data-structures ((>= "1.3.0")))
+                (:version #:cl-data-structures ((>= "1.4.0")))
                 #:agnostic-lizard
                 #:documentation-utils-extensions)
   :serial T
