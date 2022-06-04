@@ -18,12 +18,12 @@
         (proxy-aggregator* name options aggregator rest))))
 
 
-(defmethod proxy-aggregator* ((name (eql 'distinct))
+(defmethod proxy-aggregator* ((name t)
                              options
                              aggregator
                              rest)
   (proxy-aggregator `(cl-ds.alg.meta:layer-aggregator-constructor
-                       (function cl-ds.alg:distinct)
+                       (function ,name)
                        ,aggregator
                        (list ,@options))
                     rest))
