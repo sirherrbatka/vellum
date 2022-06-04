@@ -65,7 +65,7 @@
 
 (defmacro aggregate (into (name what &rest options) &body body)
   (declare (ignore into name what options body))
-  `(error "Aggregation not allowed in this call."))
+  `(error "Aggregation not allowed in current context."))
 
 
 (defmacro bind-row (selected-columns &body body)
