@@ -51,6 +51,7 @@
              #:bind-row
              #:bind-row-closure
              #:brr
+             #:group-by
              #:column-count
              #:column-name
              #:column-names

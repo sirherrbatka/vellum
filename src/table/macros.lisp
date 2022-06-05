@@ -29,10 +29,39 @@
                     rest))
 
 
+(defmacro aggregate (into (name what &rest options) &body body)
+  (declare (ignore into name what options body))
+  `(error "Aggregation not allowed in current context."))
+
+
+(defmacro group-by (&rest column-names)
+  (declare (ignore column-names))
+  nil)
+
+
+(defclass aggregation-results ()
+  ((%aggregators :initarg :aggregators
+                 :reader aggregators)
+   (%aggregation-column-names :initarg :aggregation-column-names
+                  :reader aggregation-column-names)))
+
+
+(defclass group-by-aggregation-results ()
+  ((%aggregators :initarg :aggregators
+                 :reader aggregators)
+   (%aggregation-column-names :initarg :aggregation-column-names
+                              :reader aggregation-column-names)
+   (%group-names :initarg :group-names
+                 :reader group-names)))
+
+
 (defun rewrite-bind-row-form (form)
   (let* ((gathered-constructor-forms (make-hash-table :test 'eql))
          (gathered-constructor-variables (make-hash-table :test 'eql))
+         (gathered-group-by-variables (list))
+         (group-names (list))
          (pre-form nil)
+         (aggregation-symbol (gensym))
          (result
            (agnostic-lizard:walk-form
             form
@@ -41,31 +70,41 @@
             (lambda (f e) (declare (ignore e)) (setf pre-form f))
             :on-macroexpanded-form
             (lambda (f e) (declare (ignore e))
-              (if (and (listp pre-form) (eq (car pre-form) 'vellum.table::aggregate))
-                  (bind (((into (name what . options) . proxies) (rest pre-form))
-                         (constructor-form (proxy-aggregator `(cl-ds.alg.meta:aggregator-constructor
-                                                              '() nil
-                                                              (function ,name)
-                                                              (list '() ,@options))
-                                                             proxies))
-                         (old-form (shiftf (gethash into gathered-constructor-forms)
-                                           constructor-form))
-                         (constructor-variable (ensure (gethash into gathered-constructor-variables)
-                                                 (gensym))))
-                    (check-type into symbol)
-                    (assert (or (null old-form)
-                                (equalp old-form constructor-form)))
-                    `(cl-ds.alg.meta:pass-to-aggregation ,constructor-variable
-                                                         ,what))
-                  f)))))
-    (values result
-            gathered-constructor-variables
-            gathered-constructor-forms)))
-
-
-(defmacro aggregate (into (name what &rest options) &body body)
-  (declare (ignore into name what options body))
-  `(error "Aggregation not allowed in current context."))
+              (cond ((and (listp pre-form) (eq (car pre-form) 'vellum.table:aggregate))
+                     (bind (((into (name what . options) . proxies) (rest pre-form))
+                            (constructor-form (proxy-aggregator `(cl-ds.alg.meta:aggregator-constructor
+                                                                  '() nil
+                                                                  (function ,name)
+                                                                  (list '() ,@options))
+                                                                proxies))
+                            (old-form (shiftf (gethash into gathered-constructor-forms)
+                                              constructor-form))
+                            (constructor-variable (ensure (gethash into gathered-constructor-variables)
+                                                    (gensym))))
+                       (check-type into symbol)
+                       (assert (or (null old-form)
+                                   (equalp old-form constructor-form)))
+                       `(,aggregation-symbol ,constructor-variable
+                                             ,what
+                                             ,constructor-form
+                                             ,into)))
+                    ((and (listp pre-form) (eq (car pre-form) 'vellum.table:group-by))
+                     (iterate
+                       (for elt in (rest pre-form))
+                       (if (listp elt)
+                           (progn
+                             (push (second elt) gathered-group-by-variables)
+                             (push (first elt) group-names))
+                           (progn
+                             (push elt group-names)
+                             (push elt gathered-group-by-variables)))))
+                    (t f))))))
+    (list result
+          gathered-constructor-variables
+          gathered-constructor-forms
+          aggregation-symbol
+          (nreverse gathered-group-by-variables)
+          (nreverse group-names))))
 
 
 (defmacro bind-row (selected-columns &body body)
@@ -98,9 +137,12 @@
                       vellum.header:*header*
                       ,(symbol-name column)))
                    (t column))))
-         ((:values bind-row-form
-                   constructor-variables
-                   constructor-forms)
+         ((bind-row-form
+           constructor-variables
+           constructor-forms
+           aggregation-symbol
+           gathered-group-by-variables
+           group-names)
           (rewrite-bind-row-form
            `(macrolet ((aggregate (into (name what &rest options) &body body)
                          (declare (ignore options name body))
@@ -115,13 +157,16 @@
          (let-constructors
           (iterate
             (for (key value) in-hashtable constructor-variables)
-            (collecting (list value `(cl-ds.alg.meta:call-constructor ,(gethash key constructor-forms)))))))
+            (collecting (list value `(cl-ds.alg.meta:call-constructor ,(gethash key constructor-forms))))))
+         (!grouped-aggregators (gensym)))
     `(make-bind-row
       (lambda (&optional (vellum.header:*header* (vellum.header:header)))
         (let (,@(mapcar #'generate-column-index
                         generated
                         columns)
-              ,@let-constructors)
+              ,@(if (endp gathered-group-by-variables)
+                    let-constructors
+                    `((,!grouped-aggregators (make-hash-table :test 'equal)))))
           (values
            (lambda (&optional (,!row (vellum.header:row)))
              (declare (ignorable ,!row)
@@ -133,10 +178,36 @@
                     ,@(mapcar #'list
                               gensyms
                               names))
-               ,bind-row-form))
-           (list ,@(iterate
-                     (for (key value) in-hashtable constructor-variables)
-                     (collecting `(list (quote ,key) ,value)))))))
+               (macrolet ((,aggregation-symbol (constructor-variable what constructor-form result-name)
+                            (declare (ignorable constructor-variable what constructor-form result-name))
+                            ,(if (endp group-names)
+                                 ``(cl-ds.alg.meta:pass-to-aggregation ,constructor-variable ,what)
+                                 `(let* ((vars '(,@gathered-group-by-variables))
+                                         (group-key `(list ,@vars))
+                                         (aggregator ',!grouped-aggregators))
+                                    (with-gensyms (!group)
+                                      `(let ((,!group (ensure (gethash ,group-key ,aggregator)
+                                                        (make-hash-table :test 'equal))))
+                                         (cl-ds.alg.meta:pass-to-aggregation (ensure (gethash ',result-name ,!group)
+                                                                               (cl-ds.alg.meta:call-constructor ,constructor-form))
+                                                                             ,what)))))))
+                 ,bind-row-form)))
+           ,(if (zerop (hash-table-count constructor-variables))
+               nil
+               (if (endp gathered-group-by-variables)
+                   `(make-instance 'aggregation-results
+                                   :aggregators (list ,@(iterate
+                                                          (for (key value) in-hashtable constructor-variables)
+                                                          (collecting value)))
+                                   :aggregation-column-names '(,@(iterate
+                                                                   (for (key value) in-hashtable constructor-variables)
+                                                                   (collecting key))))
+                   `(make-instance 'group-by-aggregation-results
+                                   :aggregators ,!grouped-aggregators
+                                   :group-names '(,@group-names)
+                                   :aggregation-column-names '(,@(iterate
+                                                                   (for (key value) in-hashtable constructor-variables)
+                                                                   (collecting key)))))))))
       (lambda (&rest ,!rest)
         (declare (ignore ,!rest))
         (let* ((vellum.header:*header* (vellum.header:header))

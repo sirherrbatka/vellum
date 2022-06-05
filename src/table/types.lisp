@@ -27,7 +27,7 @@
   (column-count 0 :type fixnum)
   (count 0 :type fixnum)
   bind-row-closure
-  (aggregation-results '() :type list))
+  aggregation-results)
 
 
 (cl-ds.utils:define-list-of-slots standard-transformation ()

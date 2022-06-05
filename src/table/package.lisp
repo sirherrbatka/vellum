@@ -20,6 +20,7 @@
    #:column-type
    #:current-row-as-vector
    #:drop-row
+   #:group-by
    #:erase!
    #:finish-transformation
    #:fundamental-table

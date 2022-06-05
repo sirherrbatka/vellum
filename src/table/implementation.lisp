@@ -168,6 +168,38 @@
       (transform-row-impl object bind-row-closure))))
 
 
+(defgeneric aggregation-results->table (aggregation-results))
+
+
+(defmethod aggregation-results->table ((results aggregation-results))
+  (to-table (list (mapcar (compose #'cl-ds.alg.meta:extract-result)
+                          (aggregators results)))
+            :columns (aggregation-column-names results)))
+
+
+(defmethod aggregation-results->table ((results group-by-aggregation-results)
+                                       &aux (aggregators
+                                             (hash-table-alist (aggregators results))))
+  (let* ((group-names (group-names results))
+         (aggregation-column-names (aggregation-column-names results))
+         (all-columns (append group-names aggregation-column-names))
+         (result (make-table :columns all-columns)))
+    (vellum:transform result
+                      (vellum:bind-row ()
+                        (when (endp aggregators)
+                          (vellum:finish-transformation))
+                        (bind (((key . values) (pop aggregators)))
+                          (iterate
+                            (for column-name in group-names)
+                            (for value in key)
+                            (setf (vellum:rr column-name) value))
+                         (maphash (lambda (column value)
+                                    (setf (vellum:rr column) (cl-ds.alg.meta:extract-result value)))
+                                  values)))
+                      :in-place t
+                      :end nil)))
+
+
 (defmethod transformation-result ((object standard-transformation))
   (cl-ds.utils:with-slots-for (object standard-transformation)
     (vellum.column:finish-iterator iterator)
@@ -194,12 +226,10 @@
                 (to-table (list (mapcar (compose #'cl-ds.alg.meta:extract-result #'second)
                                         aggregation-results))
                           :columns (mapcar #'first aggregation-results))))
-          (if (endp aggregation-results)
+          (if (null aggregation-results)
               (cl-ds.utils:quasi-clone* table
                 :columns (ensure-replicas columns new-columns))
-              (to-table (list (mapcar (compose #'cl-ds.alg.meta:extract-result #'second)
-                                      aggregation-results))
-                        :columns (mapcar #'first aggregation-results)))))))
+              (aggregation-results->table aggregation-results))))))
 
 
 (defmethod transform ((frame standard-table)
