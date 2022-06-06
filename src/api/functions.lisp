@@ -91,18 +91,19 @@
          (row-count (vellum:row-count table))
          (current-row -1)
          (from-transformation
-          (vellum.table:transformation table
-                                       (lambda (&rest ignored) (declare (ignore ignored))
-                                         (incf current-row)
-                                         (when (< current-row row-count)
-                                           (iterate
-                                             (for i from 0 below columns-count)
-                                             (setf (aref column-values i)
-                                                   (if (gethash i unnest-columns-hash-table)
-                                                       (cl-ds:whole-range (vellum:rr i))
-                                                       (vellum:rr i))))))
-                                       :in-place t
-                                       :restarts-enabled nil))
+          (vellum.table:transformation
+           table
+           (lambda (&rest ignored) (declare (ignore ignored))
+             (incf current-row)
+             (when (< current-row row-count)
+               (iterate
+                 (for i from 0 below columns-count)
+                 (setf (aref column-values i)
+                       (if (gethash i unnest-columns-hash-table)
+                           (cl-ds:whole-range (vellum:rr i))
+                           (vellum:rr i))))))
+           :in-place t
+           :restarts-enabled nil))
          (into-transformation
           (vellum.table:transformation result
                                       nil
@@ -112,22 +113,23 @@
     (iterate
       (while (< current-row row-count))
       (block sub
-        (vellum.table:transform-row into-transformation
-                                    (lambda (&rest ignored) (declare (ignore ignored))
-                                      (iterate
-                                        (with filledp = nil)
-                                        (for i from 0 below columns-count)
-                                        (for unnestedp = (gethash i unnest-columns-hash-table))
-                                        (if unnestedp
-                                            (bind (((:values value more) (cl-ds:consume-front (aref column-values i))))
-                                              (when more
-                                                (setf filledp t
-                                                      (vellum:rr i) value)))
-                                            (setf (vellum:rr i) (aref column-values i)))
-                                        (finally (unless filledp
-                                                   (vellum.table:transform-row from-transformation)
-                                                   (vellum.table:nullify)
-                                                   (return-from sub))))))))
+        (vellum.table:transform-row
+         into-transformation
+         (lambda (&rest ignored) (declare (ignore ignored))
+           (iterate
+             (with filledp = nil)
+             (for i from 0 below columns-count)
+             (for unnestedp = (gethash i unnest-columns-hash-table))
+             (if unnestedp
+                 (bind (((:values value more) (cl-ds:consume-front (aref column-values i))))
+                   (when more
+                     (setf filledp t
+                           (vellum:rr i) value)))
+                 (setf (vellum:rr i) (aref column-values i)))
+             (finally (unless filledp
+                        (vellum.table:transform-row from-transformation)
+                        (vellum.table:nullify)
+                        (return-from sub))))))))
     (vellum.table:transformation-result into-transformation)))
 
 
