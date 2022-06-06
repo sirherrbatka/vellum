@@ -195,8 +195,8 @@ GROUP-BY uses hash-table with test 'equal underneath so it is fine for most of t
 It is quite common to require transforming data by replacing single rows holding lists into multiple rows holding atoms. Vellum has UNNEST function for this precise task.
 
 #+BEGIN_SRC common-lisp
-  (vellum:unnest (vellum:to-table '((0 (1 2 3) )
-                                  (1 (1 2 3) )
+(vellum:unnest (vellum:to-table '((0 (1 2 3))
+                                  (1 (1 2 3))
                                   (2 (1 2 3)))
                                 :columns '(a b))
                'b)
