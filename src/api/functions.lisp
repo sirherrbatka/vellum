@@ -120,12 +120,13 @@
              (with filledp = nil)
              (for i from 0 below columns-count)
              (for unnestedp = (gethash i unnest-columns-hash-table))
+             (for column-value = (aref column-values i))
              (if unnestedp
-                 (bind (((:values value more) (cl-ds:consume-front (aref column-values i))))
+                 (bind (((:values value more) (cl-ds:consume-front column-value)))
                    (when more
                      (setf filledp t
                            (vellum:rr i) value)))
-                 (setf (vellum:rr i) (aref column-values i)))
+                 (setf (vellum:rr i) column-value))
              (finally (unless filledp
                         (vellum.table:transform-row from-transformation)
                         (vellum.table:nullify)
