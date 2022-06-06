@@ -61,6 +61,77 @@
                            :columns row-parameters))
 
 
+(defun column-name= (a b)
+  (string= (if (stringp a) a (symbol-name a))
+           (if (stringp b) b (symbol-name b))))
+
+
+(defun unnest (table column &rest more-columns)
+  (bind ((all-unnested-columns (cons column more-columns))
+         (old-header (vellum.table:header table))
+         (old-columns (vellum.header:column-specs old-header))
+         (columns-count (length old-columns))
+         (unnest-columns-hash-table
+          (cl-ds.alg:to-hash-table all-unnested-columns
+                                   :test 'eql
+                                   :key (lambda (name)
+                                          (if (integerp name)
+                                              name
+                                              (vellum.header:name-to-index old-header name)))))
+         (result (vellum.table:make-table
+                  :columns (iterate
+                             (for i from 0)
+                             (for signature in old-columns)
+                             (if (gethash (getf signature :name i) unnest-columns-hash-table)
+                                 (let ((result (copy-list signature)))
+                                   (setf (getf result :type) t)
+                                   (collecting result))
+                                 (collecting signature)))))
+         (column-values (make-array (length old-columns)))
+         (row-count (vellum:row-count table))
+         (current-row -1)
+         (from-transformation
+          (vellum.table:transformation table
+                                       (lambda (&rest ignored) (declare (ignore ignored))
+                                         (incf current-row)
+                                         (when (< current-row row-count)
+                                           (iterate
+                                             (for i from 0 below columns-count)
+                                             (setf (aref column-values i)
+                                                   (if (gethash i unnest-columns-hash-table)
+                                                       (cl-ds:whole-range (vellum:rr i))
+                                                       (vellum:rr i))))))
+                                       :in-place t
+                                       :restarts-enabled nil))
+         (into-transformation
+          (vellum.table:transformation result
+                                      nil
+                                       :in-place t
+                                       :restarts-enabled nil)))
+    (vellum.table:transform-row from-transformation)
+    (iterate
+      (while (< current-row row-count))
+      (block sub
+        (vellum.table:transform-row into-transformation
+                                    (lambda (&rest ignored) (declare (ignore ignored))
+                                      (iterate
+                                        (with filledp = nil)
+                                        (for i from 0 below columns-count)
+                                        (for unnestedp = (gethash i unnest-columns-hash-table))
+                                        (if unnestedp
+                                            (bind (((:values value more) (cl-ds:consume-front (aref column-values i))))
+                                              (when more
+                                                (setf filledp t
+                                                      (vellum:rr i) value)))
+                                            (setf (vellum:rr i) (aref column-values i)))
+                                        (finally (unless filledp
+                                                   (vellum.table:transform-row from-transformation)
+                                                   (when (= current-row row-count)
+                                                     (vellum.table:nullify))
+                                                   (return-from sub))))))))
+    (vellum.table:transformation-result into-transformation)))
+
+
 (defun order-by (table column comparator &rest columns-comparators)
   (let* ((content (make-array (row-count table)))
          (header (vellum.table:header table))

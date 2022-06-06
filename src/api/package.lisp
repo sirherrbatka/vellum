@@ -20,6 +20,7 @@
    #:to-matrix
    #:rename-columns
    #:s-list
+   #:unnest
    #:aggregate-rows
    #:some-null-column-p
    #:every-null-column-p
