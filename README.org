@@ -177,16 +177,16 @@ In addition to VELLUM:AGGREGATE, you can also place VELLUM:GROUP-BY in BIND-ROW 
                                          (quarter (1+ (truncate month 4))))
                         (vellum:aggregate quarter-output (cl-ds.math:average output :sum 0.0))))
 
-    PERSON  QUARTER  QUARTER-OUTPUT
-  ===============================
-  john    4        35.0
-  john    3        37.25
-  john    2        30.0
-  john    1        16.666666
-  steve   4        20.0
-  steve   3        5.0
-  steve   2        6.25
-  steve   1        16.0
+PERSON  QUARTER  QUARTER-OUTPUT
+===============================
+john    4        35.0
+john    3        37.25
+john    2        30.0
+john    1        16.666666
+steve   4        20.0
+steve   3        5.0
+steve   2        6.25
+steve   1        16.0
 #+END_SRC
 
 GROUP-BY uses hash-table with test 'equal underneath so it is fine for most of types.
