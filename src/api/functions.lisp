@@ -126,8 +126,7 @@
                                             (setf (vellum:rr i) (aref column-values i)))
                                         (finally (unless filledp
                                                    (vellum.table:transform-row from-transformation)
-                                                   (when (= current-row row-count)
-                                                     (vellum.table:nullify))
+                                                   (vellum.table:nullify)
                                                    (return-from sub))))))))
     (vellum.table:transformation-result into-transformation)))
 
