@@ -144,6 +144,53 @@ Transform/bind-row can be also used for concise table aggregation syntax it offe
   |#
 #+END_SRC
 
+In addition to VELLUM:AGGREGATE, you can also place VELLUM:GROUP-BY in BIND-ROW to perform aggregations in groups. For instance:
+
+#+BEGIN_SRC common-lisp
+    (vellum:transform (vellum:to-table '(("steve" 1 15)
+                                         ("steve" 2 14)
+                                         ("steve" 3 19)
+                                         ("steve" 4 11)
+                                         ("steve" 5 8)
+                                         ("steve" 6 1)
+                                         ("steve" 7 5)
+                                         ("steve" 8 3)
+                                         ("steve" 9 4)
+                                         ("steve" 10 6)
+                                         ("steve" 11 7)
+                                         ("steve" 12 20)
+                                         ("john" 1 5)
+                                         ("john" 2 22)
+                                         ("john" 3 23)
+                                         ("john" 4 19)
+                                         ("john" 5 30)
+                                         ("john" 6 40)
+                                         ("john" 7 31)
+                                         ("john" 8 32)
+                                         ("john" 9 33)
+                                         ("john" 10 34)
+                                         ("john" 11 50)
+                                         ("john" 12 35))
+                                       :columns '(person month output))
+                      (vellum:bind-row (person month output)
+                        (vellum:group-by person
+                                         (quarter (1+ (truncate month 4))))
+                        (vellum:aggregate quarter-output (cl-ds.math:average output :sum 0.0))))
+
+    PERSON  QUARTER  QUARTER-OUTPUT
+  ===============================
+  john    4        35.0
+  john    3        37.25
+  john    2        30.0
+  john    1        16.666666
+  steve   4        20.0
+  steve   3        5.0
+  steve   2        6.25
+  steve   1        16.0
+#+END_SRC
+
+GROUP-BY uses hash-table with test 'equal underneath so it is fine for most of types.
+
 ** TO-TABLE and COPY-FROM
 Instead of bothering with TRANSFORM just to create table, one can use either TO-TABLE or COPY-FROM. They actually do almost the same thing. TO-TABLE is a CL-DS aggregation function, meaning that it works on all kinds of CL-DS ranges (as long as they return CL:SEQUENCE) and SEQUENCEs holding SEQUENCEs. The inner SEQUENCE is a row. It is probabbly easier to demonstrate.
 
@@ -435,6 +482,8 @@ And if you simply want to write code that mimics MS Excel, you can do that as we
 #+END_SRC
 
 The above will construct a new data frame containing two columns (with names :column1 and :column2) and one row, holding the average of the column1 and column2 of the original table. The :SKIP-NULLS option prevents code from erroring out on the :NULL. It also improves performance somewhat.
+
+Obviously, you can use TRANSFORM function to perform aggregations, as described earlier.
 
 ** Integrating with other stuff
 As hinted before, Vellum is designed to be easy to use with other libraries. For instance, let's say you want to use postmodern to access the postgres database where you are keeping your data safe and warm. To do so, you can do the following.
