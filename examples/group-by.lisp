@@ -39,3 +39,21 @@ NOT-A-GROUP  ANOTHER-KEY    NUMBERS
 ODD          DIFFERENT-KEY  (5 7)
 EVEN         ANOTHER-KEY    (0 2)
 |#
+
+;; alternative approach
+(defparameter *grouped-and-filtered*
+  (vellum:transform *table*
+                    (vellum:bind-row (group another-key)
+                      (vellum:group-by group another-key)
+                      (flet ((aggregate (value)
+                                 (when (eq (evenp value) (eq group :even))
+                                   (vellum:aggregate numbers (cl-ds.alg:to-list value)))))
+                        (loop :for i :from 2 :below 5 :do (aggregate (vellum:rr i)))))))
+
+(vellum:show :text *grouped-and-filtered*)
+#|
+NOT-A-GROUP  ANOTHER-KEY    NUMBERS
+===================================
+ODD          DIFFERENT-KEY  (5 7)
+EVEN         ANOTHER-KEY    (0 2)
+|#
