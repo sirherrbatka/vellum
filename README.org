@@ -319,13 +319,13 @@ PERSON  MONTH  OUTPUT  ID
 steve   1      15      1
 steve   2      14      2
 steve   3      19      3
-steve   4      11      1
-steve   5      8       2
-steve   6      1       3
-steve   7      5       4
-steve   8      3       1
-steve   9      4       2
-steve   10     6       3
+steve   4      11      4
+steve   5      8       1
+steve   6      1       2
+steve   7      5       3
+steve   8      3       4
+steve   9      4       1
+steve   10     6       2
 #+end_src
 
 An ever so slightly more convinient way to achieve the goal dare I say.
