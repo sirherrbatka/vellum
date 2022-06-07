@@ -22,6 +22,8 @@
    #:drop-row
    #:group-by
    #:aggregated-value
+   #:aggregation-prohibited-and-found
+   #:aggregation-required-and-not-found
    #:erase!
    #:finish-transformation
    #:fundamental-table

@@ -131,7 +131,7 @@
                            &key
                              (in-place *transform-in-place*)
                              (restarts-enabled t)
-                             (aggregated-output t)
+                             (aggregated-output :default)
                              (start 0))
   (when (~> frame read-columns length zerop)
     (error 'cl-ds:operation-not-allowed
@@ -241,7 +241,7 @@
                         (restarts-enabled t)
                         (in-place *transform-in-place*)
                         (start 0)
-                        (aggregated-output t)
+                        (aggregated-output :default)
                         (end (row-count frame)))
   (check-type start non-negative-fixnum)
   (check-type end (or null non-negative-fixnum))
@@ -578,13 +578,15 @@
 
 
 (defmethod bind-row-closure ((bind-row bind-row)
-                             &key (header (vellum.header:header)) (aggregated-output t))
+                             &key (header (vellum.header:header)) (aggregated-output :default))
   (bind (((:values bind-row-closure aggregation-results)
           (funcall (optimized-closure bind-row)
                    header)))
-    (if aggregated-output
-        (values bind-row-closure aggregation-results)
-        (values bind-row-closure nil))))
+    (cond
+     ((eql :suppress aggregated-output)
+      (values bind-row-closure nil))
+     (t
+      (values bind-row-closure aggregation-results)))))
 
 
 (defmethod bind-row-closure ((bind-row (eql nil))
@@ -593,6 +595,18 @@
   (lambda (&rest all)
     (declare (ignore all))
     nil))
+
+
+(defmethod bind-row-closure :around (bind-row &key (aggregated-output :default) &allow-other-keys)
+  (check-type aggregated-output (member :default :suppress :prohibit :require))
+  (bind (((:values bind-row-closure aggregation-results) (call-next-method)))
+    (when (and (eql :require aggregated-output)
+               (null aggregation-results))
+      (error 'aggregation-required-and-not-found))
+    (when (and (eql :prohibit aggregated-output)
+               (not (null aggregation-results)))
+      (error 'aggregation-required-and-not-found))
+    (values bind-row-closure aggregation-results)))
 
 
 (defmethod bind-row-closure (fn &key header &allow-other-keys)

@@ -260,7 +260,7 @@ If you would want to generate ID for each person and quarter you would had to us
     (vellum:group-by person (quarter (1+ (truncate month 4))))
     (vellum:aggregate id (cl-ds.math:sum 1))
     (setf id (vellum:aggregated-value id)))
-  :aggregated-output nil))
+  :aggregated-output :suppress))
 
 PERSON  MONTH  OUTPUT  ID
 =========================
