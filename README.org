@@ -172,7 +172,7 @@ In addition to VELLUM:AGGREGATE, you can also place VELLUM:GROUP-BY in BIND-ROW 
                                    :columns '(person month output))
                   (vellum:bind-row (person month output)
                     (vellum:group-by person
-                                     (quarter (1+ (truncate month 4))))
+                                     (quarter (1+ (truncate (1- month) 4))))
                     (vellum:aggregate quarter-output (cl-ds.math:average output :sum 0.0))))
 
 PERSON  QUARTER  QUARTER-OUTPUT
@@ -257,10 +257,10 @@ If you would want to generate ID for each person and quarter you would had to us
  (vellum:add-columns 'id)
  (vellum:transform
   (vellum:bind-row (person month output id)
-    (vellum:group-by person (quarter (1+ (truncate month 4))))
+    (vellum:group-by person (quarter (1+ (truncate (1- month) 4))))
     (vellum:aggregate id (cl-ds.math:sum 1))
     (setf id (vellum:aggregated-value id)))
-  :aggregated-output :suppress))
+  :aggregated-output nil))
 
 PERSON  MONTH  OUTPUT  ID
 =========================
