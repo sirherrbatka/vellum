@@ -226,6 +226,8 @@ john    #(17.25 33.25 38.0)
 steve   #(14.75 4.25 9.25)
 #+END_SRC
 
+Notably useful functions include: CL-DS.ALG:DISTINCT, CL-DS.ALG:IN-BATCHES, CL-DS.ALG:PARTITION-IF, CL-DS.ALG:ARRAY-ELEMENTWISE, CL-DS.ALG:CUMULATIVE-ACCUMULATE.
+
 Sometimes you may want to use aggregation function, without actually aggregating. "What?" I hear you say. Well, there is a multiple reasons to do so. For instance, let's assume that you want to generate id for your records. You can obviously use VELLUM:TRANSFORM with a closure to achieve that.
 
 #+begin_src
