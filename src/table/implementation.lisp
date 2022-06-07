@@ -245,6 +245,7 @@
                         (end (row-count frame)))
   (check-type start non-negative-fixnum)
   (check-type end (or null non-negative-fixnum))
+  (check-type aggregated-output (member :default :suppress :prohibit :require))
   (when (~> frame column-count zerop)
     (return-from transform
       (if in-place frame (cl-ds.utils:clone frame))))
