@@ -205,7 +205,7 @@
                                                                (cl-ds.alg.meta:call-constructor ,constructor-form))))
                                          (cl-ds.alg.meta:pass-to-aggregation ,!aggregators ,what))))))
                           (,extract-value-symbol (constructor-variable result-name constructor-form)
-                            (declare (ignorable result-name constructor-variable))
+                            (declare (ignorable result-name constructor-variable constructor-form))
                             ,(if (endp group-names)
                                  ``(cl-ds.alg.meta:extract-result ,constructor-variable)
                                  `(let* ((vars '(,@gathered-group-by-variables))

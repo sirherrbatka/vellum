@@ -177,17 +177,54 @@ In addition to VELLUM:AGGREGATE, you can also place VELLUM:GROUP-BY in BIND-ROW 
 
 PERSON  QUARTER  QUARTER-OUTPUT
 ===============================
-john    4        35.0
-john    3        37.25
-john    2        30.0
-john    1        16.666666
-steve   4        20.0
-steve   3        5.0
-steve   2        6.25
-steve   1        16.0
+john    3        38.0
+john    2        33.25
+john    1        17.25
+steve   3        9.25
+steve   2        4.25
+steve   1        14.75
 #+END_SRC
 
 GROUP-BY uses hash-table with test 'equal underneath so it is fine for most of types.
+
+VELLUM:AGGREGATE can be combined with some (but not all, at least not yet) layer functions of the CL-DS. To demonstrate, let's store all quarter-outputs for a person in a vector instead of having multiple rows.
+
+#+BEGIN_SRC
+(vellum:transform (vellum:to-table '(("steve" 1 15)
+                                     ("steve" 2 14)
+                                     ("steve" 3 19)
+                                     ("steve" 4 11)
+                                     ("steve" 5 8)
+                                     ("steve" 6 1)
+                                     ("steve" 7 5)
+                                     ("steve" 8 3)
+                                     ("steve" 9 4)
+                                     ("steve" 10 6)
+                                     ("steve" 11 7)
+                                     ("steve" 12 20)
+                                     ("john" 1 5)
+                                     ("john" 2 22)
+                                     ("john" 3 23)
+                                     ("john" 4 19)
+                                     ("john" 5 30)
+                                     ("john" 6 40)
+                                     ("john" 7 31)
+                                     ("john" 8 32)
+                                     ("john" 9 33)
+                                     ("john" 10 34)
+                                     ("john" 11 50)
+                                     ("john" 12 35))
+                                   :columns '(person month output))
+                  (vellum:bind-row (person month output)
+                    (vellum:group-by person)
+                    (vellum:aggregate quarter-output (cl-ds.math:average output :sum 0.0)
+                      (cl-ds.alg:in-batches 4))))
+
+PERSON  QUARTER-OUTPUT
+===========================
+john    #(17.25 33.25 38.0)
+steve   #(14.75 4.25 9.25)
+#+END_SRC
 
 Sometimes you may want to use aggregation function, without actually aggregating. "What?" I hear you say. Well, there is a multiple reasons to do so. For instance, let's assume that you want to generate id for your records. You can obviously use VELLUM:TRANSFORM with a closure to achieve that.
 
@@ -223,6 +260,19 @@ Sometimes you may want to use aggregation function, without actually aggregating
   (let ((id-seed 0))
     (vellum:bind-row (person month output id)
       (setf id (incf id-seed))))))
+
+PERSON  MONTH  OUTPUT  ID
+=========================
+steve   1      15      1
+steve   2      14      2
+steve   3      19      3
+steve   4      11      4
+steve   5      8       5
+steve   6      1       6
+steve   7      5       7
+steve   8      3       8
+steve   9      4       9
+steve   10     6       10
 #+end_src
 
 If you would want to generate ID for each person and quarter you would had to use hash-table to keep id-seeds... But why not simply use AGGREGATE again?
@@ -260,7 +310,7 @@ If you would want to generate ID for each person and quarter you would had to us
     (vellum:group-by person (quarter (1+ (truncate (1- month) 4))))
     (vellum:aggregate id (cl-ds.math:sum 1))
     (setf id (vellum:aggregated-value id)))
-  :aggregated-output nil))
+  :aggregated-output :suppress))
 
 PERSON  MONTH  OUTPUT  ID
 =========================
