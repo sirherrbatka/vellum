@@ -277,7 +277,7 @@ steve   9      4       9
 steve   10     6       10
 #+end_src
 
-If you would want to generate ID for each person and quarter you would had to use hash-table to keep id-seeds... But why not simply use AGGREGATE again?
+But what happens when you want to calculate values WITHIN groups? For instance, what about the cumulated output of a person for each of the quarters?
 
 #+begin_src
 (serapeum:~>
@@ -306,29 +306,28 @@ If you would want to generate ID for each person and quarter you would had to us
    ("john" 11 50)
    ("john" 12 35))
  (vellum:to-table :columns '(person month output))
- (vellum:add-columns 'id)
+ (vellum:add-columns 'quarter 'quarter-cumulated-output)
  (vellum:transform
-  (vellum:bind-row (person month output id)
-    (vellum:group-by person (quarter (1+ (truncate (1- month) 4))))
-    (vellum:aggregate id (cl-ds.math:sum 1))
-    (setf id (vellum:aggregated-value id)))
+  (vellum:bind-row (person month output quarter-cumulated-output quarter)
+    (setf quarter (1+ (truncate (1- month) 4)))
+    (vellum:group-by person quarter)
+    (vellum:aggregate quarter-cumulated-output (cl-ds.math:sum output))
+    (setf quarter-cumulated-output (vellum:aggregated-value quarter-cumulated-output)))
   :aggregated-output :suppress))
 
-PERSON  MONTH  OUTPUT  ID
-=========================
-steve   1      15      1
-steve   2      14      2
-steve   3      19      3
-steve   4      11      4
-steve   5      8       1
-steve   6      1       2
-steve   7      5       3
-steve   8      3       4
-steve   9      4       1
-steve   10     6       2
+PERSON  MONTH  OUTPUT  QUARTER  QUARTER-CUMULATED-OUTPUT
+========================================================
+steve   1      15      1        15
+steve   2      14      1        29
+steve   3      19      1        48
+steve   4      11      1        59
+steve   5      8       2        8
+steve   6      1       2        9
+steve   7      5       2        14
+steve   8      3       2        17
+steve   9      4       3        4
+steve   10     6       3        10
 #+end_src
-
-An ever so slightly more convinient way to achieve the goal dare I say.
 
 ** UNNEST
 It is quite common to require transforming data by replacing single rows holding lists into multiple rows holding atoms. Vellum has UNNEST function for this precise task.
