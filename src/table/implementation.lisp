@@ -131,7 +131,7 @@
                            &key
                              (in-place *transform-in-place*)
                              (restarts-enabled t)
-                             (aggregation-output t)
+                             (aggregated-output t)
                              (start 0))
   (when (~> frame read-columns length zerop)
     (error 'cl-ds:operation-not-allowed
@@ -142,7 +142,8 @@
                                             (cl-ds.common.abstract:read-ownership-tag x)))
                                          (read-columns frame)))
          ((:values bind-row-closure aggregation-results)
-          (bind-row-closure bind-row :header (header frame) :aggregation-output aggregation-output))
+          (bind-row-closure bind-row :header (header frame)
+                                     :aggregation-output aggregated-output))
          (marker-column (vellum.column:make-sparse-material-column
                          :element-type 'boolean))
          (iterator (iterator frame in-place))
@@ -240,7 +241,7 @@
                         (restarts-enabled t)
                         (in-place *transform-in-place*)
                         (start 0)
-                        (aggregation-output t)
+                        (aggregated-output t)
                         (end (row-count frame)))
   (check-type start non-negative-fixnum)
   (check-type end (or null non-negative-fixnum))
@@ -254,7 +255,7 @@
                                            :start start
                                            :restarts-enabled restarts-enabled
                                            :in-place in-place
-                                           :aggregation-output aggregation-output))
+                                           :aggregated-output aggregated-output))
            (row (standard-transformation-row transformation))
            (*transform-control*
              (lambda (operation)
