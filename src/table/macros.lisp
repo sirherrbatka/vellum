@@ -29,8 +29,13 @@
                     rest))
 
 
-(defmacro aggregate (into (name what &rest options) &body body)
-  (declare (ignore into name what options body))
+(defmacro aggregate (into (function what &rest options) &body body)
+  (declare (ignore into function what options body))
+  `(error "Aggregation not allowed in current context."))
+
+
+(defmacro aggregated-value (into)
+  (declare (ignore into))
   `(error "Aggregation not allowed in current context."))
 
 
@@ -62,6 +67,7 @@
          (group-names (list))
          (pre-form nil)
          (aggregation-symbol (gensym))
+         (extract-value-symbol (gensym))
          (result
            (agnostic-lizard:walk-form
             form
@@ -98,11 +104,18 @@
                            (progn
                              (push elt group-names)
                              (push elt gathered-group-by-variables)))))
+                    ((and (listp pre-form) (eq (car pre-form) 'vellum.table:aggregated-value))
+                     (bind (((macro-name into) pre-form))
+                       (declare (ignore macro-name))
+                       `(,extract-value-symbol ,(ensure (gethash into gathered-constructor-variables)
+                                                  (gensym))
+                                               ,into)))
                     (t f))))))
     (list result
           gathered-constructor-variables
           gathered-constructor-forms
           aggregation-symbol
+          extract-value-symbol
           (nreverse gathered-group-by-variables)
           (nreverse group-names))))
 
@@ -141,6 +154,7 @@
            constructor-variables
            constructor-forms
            aggregation-symbol
+           extract-value-symbol
            gathered-group-by-variables
            group-names)
           (rewrite-bind-row-form
@@ -190,7 +204,19 @@
                                                         (make-hash-table :test 'equal)))
                                               (,!aggregators (ensure (gethash ',result-name ,!group)
                                                                (cl-ds.alg.meta:call-constructor ,constructor-form))))
-                                         (cl-ds.alg.meta:pass-to-aggregation ,!aggregators ,what)))))))
+                                         (cl-ds.alg.meta:pass-to-aggregation ,!aggregators ,what))))))
+                          (,extract-value-symbol (constructor-variable result-name)
+                            (declare (ignorable result-name constructor-variable))
+                            ,(if (endp group-names)
+                                 ``(cl-ds.alg.meta:extract-result ,constructor-variable)
+                                 `(let* ((vars '(,@gathered-group-by-variables))
+                                         (group-key `(list ,@vars))
+                                         (aggregator ',!grouped-aggregators))
+                                    (with-gensyms (!group !aggregators)
+                                      `(let* ((,!group (make-hash-table :test 'equal))
+                                              (,!aggregators (or (gethash ',result-name ,!group)
+                                                                 (cl-ds.alg.meta:call-constructor ,constructor-form))))
+                                         (cl-ds.alg.meta:extract-result ,!aggregators)))))))
                  ,bind-row-form)))
            ,(if (zerop (hash-table-count constructor-variables))
                nil

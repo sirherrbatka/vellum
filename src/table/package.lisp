@@ -21,6 +21,7 @@
    #:current-row-as-vector
    #:drop-row
    #:group-by
+   #:aggregated-value
    #:erase!
    #:finish-transformation
    #:fundamental-table

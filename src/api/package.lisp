@@ -46,6 +46,7 @@
              #:*current-row*
              #:*transform-in-place*
              #:aggregate
+             #:aggregated-value
              #:alter-columns
              #:at
              #:retry
