@@ -143,7 +143,7 @@
                                          (read-columns frame)))
          ((:values bind-row-closure aggregation-results)
           (bind-row-closure bind-row :header (header frame)
-                                     :aggregation-output aggregated-output))
+                                     :aggregated-output aggregated-output))
          (marker-column (vellum.column:make-sparse-material-column
                          :element-type 'boolean))
          (iterator (iterator frame in-place))
@@ -187,20 +187,20 @@
          (aggregation-column-names (aggregation-column-names results))
          (all-columns (append group-names aggregation-column-names))
          (result (make-table :columns all-columns)))
-    (vellum:transform result
-                      (vellum:bind-row ()
-                        (when (endp aggregators)
-                          (vellum:finish-transformation))
-                        (bind (((key . values) (pop aggregators)))
-                          (iterate
-                            (for column-name in group-names)
-                            (for value in key)
-                            (setf (vellum:rr column-name) value))
-                         (maphash (lambda (column value)
-                                    (setf (vellum:rr column) (cl-ds.alg.meta:extract-result value)))
-                                  values)))
-                      :in-place t
-                      :end nil)))
+    (transform result
+               (bind-row ()
+                 (when (endp aggregators)
+                   (finish-transformation))
+                 (bind (((key . values) (pop aggregators)))
+                   (iterate
+                     (for column-name in group-names)
+                     (for value in key)
+                     (setf (rr column-name) value))
+                   (maphash (lambda (column value)
+                              (setf (rr column) (cl-ds.alg.meta:extract-result value)))
+                            values)))
+               :in-place t
+               :end nil)))
 
 
 (defmethod transformation-result ((object standard-transformation))
@@ -578,25 +578,24 @@
 
 
 (defmethod bind-row-closure ((bind-row bind-row)
-                             &key (header (vellum.header:header)) (aggregation-output t))
+                             &key (header (vellum.header:header)) (aggregated-output t))
   (bind (((:values bind-row-closure aggregation-results)
           (funcall (optimized-closure bind-row)
                    header)))
-    (if aggregation-output
+    (if aggregated-output
         (values bind-row-closure aggregation-results)
         (values bind-row-closure nil))))
 
 
 (defmethod bind-row-closure ((bind-row (eql nil))
-                             &key header)
+                             &key header &allow-other-keys)
   (declare (ignore header))
   (lambda (&rest all)
     (declare (ignore all))
     nil))
 
 
-(defmethod bind-row-closure (fn
-                             &key header)
+(defmethod bind-row-closure (fn &key header &allow-other-keys)
   (declare (ignore header))
   (ensure-function fn))
 
