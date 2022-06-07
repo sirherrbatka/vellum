@@ -105,11 +105,13 @@
                              (push elt group-names)
                              (push elt gathered-group-by-variables)))))
                     ((and (listp pre-form) (eq (car pre-form) 'vellum.table:aggregated-value))
-                     (bind (((macro-name into) pre-form))
+                     (bind (((macro-name into) pre-form)
+                            (constructor-form (gethash into gathered-constructor-forms)))
                        (declare (ignore macro-name))
                        `(,extract-value-symbol ,(ensure (gethash into gathered-constructor-variables)
                                                   (gensym))
-                                               ,into)))
+                                               ,into
+                                               ,constructor-form)))
                     (t f))))))
     (list result
           gathered-constructor-variables
@@ -158,16 +160,13 @@
            gathered-group-by-variables
            group-names)
           (rewrite-bind-row-form
-           `(macrolet ((aggregate (into (name what &rest options) &body body)
-                         (declare (ignore options name body))
-                         `(cl-ds.alg.meta:pass-to-aggregation ,what ,into)))
-              (prog1 (progn ,@body)
-                ,@(mapcar (lambda (column name gensym)
-                            `(unless (eql ,name ,gensym)
-                               (setf (row-at vellum.header:*header* ,!row ,column) ,name)))
-                          generated
-                          names
-                          gensyms)))))
+           `(prog1 (progn ,@body)
+              ,@(mapcar (lambda (column name gensym)
+                          `(unless (eql ,name ,gensym)
+                             (setf (row-at vellum.header:*header* ,!row ,column) ,name)))
+                        generated
+                        names
+                        gensyms))))
          (let-constructors
           (iterate
             (for (key value) in-hashtable constructor-variables)
@@ -205,7 +204,7 @@
                                               (,!aggregators (ensure (gethash ',result-name ,!group)
                                                                (cl-ds.alg.meta:call-constructor ,constructor-form))))
                                          (cl-ds.alg.meta:pass-to-aggregation ,!aggregators ,what))))))
-                          (,extract-value-symbol (constructor-variable result-name)
+                          (,extract-value-symbol (constructor-variable result-name constructor-form)
                             (declare (ignorable result-name constructor-variable))
                             ,(if (endp group-names)
                                  ``(cl-ds.alg.meta:extract-result ,constructor-variable)
@@ -213,7 +212,8 @@
                                          (group-key `(list ,@vars))
                                          (aggregator ',!grouped-aggregators))
                                     (with-gensyms (!group !aggregators)
-                                      `(let* ((,!group (make-hash-table :test 'equal))
+                                      `(let* ((,!group (ensure (gethash ,group-key ,aggregator)
+                                                         (make-hash-table :test 'equal)))
                                               (,!aggregators (or (gethash ',result-name ,!group)
                                                                  (cl-ds.alg.meta:call-constructor ,constructor-form))))
                                          (cl-ds.alg.meta:extract-result ,!aggregators)))))))

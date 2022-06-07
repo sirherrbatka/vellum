@@ -13,11 +13,12 @@
 
 (defgeneric (setf at) (new-value frame row column))
 
-(defgeneric transform (frame function &key in-place start end restarts-enabled))
+(defgeneric transform (frame function
+                       &key in-place start end restarts-enabled aggregation-output))
 
 (defgeneric iterator (frame in-place))
 
-(defgeneric transformation (frame bind-row &key in-place start restarts-enabled))
+(defgeneric transformation (frame bind-row &key in-place start restarts-enabled aggregation-output))
 
 (defgeneric transform-row (transformation &optional bind-row-closure))
 
@@ -47,7 +48,7 @@
 
 (defgeneric alter-columns (table &rest columns))
 
-(defgeneric bind-row-closure (bind-row-object &key header))
+(defgeneric bind-row-closure (bind-row-object &key header aggregation-output))
 
 (defgeneric read-iterator (object))
 
