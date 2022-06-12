@@ -64,6 +64,7 @@
                    :format-arguments (list column)))
          (setf (elt row column) new-value))))))
 
+
 (declaim (inline rr))
 (defun rr (index
            &optional (row (vellum.header:row)) (header (vellum.header:header)))
@@ -170,3 +171,50 @@
 (defun make-bind-row (optimized-closure non-optimized-closure)
   (lret ((result (make 'bind-row :optimized-closure optimized-closure)))
     (c2mop:set-funcallable-instance-function result non-optimized-closure)))
+
+
+(cl-ds.alg.meta:define-aggregation-function
+    to-table to-table-function
+
+    (:range &key body key class columns header restarts-enabled)
+
+    (:range &key
+     (key #'identity)
+     (body nil)
+     (class 'standard-table)
+     (restarts-enabled t)
+     (columns '())
+     (header (apply #'vellum.header:make-header columns)))
+
+    (%function %transformation %done)
+
+    ((setf %function (bind-row-closure
+                      body :header header)
+           %done nil
+           %transformation (~> (table-from-header class header)
+                               (transformation nil :in-place t
+                                                   :restarts-enabled restarts-enabled))))
+
+    ((row)
+     (unless %done
+       (block main
+         (let ((transform-control (lambda (operation)
+                                      (cond ((eq operation :finish)
+                                             (setf %done t)
+                                             (return-from main))
+                                            ((eq operation :drop)
+                                             (iterate
+                                               (for i from 0 below (length row))
+                                               (setf (rr i) :null))
+                                             (return-from main))
+                                            (t nil)))))
+           (transform-row %transformation
+                          (lambda (&rest all) (declare (ignore all))
+                            (iterate
+                              (for i from 0 below (length row))
+                              (for value = (elt row i))
+                              (setf (rr i) value))
+                            (let ((*transform-control* transform-control))
+                              (funcall %function (standard-transformation-row %transformation)))))))))
+
+    ((transformation-result %transformation)))
