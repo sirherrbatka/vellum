@@ -60,7 +60,7 @@
                  :reader group-names)))
 
 
-(defun rewrite-bind-row-form-pass-1 (form)
+(defun rewrite-bind-row-form-pass-1 (form env)
   (let* ((gathered-constructor-forms (make-hash-table :test 'eql))
          (gathered-constructor-variables (make-hash-table :test 'eql))
          (gathered-group-by-variables (list))
@@ -71,7 +71,7 @@
          (result
            (agnostic-lizard:walk-form
             form
-            nil
+            env
             :on-every-form-pre
             (lambda (f e) (declare (ignore e)) (setf pre-form f))
             :on-macroexpanded-form
@@ -123,47 +123,42 @@
 
 
 (defun rewrite-bind-row-form-pass-2 (result
-                                      gathered-constructor-variables
-                                      gathered-constructor-forms
-                                      aggregation-symbol
-                                      extract-value-symbol
-                                      gathered-group-by-variables
-                                      group-names)
-  (let* ((!grouped-aggregators (gensym))
-         (result
-           (agnostic-lizard:walk-form
-            result
-            nil
-            :on-function-form
-            (lambda (f e)
-              (declare (ignore e))
-              (cond ((and (listp f) (eq (first f) aggregation-symbol))
-                     (bind (((_ constructor-variable what constructor-form result-name) f))
-                       (declare (ignore _))
-                       (if (endp group-names)
-                           `(cl-ds.alg.meta:pass-to-aggregation ,constructor-variable ,what)
-                           (with-gensyms (!group !aggregators !group-key)
-                             `(let* ((,!group-key (list ,@gathered-group-by-variables))
-                                     (,!group (ensure (gethash ,!group-key ,!grouped-aggregators)
-                                                (make-hash-table :test 'equal)))
-                                     (,!aggregators (ensure (gethash ',result-name ,!group)
-                                                      (cl-ds.alg.meta:call-constructor ,constructor-form))))
-                                (cl-ds.alg.meta:pass-to-aggregation ,!aggregators ,what))))))
-                    ((and (listp f) (eq (first f) extract-value-symbol))
-                     (bind (((_ constructor-variable result-name constructor-form) f))
-                       (declare (ignore _))
-                       (if (endp group-names)
-                           `(cl-ds.alg.meta:extract-result ,constructor-variable)
-                           (with-gensyms (!vars !group-key !aggregators !group)
-                             `(let* ((,!vars '(,@gathered-group-by-variables))
-                                     (,!group-key `(list ,@vars))
-                                     (,!group (ensure (gethash ,!group-key ,!grouped-aggregators)
-                                                (make-hash-table :test 'equal)))
-                                     (,!aggregators (or (gethash ',result-name ,!group)
-                                                        (cl-ds.alg.meta:call-constructor ,constructor-form))))
-                                (cl-ds.alg.meta:extract-result ,!aggregators))))))
-                    (t f))))))
-    (list result
+                                     gathered-constructor-variables
+                                     gathered-constructor-forms
+                                     aggregation-symbol
+                                     extract-value-symbol
+                                     gathered-group-by-variables
+                                     group-names)
+  (let* ((!grouped-aggregators (gensym)))
+    (list (serapeum:map-tree
+           (lambda (f)
+             (cond ((and (listp f) (eq (first f) aggregation-symbol))
+                    (bind (((_ constructor-variable what constructor-form result-name) f))
+                      (declare (ignore _))
+                      (if (endp group-names)
+                          `(cl-ds.alg.meta:pass-to-aggregation ,constructor-variable ,what)
+                          (with-gensyms (!group !aggregators !group-key)
+                            `(let* ((,!group-key (list ,@gathered-group-by-variables))
+                                    (,!group (ensure (gethash ,!group-key ,!grouped-aggregators)
+                                               (make-hash-table :test 'equal)))
+                                    (,!aggregators (ensure (gethash ',result-name ,!group)
+                                                     (cl-ds.alg.meta:call-constructor ,constructor-form))))
+                               (cl-ds.alg.meta:pass-to-aggregation ,!aggregators ,what))))))
+                   ((and (listp f) (eq (first f) extract-value-symbol))
+                    (bind (((_ constructor-variable result-name constructor-form) f))
+                      (declare (ignore _))
+                      (if (endp group-names)
+                          `(cl-ds.alg.meta:extract-result ,constructor-variable)
+                          (with-gensyms (!vars !group-key !aggregators !group)
+                            `(let* ((,!vars '(,@gathered-group-by-variables))
+                                    (,!group-key `(list ,@vars))
+                                    (,!group (ensure (gethash ,!group-key ,!grouped-aggregators)
+                                               (make-hash-table :test 'equal)))
+                                    (,!aggregators (or (gethash ',result-name ,!group)
+                                                       (cl-ds.alg.meta:call-constructor ,constructor-form))))
+                               (cl-ds.alg.meta:extract-result ,!aggregators))))))
+                   (t f)))
+           result)
           gathered-constructor-variables
           gathered-constructor-forms
           aggregation-symbol
@@ -173,12 +168,12 @@
           !grouped-aggregators)))
 
 
-(defun rewrite-bind-row-form (form)
-  (~>> (rewrite-bind-row-form-pass-1 form)
+(defun rewrite-bind-row-form (form env)
+  (~>> (rewrite-bind-row-form-pass-1 form env)
        (apply #'rewrite-bind-row-form-pass-2)))
 
 
-(defmacro bind-row (selected-columns &body body)
+(defmacro bind-row (selected-columns &body body &environment env)
   (bind ((gensyms (mapcar (lambda (x) (declare (ignore x)) (gensym))
                          selected-columns))
          (names (mapcar (lambda (x)
@@ -223,7 +218,8 @@
                              (setf (row-at vellum.header:*header* ,!row ,column) ,name)))
                         generated
                         names
-                        gensyms))))
+                        gensyms))
+           env))
          (let-constructors
           (iterate
             (for (key value) in-hashtable constructor-variables)
