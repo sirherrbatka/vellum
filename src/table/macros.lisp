@@ -225,6 +225,9 @@
             (for (key value) in-hashtable constructor-variables)
             (collecting (list value `(cl-ds.alg.meta:call-constructor ,(gethash key constructor-forms)))))))
     (declare (ignore extract-value-symbol aggregation-symbol))
+    (unless (= (length (remove-duplicates group-names :test #'equal))
+               (length group-names))
+      (error 'program-error "Duplicated group name detected!"))
     `(make-bind-row
       (lambda (&optional (vellum.header:*header* (vellum.header:header)))
         (let (,@(mapcar #'generate-column-index
