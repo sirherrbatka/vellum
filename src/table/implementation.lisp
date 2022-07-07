@@ -606,7 +606,7 @@
       (error 'aggregation-required-and-not-found))
     (when (and (eql :prohibit aggregated-output)
                (not (null aggregation-results)))
-      (error 'aggregation-required-and-not-found))
+      (error 'aggregation-prohibited-and-found))
     (values bind-row-closure aggregation-results)))
 
 
