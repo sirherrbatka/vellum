@@ -5,13 +5,15 @@
                      &key
                        (class 'vellum.table:standard-table)
                        (body nil)
-                       (restarts-enabled t)
+                       (enable-restarts *enable-restarts*)
+                       (wrap-errors *wrap-errors*)
                        &allow-other-keys)
   (let* ((header (vellum.header:read-header range))
          (function (ensure-function (bind-row-closure body :header header)))
          (transformation (~> (table-from-header class header)
                              (transformation nil :in-place t
-                                             :restarts-enabled restarts-enabled)))
+                                             :enable-restarts enable-restarts
+                                             :wrap-errors wrap-errors)))
          (column-count (vellum.header:column-count header))
          (prev-control (ensure-function *transform-control*))
          (table (standard-transformation-table transformation)))
@@ -56,12 +58,14 @@
                        (class 'vellum.table:standard-table)
                        (columns '())
                        (body nil)
-                       (restarts-enabled t)
+                       (enable-restarts *enable-restarts*)
+                       (wrap-errors *wrap-errors*)
                        (header (apply #'vellum.header:make-header columns)))
   (to-table (cl-ds:whole-range input)
             :key key
             :class class
-            :restarts-enabled restarts-enabled
+            :enable-restarts enable-restarts
+            :wrap-errors wrap-errors
             :body body
             :header header))
 
@@ -71,7 +75,8 @@
                        (key #'identity)
                        (columns '())
                        (body nil)
-                       (restarts-enabled t)
+                       (enable-restarts *enable-restarts*)
+                       (wrap-errors *wrap-errors*)
                        (header (apply #'vellum.header:make-header
                                       columns)))
   (unless (= 2 (array-rank input))
@@ -99,5 +104,6 @@
                    (setf (rr i) (funcall key (aref input *current-row* i))))
                  (funcall function))
                :end nil
-               :restarts-enabled restarts-enabled
+               :enable-restarts enable-restarts
+               :wrap-errors wrap-errors
                :in-place t)))

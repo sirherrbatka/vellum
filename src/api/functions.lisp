@@ -103,12 +103,14 @@
                            (cl-ds:whole-range (vellum:rr i))
                            (vellum:rr i))))))
            :in-place t
-           :restarts-enabled nil))
+           :wrap-errors nil
+           :enable-restarts nil))
          (into-transformation
           (vellum.table:transformation result
                                       nil
                                        :in-place t
-                                       :restarts-enabled nil)))
+                                       :wrap-errors nil
+                                       :enable-restarts nil)))
     (vellum.table:transform-row from-transformation)
     (iterate
       (while (< current-row row-count))
@@ -159,7 +161,8 @@
                  (setf (aref content i) (vellum.table:current-row-as-vector))
                  (incf i))
                :in-place t
-               :restarts-enabled nil)
+               :wrap-errors nil
+               :enable-restarts nil)
     (iterate
       (for index in indexes)
       (for comparator in comparators)

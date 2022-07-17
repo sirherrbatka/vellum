@@ -240,7 +240,8 @@
 (defmethod transform ((frame standard-table)
                       bind-row
                       &key
-                        (restarts-enabled t)
+                        (enable-restarts *enable-restarts*)
+                        (wrap-errors *wrap-errors*)
                         (in-place *transform-in-place*)
                         (start 0)
                         (aggregated-output :default)
@@ -256,7 +257,8 @@
            (transformation (transformation frame
                                            bind-row
                                            :start start
-                                           :restarts-enabled restarts-enabled
+                                           :enable-restarts enable-restarts
+                                           :wrap-errors wrap-errors
                                            :in-place in-place
                                            :aggregated-output aggregated-output))
            (row (standard-transformation-row transformation))

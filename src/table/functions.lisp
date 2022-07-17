@@ -176,13 +176,14 @@
 (cl-ds.alg.meta:define-aggregation-function
     to-table to-table-function
 
-    (:range &key body key class columns header restarts-enabled)
+    (:range &key body key class columns header enable-restarts wrap-errors)
 
     (:range &key
      (key #'identity)
      (body nil)
      (class 'standard-table)
-     (restarts-enabled t)
+     (enable-restarts *enable-restarts*)
+     (wrap-errors *wrap-errors*)
      (columns '())
      (header (apply #'vellum.header:make-header columns)))
 
@@ -193,7 +194,8 @@
            %done nil
            %transformation (~> (table-from-header class header)
                                (transformation nil :in-place t
-                                                   :restarts-enabled restarts-enabled))))
+                                                   :enable-restarts enable-restarts
+                                                   :wrap-errors wrap-errors))))
 
     ((row)
      (unless %done

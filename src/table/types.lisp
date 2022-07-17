@@ -18,8 +18,8 @@
   (dropped nil :type boolean)
   marker-column
   table
-  (enable-restarts t :type boolean)
-  (wrap-errors t :type boolean)
+  (enable-restarts *enable-restarts* :type boolean)
+  (wrap-errors *wrap-errors* :type boolean)
   (in-place nil :type boolean)
   (start 0 :type integer)
   row

@@ -14,7 +14,7 @@
 (defgeneric (setf at) (new-value frame row column))
 
 (defgeneric transform (frame function
-                       &key in-place start end restarts-enabled aggregated-output))
+                       &key in-place start end enable-restarts wrap-errors aggregated-output))
 
 (defgeneric iterator (frame in-place))
 
