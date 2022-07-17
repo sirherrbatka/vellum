@@ -124,7 +124,7 @@ One more thing: you can actually use name different from :name in the column. Th
                       :end nil)))
 #+END_SRC
 
-Transform handles errors by wrapping those into TRANSFORMATION-ERROR and establishing restarts: SKIP-ROW, RETRY, DROP-ROW, and FINISH-TRANSFORMATION. TRANSFORMATION-ERROR is subclass of the MORE-CONDITIONS:CHAINABLE-CONDITION and therefore to extract the reason behind error you should either use function MORE-CONDITIONS:CAUSE, MORE-CONDITIONS:ROOT-CAUSE. This makes debugging errors in your code somewhat annoying, but don't worry: You can disable this behavior by passing NIL as :RESTARTS-ENABLED.
+Transform handles errors by wrapping those into TRANSFORMATION-ERROR and establishing restarts: SKIP-ROW, RETRY, DROP-ROW, and FINISH-TRANSFORMATION. TRANSFORMATION-ERROR is subclass of the MORE-CONDITIONS:CHAINABLE-CONDITION and therefore to extract the reason behind error you should either use function MORE-CONDITIONS:CAUSE, MORE-CONDITIONS:ROOT-CAUSE. This makes debugging errors in your code sometimes annoying, but don't worry: You can disable error wrapping by passing NIL as :WRAP-ERRORS and/or disable restarts by passing NIL as :RESTARTS-ENABLED.
 
 Transform/bind-row can be also used for concise table aggregation syntax it offers. For example, to extract maximum of column...
 
