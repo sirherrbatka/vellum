@@ -131,6 +131,7 @@
                            &key
                              (in-place *transform-in-place*)
                              (restarts-enabled t)
+                             (wrap-errors t)
                              (aggregated-output :default)
                              (start 0))
   (when (~> frame read-columns length zerop)
@@ -156,6 +157,7 @@
      :column-count (length columns)
      :restarts-enabled restarts-enabled
      :table frame
+     :wrap-errors wrap-errors
      :row row
      :aggregation-results aggregation-results
      :in-place in-place

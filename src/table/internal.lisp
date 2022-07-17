@@ -71,31 +71,34 @@
                        (declare (type fixnum i))
                        (for i from 0 below column-count)
                        (setf (vellum.column:iterator-at iterator i) :null)))
-                    (t (funcall prev-control operation))))))
-      (tagbody main
-         (unless restarts-enabled
-           (funcall function row)
-           (go end))
-         (restart-case (handler-case (funcall function row)
-                         (error (e)
-                           (error 'transformation-error
-                                  :cause e)))
-           (finish-transformation ()
-             :report "Finish transformation."
-             (vellum.column:untouch iterator)
-             (finish-transformation))
-           (vellum.header:skip-row ()
-             :report "Omit this row."
-             (vellum.column:untouch iterator)
-             (go end))
-           (retry ()
-             :report "Retry calling function on this row."
-             (vellum.column:untouch iterator)
-             (go main))
-           (drop-row ()
-             :report "Drop this row."
-             #1#))
-       end)
+                    (t (funcall prev-control operation)))))
+           ((:flet call (row))
+            (if wrap-errors
+                (handler-case (funcall function row)
+                  (error (e)
+                    (error 'transformation-error
+                           :cause e)))
+                (funcall function row))))
+      (if restarts-enabled
+          (tagbody main
+             (restart-case (call row)
+               (finish-transformation ()
+                 :report "Finish transformation."
+                 (vellum.column:untouch iterator)
+                 (finish-transformation))
+               (vellum.header:skip-row ()
+                 :report "Omit this row."
+                 (vellum.column:untouch iterator)
+                 (go end))
+               (retry ()
+                 :report "Retry calling function on this row."
+                 (vellum.column:untouch iterator)
+                 (go main))
+               (drop-row ()
+                 :report "Drop this row."
+                 #1#))
+           end)
+          (call row))
       (move-iterator)
       transformation)))
 

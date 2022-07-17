@@ -19,6 +19,7 @@
   marker-column
   table
   (restarts-enabled t :type boolean)
+  (wrap-errors t :type boolean)
   (in-place nil :type boolean)
   (start 0 :type integer)
   row
@@ -35,6 +36,7 @@
   (dropped standard-transformation-dropped)
   (marker-column standard-transformation-marker-column)
   (restarts-enabled standard-transformation-restarts-enabled)
+  (wrap-errors standard-transformation-wrap-errors)
   (table standard-transformation-table)
   (in-place standard-transformation-in-place)
   (start standard-transformation-start)
