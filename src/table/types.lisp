@@ -18,7 +18,7 @@
   (dropped nil :type boolean)
   marker-column
   table
-  (restarts-enabled t :type boolean)
+  (enable-restarts t :type boolean)
   (wrap-errors t :type boolean)
   (in-place nil :type boolean)
   (start 0 :type integer)
@@ -35,7 +35,7 @@
   (column-count standard-transformation-column-count)
   (dropped standard-transformation-dropped)
   (marker-column standard-transformation-marker-column)
-  (restarts-enabled standard-transformation-restarts-enabled)
+  (enable-restarts standard-transformation-enable-restarts)
   (wrap-errors standard-transformation-wrap-errors)
   (table standard-transformation-table)
   (in-place standard-transformation-in-place)

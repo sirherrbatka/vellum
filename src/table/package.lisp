@@ -24,6 +24,8 @@
    #:aggregated-value
    #:aggregation-prohibited-and-found
    #:aggregation-required-and-not-found
+   #:*wrap-errors*
+   #:*enable-restarts*
    #:erase!
    #:finish-transformation
    #:fundamental-table

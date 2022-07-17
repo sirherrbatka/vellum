@@ -79,7 +79,7 @@
                     (error 'transformation-error
                            :cause e)))
                 (funcall function row))))
-      (if restarts-enabled
+      (if enable-restarts
           (tagbody main
              (restart-case (call)
                (finish-transformation ()

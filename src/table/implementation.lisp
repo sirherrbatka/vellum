@@ -130,8 +130,8 @@
                            bind-row
                            &key
                              (in-place *transform-in-place*)
-                             (restarts-enabled t)
-                             (wrap-errors t)
+                             (enable-restarts *enable-restarts*)
+                             (wrap-errors *wrap-errors*)
                              (aggregated-output :default)
                              (start 0))
   (when (~> frame read-columns length zerop)
@@ -155,7 +155,7 @@
      :iterator iterator
      :bind-row-closure bind-row-closure
      :column-count (length columns)
-     :restarts-enabled restarts-enabled
+     :enable-restarts enable-restarts
      :table frame
      :wrap-errors wrap-errors
      :row row

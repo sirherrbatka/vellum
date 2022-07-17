@@ -5,6 +5,10 @@
 
 (defvar *transform-in-place* nil)
 
+(defvar *wrap-errors* t)
+
+(defvar *enable-restarts* t)
+
 (defvar *transform-control*
   (lambda (operation)
     (error 'cl-ds:operation-not-allowed

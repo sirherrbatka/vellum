@@ -18,7 +18,7 @@
 
 (defgeneric iterator (frame in-place))
 
-(defgeneric transformation (frame bind-row &key in-place start restarts-enabled aggregated-output))
+(defgeneric transformation (frame bind-row &key in-place start enable-restarts wrap-errors aggregated-output))
 
 (defgeneric transform-row (transformation &optional bind-row-closure))
 
