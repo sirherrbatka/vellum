@@ -72,7 +72,7 @@
                        (for i from 0 below column-count)
                        (setf (vellum.column:iterator-at iterator i) :null)))
                     (t (funcall prev-control operation)))))
-           ((:flet call (row))
+           ((:flet call ())
             (if wrap-errors
                 (handler-case (funcall function row)
                   (error (e)
@@ -81,7 +81,7 @@
                 (funcall function row))))
       (if restarts-enabled
           (tagbody main
-             (restart-case (call row)
+             (restart-case (call)
                (finish-transformation ()
                  :report "Finish transformation."
                  (vellum.column:untouch iterator)
@@ -98,7 +98,7 @@
                  :report "Drop this row."
                  #1#))
            end)
-          (call row))
+          (call))
       (move-iterator)
       transformation)))
 
