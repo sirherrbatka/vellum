@@ -59,3 +59,13 @@ NOT-A-GROUP  ANOTHER-KEY    NUMBERS
 ODD          DIFFERENT-KEY  (5 7)
 EVEN         ANOTHER-KEY    (0 2)
 |#
+
+(vellum:show :text (vellum:unnest *grouped-and-filtered* 'numbers))
+#|
+ANOTHER-KEY  NOT-A-GROUP  NUMBERS
+=================================
+ODD          NULL         5
+ODD          NULL         7
+EVEN         NULL         0
+EVEN         NULL         2
+|#
