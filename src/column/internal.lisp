@@ -79,7 +79,7 @@
 
 (defun move/pad-stack (iterator index new-index depth new-depth stack column)
   (when (> new-depth depth)
-    (pad-stack iterator depth index new-depth stack column))
+    (pad-stack iterator depth (max index 0) new-depth stack column))
   (move-stack (max depth new-depth) new-index stack))
 
 
