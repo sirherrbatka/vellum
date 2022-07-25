@@ -32,36 +32,25 @@
 
 
 (defmethod vstack* ((frame standard-table) more-frames)
-  (let* ((new-columns
-           (map 'vector
-                (lambda (column &aux (new (cl-ds:replica column t)))
-                  (~>> new
-                       cl-ds.common.abstract:read-ownership-tag
-                       (cl-ds.dicts.srrb:transactional-insert-tail! new))
-                  new)
-                (read-columns frame)))
-         (iterator (make-iterator new-columns))
-         (new-frame (cl-ds.utils:quasi-clone*
-                        frame :columns new-columns))
+  (bind ((new-frame (cl-ds:replica frame t))
+         (iterator (make-iterator (read-columns new-frame)))
          (column-count (column-count new-frame))
-         (row-count (row-count new-frame)))
+         ((:flet impl (frame))
+          (unless (eql column-count (column-count frame))
+            (error 'vellum.header:headers-incompatible
+                   :header (header frame)
+                   :control-string "Inconsistent number of columns in the frames."))
+          (cl-ds:traverse
+           frame
+           (lambda (&rest ignored)
+             (declare (ignore ignored))
+             (iterate
+               (for i from 0 below column-count)
+               (setf (vellum.column:iterator-at iterator i) (rr i)))
+             (vellum.column:move-iterator iterator 1)))))
+    (impl frame)
     (with-table (new-frame)
-      (vellum.column:move-iterator iterator row-count)
-      (cl-ds:across
-       more-frames
-       (lambda (frame)
-         (unless (eql column-count (column-count frame))
-           (error 'vellum.header:headers-incompatible
-                  :header (header frame)
-                  :control-string "Inconsistent number of columns in the frames."))
-         (cl-ds:traverse
-          frame
-          (lambda (&rest ignored)
-            (declare (ignore ignored))
-            (iterate
-              (for i from 0 below column-count)
-              (setf (vellum.column:iterator-at iterator i) (rr i)))
-            (vellum.column:move-iterator iterator 1))))))
+      (cl-ds:across more-frames #'impl))
     (vellum.column:finish-iterator iterator)
     new-frame))
 
