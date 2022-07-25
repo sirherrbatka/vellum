@@ -12,6 +12,7 @@
    #:with-standard-header
    #:visualize
    #:join
+   #:column-list
    #:pipeline
    #:file-input-row-cant-be-created
    #:drop-row-when

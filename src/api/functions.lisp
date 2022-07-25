@@ -427,3 +427,8 @@
   (iterate
     (for i from 0 below (vellum.header:column-count header))
     (constantly (eq :null (vellum.table:row-at header row i)))))
+
+
+(defun column-list (frame column)
+  (pipeline (frame)
+    (cl-ds.alg:to-list :key (curry #'rr column))))
