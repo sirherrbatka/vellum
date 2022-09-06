@@ -430,5 +430,5 @@
 
 
 (defun column-list (frame column)
-  (pipeline (frame)
+  (vellum:pipeline (frame)
     (cl-ds.alg:to-list :key (curry #'rr column))))
