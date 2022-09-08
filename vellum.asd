@@ -50,10 +50,10 @@
                              (:file "implementation")))
                (:module "api"
                 :components ((:file "package")
+                             (:file "macros")
                              (:file "conditions")
                              (:file "generics")
-                             (:file "functions")
-                             (:file "macros")))
+                             (:file "functions")))
                (:module "integration"
                 :components ((:file "package")
                              (:file "cl-ds")))))
