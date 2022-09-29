@@ -29,12 +29,12 @@
                     rest))
 
 
-(defun aggregate (into function &rest body)
+(defmacro aggregate (into function &rest body)
   (declare (ignore into function body))
   `(error "Aggregation not allowed in current context."))
 
 
-(defun aggregated-value (into)
+(defmacro aggregated-value (into)
   (declare (ignore into))
   `(error "Aggregation not allowed in current context."))
 
