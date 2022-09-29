@@ -147,9 +147,8 @@
                     (bind (((constructor-variable result-name constructor-form) (rest f)))
                       (if (endp group-names)
                           `(cl-ds.alg.meta:extract-result ,constructor-variable)
-                          (with-gensyms (!vars !group-key !aggregators !group)
-                            `(let* ((,!vars '(,@gathered-group-by-variables))
-                                    (,!group-key `(list ,@vars))
+                          (with-gensyms (!group-key !aggregators !group)
+                            `(let* ((,!group-key (list ,@gathered-group-by-variables))
                                     (,!group (ensure (gethash ,!group-key ,!grouped-aggregators)
                                                (make-hash-table :test 'equal)))
                                     (,!aggregators (or (gethash ',result-name ,!group)
@@ -161,8 +160,8 @@
           gathered-constructor-forms
           aggregation-symbol
           extract-value-symbol
-          (nreverse gathered-group-by-variables)
-          (nreverse group-names)
+          (reverse gathered-group-by-variables)
+          (reverse group-names)
           !grouped-aggregators)))
 
 
