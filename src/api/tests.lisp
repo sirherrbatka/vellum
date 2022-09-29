@@ -1,6 +1,6 @@
 (cl:in-package #:vellum)
 
-(prove:plan 4)
+(prove:plan 5)
 
 (let* ((frame-1 (transform (make-table :columns '(a b))
                            (vellum:bind-row (a b)
@@ -33,5 +33,13 @@
                        (:frame-2 ,frame-2 b)))))
   (prove:is (column-count result) 4)
   (prove:is (row-count result) 13))
+
+
+(let* ((frame-1 (vellum:to-table '((1 0) (1 1)) :columns '(a b)))
+       (frame-2 (vellum:to-table '((1 0) (1 1)) :columns '(a b)))
+       (result (vellum:join :hash :inner
+                            `((:frame-1 ,frame-1 a)
+                              (:frame-2 ,frame-2 b)))))
+  (prove:is (row-count result) 2))
 
 (prove:finalize)
