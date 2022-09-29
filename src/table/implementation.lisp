@@ -195,6 +195,7 @@
 
 
 (defmethod transformation-result ((object standard-transformation))
+  (declare (optimize (debug 3)))
   (cl-ds.utils:with-slots-for (object standard-transformation)
     (vellum.column:finish-iterator iterator)
     (let ((new-columns (vellum.column:columns iterator)))
@@ -215,11 +216,11 @@
       (if in-place
           (progn
             (write-columns new-columns table)
-            (if (endp aggregation-results)
+            (if (null aggregation-results)
                 table
-                (to-table (list (mapcar (compose #'cl-ds.alg.meta:extract-result #'second)
-                                        aggregation-results))
-                          :columns (mapcar #'first aggregation-results))))
+                (to-table (list (mapcar #'cl-ds.alg.meta:extract-result
+                                        (aggregators aggregation-results)))
+                          :columns (aggregation-column-names aggregation-results))))
           (if (null aggregation-results)
               (cl-ds.utils:quasi-clone* table
                 :columns (ensure-replicas columns new-columns))
