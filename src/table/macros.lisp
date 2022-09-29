@@ -160,8 +160,8 @@
           gathered-constructor-forms
           aggregation-symbol
           extract-value-symbol
-          (reverse gathered-group-by-variables)
-          (reverse group-names)
+          gathered-group-by-variables
+          group-names
           !grouped-aggregators)))
 
 
