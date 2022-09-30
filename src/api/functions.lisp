@@ -98,10 +98,13 @@
              (when (< current-row row-count)
                (iterate
                  (for i from 0 below columns-count)
+                 (for c = (vellum:rr i))
                  (setf (aref column-values i)
                        (if (gethash i unnest-columns-hash-table)
-                           (cl-ds:whole-range (vellum:rr i))
-                           (vellum:rr i))))))
+                           (if (typep c 'cl-ds:fundamental-range)
+                               (cl-ds:clone c)
+                               (cl-ds:whole-range c))
+                           c)))))
            :in-place t
            :wrap-errors nil
            :enable-restarts nil))
