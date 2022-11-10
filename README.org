@@ -371,7 +371,7 @@ The above will construct table with 3 columns: ANIMAL, CATEGORY1 and CATEGORY2 a
                    :columns '(iota)))
 #+END_SRC
 
-Aleternatively, one can use simpler CL-DS:XPR form, combined with the CL-DS.ALG:RESTRAIN-SIZE function.
+Alternatively, one can use simpler CL-DS:XPR form, combined with the CL-DS.ALG:RESTRAIN-SIZE function.
 
 #+BEGIN_SRC
 (defparameter *table*
