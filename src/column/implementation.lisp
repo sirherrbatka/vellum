@@ -100,17 +100,16 @@
              :datum new-value))
     (let ((old-value (svref buffer offset)))
       (setf (svref buffer offset) new-value)
-      (unless (eql new-value old-value)
-        (let ((columns (read-columns iterator))
-              (transformation (ensure-function (read-transformation iterator)))
-              (changes (read-changes iterator))
-              (touched (read-touched iterator)))
-          (declare (type simple-vector columns changes)
-                   (type simple-vector touched))
-          (unless (svref touched column)
-            (setf #1=(svref columns column) (funcall transformation #1#)))
-          (setf (~> (svref changes column) (svref offset)) t
-                (svref touched column) t))))
+      (let ((columns (read-columns iterator))
+            (transformation (ensure-function (read-transformation iterator)))
+            (changes (read-changes iterator))
+            (touched (read-touched iterator)))
+        (declare (type simple-vector columns changes)
+                 (type simple-vector touched))
+        (unless (svref touched column)
+          (setf #1=(svref columns column) (funcall transformation #1#)))
+        (setf (~> (svref changes column) (svref offset)) t
+              (svref touched column) t)))
     new-value))
 
 
@@ -272,6 +271,9 @@
     (for depth in-vector (read-depths iterator))
     (for index in-vector (read-indexes iterator))
     (for stack in-vector (read-stacks iterator))
+    (for touched in-vector (read-touched iterator))
+    (unless touched
+      (next-iteration))
     (unless (= index
                (* cl-ds.common.rrb:+maximum-children-count+
                   (truncate index cl-ds.common.rrb:+maximum-children-count+)))
