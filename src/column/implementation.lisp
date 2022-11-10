@@ -269,12 +269,9 @@
   ;; this prohibits reducing stacks directly after they have been reduced by move-iterator
   (iterate
     (for column in-vector (read-columns iterator))
-    (for touched in-vector (read-touched iterator))
     (for depth in-vector (read-depths iterator))
     (for index in-vector (read-indexes iterator))
     (for stack in-vector (read-stacks iterator))
-    (unless touched
-      (next-iteration))
     (unless (= index
                (* cl-ds.common.rrb:+maximum-children-count+
                   (truncate index cl-ds.common.rrb:+maximum-children-count+)))

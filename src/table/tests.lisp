@@ -305,7 +305,7 @@
        (frame (handler-bind
                   ((error (lambda (c)
                             (declare (ignore c))
-                            (invoke-restart 'skip-row))))
+                            (invoke-restart 'vellum.header:skip-row))))
                 (transform
                  (make-table :columns '(number))
                  (vellum:bind-row (number)

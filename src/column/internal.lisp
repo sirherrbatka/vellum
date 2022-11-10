@@ -835,23 +835,23 @@
       (for tree = (aref nodes i))
       (for column = (aref columns i))
       (for tag = (cl-ds.common.abstract:read-ownership-tag column))
-      (iterate
-        (declare (type fixnum old-mask new-mask))
-        (for (index node) in-hashtable tree)
-        (for mask = (mask state index))
-        (for old-mask = (cl-ds.common.rrb:sparse-rrb-node-bitmask node))
-        (for new-mask = (~>> mask
-                             lognot
-                             truncate-mask
-                             (build-new-mask old-mask)))
-        (when (= old-mask new-mask)
-          (next-iteration))
-        (for owned = (cl-ds.common.abstract:acquire-ownership node tag))
-        (if owned
-            (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask node) new-mask)
-            (let ((copy (cl-ds.common.rrb:deep-copy-sparse-rrb-node node 0 tag)))
-              (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask copy) new-mask
-                    (node state i index) copy)))))))
+      (maphash
+       (lambda (index node)
+         (let* ((mask (mask state index))
+                (old-mask (cl-ds.common.rrb:sparse-rrb-node-bitmask node))
+                (new-mask (~>> mask
+                                lognot
+                                truncate-mask
+                                (build-new-mask old-mask)))
+                (owned (cl-ds.common.abstract:acquire-ownership node tag)))
+           (declare (type fixnum old-mask new-mask))
+           (unless (= old-mask new-mask)
+             (if owned
+                 (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask node) new-mask)
+                 (let ((copy (cl-ds.common.rrb:deep-copy-sparse-rrb-node node 0 tag)))
+                   (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask copy) new-mask
+                         (node state i index) copy))))))
+       tree))))
 
 
 (defun move-stack (depth new-index stack &aux (node (aref stack 0)))
@@ -1162,6 +1162,7 @@
 
 
 (defun trim-depth-in-column (column)
+  (declare (optimize (debug 3)))
   (bind ((shift (cl-ds.dicts.srrb:access-shift column))
          ((:labels skip (node &optional (s shift)))
           (if (or (zerop s)

@@ -195,7 +195,6 @@
 
 
 (defmethod transformation-result ((object standard-transformation))
-  (declare (optimize (debug 3)))
   (cl-ds.utils:with-slots-for (object standard-transformation)
     (vellum.column:finish-iterator iterator)
     (let ((new-columns (vellum.column:columns iterator)))
