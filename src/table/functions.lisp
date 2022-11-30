@@ -85,8 +85,10 @@
   (funcall *transform-control* :nullify))
 
 
-(defun drop-row ()
-  (funcall *transform-control* :drop))
+(defun drop-row (&optional error)
+  (if (null error)
+      (funcall *transform-control* :drop)
+      (invoke-restart 'drop-row)))
 
 
 (defun make-table (&key
