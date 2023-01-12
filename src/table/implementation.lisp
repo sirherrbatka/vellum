@@ -217,9 +217,7 @@
             (write-columns new-columns table)
             (if (null aggregation-results)
                 table
-                (to-table (list (mapcar #'cl-ds.alg.meta:extract-result
-                                        (aggregators aggregation-results)))
-                          :columns (aggregation-column-names aggregation-results))))
+                (aggregation-results->table aggregation-results)))
           (if (null aggregation-results)
               (cl-ds.utils:quasi-clone* table
                 :columns (ensure-replicas columns new-columns))
