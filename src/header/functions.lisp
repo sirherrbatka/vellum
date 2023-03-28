@@ -132,3 +132,8 @@
 (defun column-type (header column)
   (~>> (column-signature header column)
        read-type))
+
+
+(defun make-column-signature (&key name (type t))
+  (make-column-signature-impl :name (string-upcase name)
+                              name :type type))

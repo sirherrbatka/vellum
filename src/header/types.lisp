@@ -1,7 +1,7 @@
 (cl:in-package #:vellum.header)
 
 
-(defstruct column-signature
+(defstruct (column-signature (:constructor make-column-signature-impl))
   (type t)
   (name nil :type (or symbol string)))
 
