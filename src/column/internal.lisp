@@ -653,16 +653,10 @@
           (cond ((zerop required-space) 0)
                 ((zerop free-space) 1)
                 ((> free-space required-space)
-                 (move-children-in-columns state
-                                           from to
-                                           from-mask
-                                           to-mask)
+                 (move-children-in-columns state from to from-mask to-mask)
                  0)
                 (t
-                 (move-children-in-columns state
-                                           from to
-                                           from-mask
-                                           to-mask)
+                 (move-children-in-columns state from to from-mask to-mask)
                  1))
         (setf (mask state from) (ldb (byte cl-ds.common.rrb:+maximum-children-count+
                                            free-space)

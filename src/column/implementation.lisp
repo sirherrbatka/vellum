@@ -356,7 +356,8 @@
                    initially (cl-ds.dicts.srrb:access-tree column)
                    then (make-node iterator column 1
                                    :content (vector node)))
-              (finally (setf (cl-ds.dicts.srrb:access-tree column) node))))))
+              (finally (setf (cl-ds.dicts.srrb:access-tree column) node
+                             (cl-ds.dicts.srrb:access-shift column) depth))))))
     (cl-ds.utils:transform (read-transformation iterator) columns)
     (map nil #'unify-shift columns)
     (concatenate-trees iterator)

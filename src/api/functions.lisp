@@ -110,7 +110,7 @@
            :enable-restarts nil))
          (into-transformation
           (vellum.table:transformation result
-                                      nil
+                                       nil
                                        :in-place t
                                        :wrap-errors nil
                                        :enable-restarts nil)))
