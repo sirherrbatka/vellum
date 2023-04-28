@@ -247,7 +247,9 @@
                                   :initial-element nil)))
          (buffers (map-into (make-array length)
                             (curry #'make-array max-children-count
-                                   :initial-element :null))))
+                                   :initial-element :null)))
+         (depths (map-into (make-array length :element-type 'fixnum)
+                           #'cl-ds.dicts.srrb:access-shift columns)))
     (make-sparse-material-column-iterator
      :initialization-status initialization-status
      :indexes (make-array length :element-type 'fixnum :initial-element -1)
@@ -258,8 +260,7 @@
      :buffers buffers
      :touched touched
      :transformation transformation
-     :depths (map-into (make-array length :element-type 'fixnum)
-                           #'cl-ds.dicts.srrb:access-shift columns))))
+     :depths depths)))
 
 
 (defmethod finish-iterator ((iterator sparse-material-column-iterator))
@@ -343,9 +344,22 @@
 
 
 (defmethod remove-nulls ((iterator sparse-material-column-iterator))
-  (let ((columns (read-columns iterator)))
+  (bind ((columns (read-columns iterator))
+         (depth (~> (extremum columns #'>
+                              :key #'cl-ds.dicts.srrb:access-shift)
+                    cl-ds.dicts.srrb:access-shift))
+         ((:flet unify-shift (column &aux (root (cl-ds.dicts.srrb:access-tree column))))
+          (unless (cl-ds.meta:null-bucket-p root)
+            (iterate
+              (for i from (cl-ds.dicts.srrb:access-shift column) below depth)
+              (for node
+                   initially (cl-ds.dicts.srrb:access-tree column)
+                   then (make-node iterator column 1
+                                   :content (vector node)))
+              (finally (setf (cl-ds.dicts.srrb:access-tree column) node
+                             (cl-ds.dicts.srrb:access-shift column) depth))))))
     (cl-ds.utils:transform (read-transformation iterator) columns)
-    (unify-shift columns)
+    (map nil #'unify-shift columns)
     (concatenate-trees iterator)
     (trim-depth iterator)
     (iterate

@@ -11,7 +11,7 @@
   (columns #() :type simple-vector))
 
 
-(defun make-node (column bitmask
+(defun make-node (iterator column bitmask
                   &key
                     type
                     (length (logcount bitmask))
@@ -19,6 +19,7 @@
                               length
                               :element-type (or type (column-type column))))
                     (tag (cl-ds.common.abstract:read-ownership-tag column)))
+  (declare (ignore iterator))
   (assert (<= (length content) cl-ds.common.rrb:+maximum-children-count+))
   (assert (not (zerop length)))
   (cl-ds.common.rrb:make-sparse-rrb-node
@@ -69,7 +70,7 @@
       (for node = (if (null prev-node)
                       nil
                       (make-node
-                       column (ash 1 i)
+                       iterator column (ash 1 i)
                        :tag tag
                        :content (vector prev-node))))
       (setf (aref stack j) node)))
@@ -114,7 +115,7 @@
       (declare (type fixnum i))
       (for i from 0 below #.cl-ds.common.rrb:+maximum-children-count+)
       (for present = (cl-ds.common.rrb:sparse-rrb-node-contains node i))
-      (setf (aref (the simple-vector buffer) i)
+      (setf (aref buffer i)
             (if present
                 (cl-ds.common.rrb:sparse-nref node i)
                 :null)))
@@ -175,11 +176,11 @@
                           ,@(iterate
                               (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
                               (collecting `(setf (svref buffer ,i) :null))))))
-            (unrolled))))
-      (reduce-stack iterator index
-                    (aref depths column-index)
-                    (svref stacks column-index)
-                    (svref columns column-index))
+            (unrolled)))
+        (reduce-stack iterator index
+                      (aref depths column-index)
+                      (svref stacks column-index)
+                      (svref columns column-index)))
       (if (and not-changed (not force-initialization))
           (setf (aref initialization-status column-index) nil)
           (progn
@@ -194,8 +195,8 @@
                   (aref depths column-index) new-depth
                   (aref initialization-status column-index) t)
             (fill-buffer new-depth
-                         (aref (the simple-vector buffers) column-index)
-                         (aref (the simple-vector stacks) column-index)))))
+                         (aref buffers column-index)
+                         (aref stacks column-index)))))
     nil))
 
 
@@ -915,8 +916,7 @@
 (defun make-leaf (iterator column old-node change buffer
                   &optional (new-size (- cl-ds.common.rrb:+maximum-children-count+
                                          (count :null buffer))))
-  (declare (type simple-vector buffer change)
-           (ignore iterator))
+  (declare (type simple-vector buffer change))
   (unless (null old-node)
     (macrolet ((unrolled ()
                  `(progn
@@ -943,7 +943,7 @@
                                             bitmask (dpb 1 (byte 1 ,i) bitmask)
                                             index (the fixnum (1+ index))))))))))
       (unrolled))
-    (make-node column bitmask :content new-content)))
+    (make-node iterator column bitmask :content new-content)))
 
 
 (defun change-leaf (iterator depth stack column change buffer)
@@ -1008,13 +1008,11 @@
     (cond ((and (empty-node parent) (empty-node child))
            nil)
           ((null parent)
-           (make-node column (ash 1 position)
+           (make-node iterator column (ash 1 position)
                       :content (vector child)))
           ((and (empty-node child)
                 (eql 1 (cl-ds.common.rrb:sparse-rrb-node-size parent)))
-           (if (cl-ds.common.rrb:sparse-rrb-node-contains parent position)
-               nil
-               parent))
+           nil)
           ((cl-ds.common.abstract:acquire-ownership parent tag)
            (if (empty-node child)
                (when (cl-ds.common.rrb:sparse-rrb-node-contains parent position)
@@ -1049,7 +1047,8 @@
                            index))
       (for new-node = (copy-on-write-node iterator node prev-node
                                           position tag column))
-      (assert (or (null new-node) (> (cl-ds.common.rrb:sparse-rrb-node-size new-node) 0)))
+      (assert (or (null new-node)
+                  (> (cl-ds.common.rrb:sparse-rrb-node-size new-node) 0)))
       (until (eq node new-node))
       (setf prev-node new-node
             (aref stack i) new-node)))
@@ -1201,20 +1200,3 @@
 (defun range-iterator (range position)
   (lret ((iterator (~> range read-column list make-iterator)))
     (move-iterator iterator position)))
-
-
-(defun unify-shift (columns)
-  (bind ((depth (~> (extremum columns #'>
-                              :key #'cl-ds.dicts.srrb:access-shift)
-                    cl-ds.dicts.srrb:access-shift))
-         ((:flet unify-shift (column &aux (root (cl-ds.dicts.srrb:access-tree column))))
-          (unless (cl-ds.meta:null-bucket-p root)
-            (iterate
-              (for i from (cl-ds.dicts.srrb:access-shift column) below depth)
-              (for node
-                   initially (cl-ds.dicts.srrb:access-tree column)
-                   then (make-node column 1
-                                   :content (vector node)))
-              (finally (setf (cl-ds.dicts.srrb:access-tree column) node
-                             (cl-ds.dicts.srrb:access-shift column) depth))))))
-    (map nil #'unify-shift columns)))
