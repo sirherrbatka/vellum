@@ -1012,7 +1012,9 @@
                       :content (vector child)))
           ((and (empty-node child)
                 (eql 1 (cl-ds.common.rrb:sparse-rrb-node-size parent)))
-           nil)
+           (if (cl-ds.common.rrb:sparse-rrb-node-contains parent position)
+               nil
+               parent))
           ((cl-ds.common.abstract:acquire-ownership parent tag)
            (if (empty-node child)
                (when (cl-ds.common.rrb:sparse-rrb-node-contains parent position)
