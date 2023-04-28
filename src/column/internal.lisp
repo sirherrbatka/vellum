@@ -558,7 +558,7 @@
                 (setf (cl-ds.common.rrb:sparse-rrb-node-content to-node) new-content
                       (cl-ds.common.rrb:sparse-rrb-node-bitmask to-node) new-to-mask)
                 (setf (node state column-index to)
-                      (make-node column new-to-mask
+                      (make-node iterator column new-to-mask
                                  :content new-content)))))
       (cond ((zerop new-from-mask)
              (setf (node state column-index from) nil))
@@ -577,7 +577,8 @@
                                                                from-mask)))
                       (desired-size (- cl-ds.common.rrb:+maximum-children-count+
                                        (logcount distinct-missing)))
-                      (new-from (make-node column new-from-mask
+                      (new-from (make-node iterator
+                                           column new-from-mask
                                            :length desired-size
                                            :type element-type))
                       (new-content (cl-ds.common.rrb:sparse-rrb-node-content
@@ -737,7 +738,7 @@
                         new-content
                         (cl-ds.common.rrb:sparse-rrb-node-bitmask parent)
                         mask))
-                (let ((new-node (make-node column-object mask
+                (let ((new-node (make-node iterator column-object mask
                                            :content new-content)))
                   (setf (node parents column index) new-node))))))))
 
@@ -1008,7 +1009,6 @@
            nil)
           ((null parent)
            (make-node column (ash 1 position)
-                      :tag tag
                       :content (vector child)))
           ((and (empty-node child)
                 (eql 1 (cl-ds.common.rrb:sparse-rrb-node-size parent)))
