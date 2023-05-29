@@ -1,6 +1,6 @@
 (asdf:defsystem #:vellum
   :name "vellum"
-  :version "1.3.1"
+  :version "1.3.4"
   :license "BSD simplified"
   :author "Marek Kochanowicz"
   :description "Data Frames for Common Lisp"
