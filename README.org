@@ -668,7 +668,7 @@ As hinted before, Vellum is designed to be easy to use with other libraries. For
 Postmodern is a really nice library, but doquery insists on driving its own iteration. As you can see that's not a big deal. For libraries that present us with an iterator-like interface, you can simply use TRANSFORM directly. Just don't forget to pass NIL as :END and call VELLUM:FINISH-TRANSFORMATION from the BIND-ROW form. I already showed you how.
 
 ** The future
-Support for additional data sources and storage formats will be added into seperated systems in the vellum project itself. I actually already added support for constructing data frames out of the postmodern queries as well as CSV file handling build with fare-csv library. I would like to also support parquet files (with the help of cl-apache-arrow). Stay tuned.
+Support for additional data sources and storage formats will be added into seperated systems in the vellum project itself. I actually already added support for constructing data frames out of the postmodern queries as well as CSV file handling. You can also use vellum-duckdb to read in parquet files.
 
 ** See also...
 https://github.com/sirherrbatka/vellum-plain-odbc/
@@ -682,6 +682,8 @@ https://github.com/sirherrbatka/vellum-binary/
 https://github.com/sirherrbatka/vellum-plot/
 
 https://github.com/sirherrbatka/vellum-clim/
+
+https://github.com/sirherrbatka/vellum-duckdb
 
 ** I want to help!
 Great! If you want to implement a new input/output format this is always welcomed. If you have improvement ideas for the main system, don't hesitate to open issue on github.
