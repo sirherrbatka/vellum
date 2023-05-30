@@ -3,7 +3,7 @@ Si vis memoriae, para vellum.
 #+END_QUOTE
 
 ** What is Vellum?
-   Vellum is a data frame library build for Common Lisp. It is designed to be easy to both learn and use (especially in interactive fashion), practical, and reasonably efficient. Note that this software is in beta quality at the moment.
+Vellum is a data frame library for Common Lisp. It is designed to be easy to both learn and use (especially in interactive fashion), practical, and reasonably efficient.
 
 ** Why I made Vellum?
 Common Lisp is a fine language with exceptional interactivity, multiple implementations providing the potential for acceptable performance, useful features like condition system, and a stable standard base. This, in theory, makes is very much suited toward data processing and analysis. Although practice paints a less favorable picture, there are still use cases where Common Lisp could be considered to be a very good pick. Also, I simply like writing Lisp code.
