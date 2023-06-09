@@ -21,6 +21,7 @@
    #:headers-incompatible
    #:index-to-name
    #:invalid-input-for-row
+   #:write-header
    #:invalid-name
    #:keep-old-value
    #:make-header

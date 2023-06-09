@@ -35,6 +35,7 @@
 
 (defclass frame-range-mixin ()
   ((%header :initarg :header
+            :writer write-header
             :reader read-header)))
 
 
