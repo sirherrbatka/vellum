@@ -19,7 +19,8 @@
 
 (defun make-signature (c)
   (apply #'make-column-signature
-         (cond ((listp c) c)
+         (cond ((null c) nil)
+               ((listp c) c)
                ((atom c) `(:name ,c)))))
 
 

@@ -8,16 +8,15 @@
                        (enable-restarts *enable-restarts*)
                        (wrap-errors *wrap-errors*)
                        &allow-other-keys)
-  (let* ((header (vellum.header:read-header range))
-         (function (ensure-function (bind-row-closure body :header header)))
-         (transformation (~> (table-from-header class header)
-                             (transformation nil :in-place t
-                                             :enable-restarts enable-restarts
-                                             :wrap-errors wrap-errors)))
-         (column-count (vellum.header:column-count header))
-         (prev-control (ensure-function *transform-control*))
-         (table (standard-transformation-table transformation)))
-    (declare (type vellum.header:standard-header header))
+  (cl-ds.utils:lazy-let ((header (vellum.header:read-header range))
+                         (function (ensure-function (bind-row-closure body :header header)))
+                         (transformation (~> (table-from-header class header)
+                                             (transformation nil :in-place t
+                                                                 :enable-restarts enable-restarts
+                                                                 :wrap-errors wrap-errors)))
+                         (column-count (vellum.header:column-count header))
+                         (prev-control (ensure-function *transform-control*))
+                         (table (standard-transformation-table transformation)))
     (block main
       (cl-ds:across
        range

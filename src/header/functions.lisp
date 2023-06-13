@@ -58,6 +58,7 @@
 
 
 (defun make-header (&rest columns)
+  (declare (optimize (debug 3)))
   (let* ((result (make-standard-header))
          (column-signatures (map 'vector
                                  #'make-signature
@@ -70,7 +71,8 @@
                   (for i from 0 below length)
                   (for column = (aref column-signatures i))
                   (for name = (read-name column))
-                  (when (null name) (next-iteration))
+                  (when (null name)
+                    (next-iteration))
                   (when (symbolp name)
                     (setf name (symbol-name name)))
                   (check-type name string)
@@ -135,5 +137,7 @@
 
 
 (defun make-column-signature (&key name (type t))
-  (make-column-signature-impl :name (string-upcase name)
+  (make-column-signature-impl :name (if (null name)
+                                        nil
+                                        (string-upcase name))
                               :type type))
