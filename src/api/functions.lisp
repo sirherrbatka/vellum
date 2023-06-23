@@ -273,7 +273,8 @@
                    (class 'vellum.table:standard-table)
                    (columns (collect-column-specs frame-specs))
                    (header (apply #'vellum.header:make-header columns))
-                   (test 'equal))
+                   (test 'equal)
+                 &allow-other-keys)
   (hash-join-implementation frame-specs header
                             class test
                             #'cartesian-product))
@@ -284,7 +285,8 @@
                    (class 'vellum.table:standard-table)
                    (columns (collect-column-specs frame-specs))
                    (header (apply #'vellum.header:make-header columns))
-                   (test 'equal))
+                   (test 'equal)
+                 &allow-other-keys)
   (bind ((lengths (map 'vector
                        (compose #'vellum:column-count #'second)
                        frame-specs))

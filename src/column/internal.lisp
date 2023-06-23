@@ -918,16 +918,13 @@
                                          (count :null buffer))))
   (declare (type simple-vector buffer change))
   (unless (null old-node)
-    (macrolet ((unrolled ()
-                 `(progn
-                    ,@(iterate
-                        (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
-                        (collect `(let ((changed (svref change ,i)))
-                                    (unless (or changed
-                                                (not (cl-ds.common.rrb:sparse-rrb-node-contains old-node
-                                                                                                ,i)))
-                                      (setf (svref buffer ,i) (cl-ds.common.rrb:sparse-nref old-node ,i)))))))))
-      (unrolled)))
+    (iterate
+      (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+      (collect (let ((changed (svref change i)))
+                  (unless (or changed
+                              (not (cl-ds.common.rrb:sparse-rrb-node-contains old-node
+                                                                              i)))
+                    (setf (svref buffer i) (cl-ds.common.rrb:sparse-nref old-node i)))))))
   (let ((new-content (make-array new-size :element-type (column-type column)))
          (bitmask 0))
     (declare (type fixnum bitmask)
