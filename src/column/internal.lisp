@@ -45,7 +45,7 @@
   (logand index cl-ds.common.rrb:+tail-mask+))
 
 
-(declare (notinline pad-stack))
+(declaim (notinline pad-stack))
 (-> pad-stack (sparse-material-column-iterator
                fixnum fixnum fixnum iterator-stack
                sparse-material-column)
@@ -78,7 +78,7 @@
   (aref stack 0))
 
 
-(declare (notinline moove/pad-stack))
+(declaim (notinline moove/pad-stack))
 (defun move/pad-stack (iterator index new-index depth new-depth stack column)
   (when (> new-depth depth)
     (pad-stack iterator depth (max index 0) new-depth stack column))
@@ -1033,7 +1033,7 @@
                          child)))))))
 
 
-(declare (notinline reduce-stack))
+(declaim (notinline reduce-stack))
 (-> reduce-stack (sparse-material-column-iterator fixnum fixnum iterator-stack sparse-material-column) t)
 (defun reduce-stack (iterator index depth stack column)
   (declare (optimize (speed 3) (safety 0)))
