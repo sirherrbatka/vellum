@@ -919,8 +919,6 @@
                   &optional (new-size (- cl-ds.common.rrb:+maximum-children-count+
                                          (count :null buffer))))
   (declare (type simple-vector buffer change))
-  (when (zerop new-size)
-    (return-from make-leaf cl-ds.meta:null-bucket))
   (unless (null old-node)
     (iterate
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
@@ -968,8 +966,9 @@
                (if (or (null old-node)
                        (not (cl-ds.common.abstract:acquire-ownership old-node
                                                                      tag)))
-                   (setf (aref stack depth)
-                         (make-leaf iterator column old-node change buffer new-size))
+                   (unless (zerop new-size)
+                     (setf (aref stack depth)
+                           (make-leaf iterator column old-node change buffer new-size)))
                    (mutate-leaf column old-node change buffer new-size)))))))
   nil)
 
