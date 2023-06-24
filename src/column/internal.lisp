@@ -45,6 +45,7 @@
   (logand index cl-ds.common.rrb:+tail-mask+))
 
 
+(declare (notinline pad-stack))
 (-> pad-stack (sparse-material-column-iterator
                fixnum fixnum fixnum iterator-stack
                sparse-material-column)
@@ -77,6 +78,7 @@
   (aref stack 0))
 
 
+(declare (notinline moove/pad-stack))
 (defun move/pad-stack (iterator index new-index depth new-depth stack column)
   (when (> new-depth depth)
     (pad-stack iterator depth (max index 0) new-depth stack column))
@@ -100,7 +102,7 @@
                      cl-ds.common.rrb:+maximum-children-count+))))
 
 
-(declaim (inline fill-buffer))
+(declaim (notinline fill-buffer))
 (-> fill-buffer (fixnum iterator-buffer iterator-stack) t)
 (defun fill-buffer (depth buffer stack)
   (declare (type fixnum depth)
@@ -122,7 +124,7 @@
     node))
 
 
-(declaim (inline move-column-to))
+(declaim (notinline move-column-to))
 (defun move-column-to (iterator new-index column-index
                        depth
                        indexes
@@ -912,11 +914,13 @@
           (cl-ds.common.rrb:sparse-rrb-node-bitmask old-node) bitmask)))
 
 
-(declaim (inline make-leaf))
+(declaim (notinline make-leaf))
 (defun make-leaf (iterator column old-node change buffer
                   &optional (new-size (- cl-ds.common.rrb:+maximum-children-count+
                                          (count :null buffer))))
   (declare (type simple-vector buffer change))
+  (when (zerop new-size)
+    (return-from make-leaf cl-ds.meta:null-bucket))
   (unless (null old-node)
     (iterate
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
@@ -926,7 +930,7 @@
                                                                               i)))
                     (setf (svref buffer i) (cl-ds.common.rrb:sparse-nref old-node i)))))))
   (let ((new-content (make-array new-size :element-type (column-type column)))
-         (bitmask 0))
+        (bitmask 0))
     (declare (type fixnum bitmask)
              (type (simple-array * (*)) new-content))
     (macrolet ((unrolled ()
@@ -1030,6 +1034,7 @@
                          child)))))))
 
 
+(declare (notinline reduce-stack))
 (-> reduce-stack (sparse-material-column-iterator fixnum fixnum iterator-stack sparse-material-column) t)
 (defun reduce-stack (iterator index depth stack column)
   (declare (optimize (speed 3) (safety 0)))
