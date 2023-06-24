@@ -58,7 +58,6 @@
 
 
 (defun make-header (&rest columns)
-  (declare (optimize (debug 3)))
   (let* ((result (make-standard-header))
          (column-signatures (map 'vector
                                  #'make-signature

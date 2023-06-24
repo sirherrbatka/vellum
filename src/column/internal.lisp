@@ -701,7 +701,7 @@
   (declare (type concatenation-state state))
   (with-concatenation-state (state)
     (iterate
-      (declare (type fixnum mask))
+      (declare (type cl-ds.common.rrb:sparse-rrb-mask mask))
       (with column-object = (aref columns column))
       (with tag = (cl-ds.common.abstract:read-ownership-tag column-object))
       (for (index changed) in-hashtable (aref changed-parents column))
@@ -792,7 +792,7 @@
 
 
 (defun build-new-mask (old-bitmask missing-mask)
-  (declare (type fixnum old-bitmask missing-mask)
+  (declare (type cl-ds.common.rrb:sparse-rrb-mask old-bitmask missing-mask)
            (optimize (speed 3)))
   (let* ((distinct-missing (~> old-bitmask
                                lognot
@@ -802,7 +802,7 @@
                           logcount
                           (byte 0)
                           (ldb most-positive-fixnum))))
-    (declare (type fixnum new-bitmask distinct-missing))
+    (declare (type cl-ds.common.rrb:sparse-rrb-mask new-bitmask distinct-missing))
     (assert (zerop (logand distinct-missing missing-mask)))
     (iterate
       (declare (type fixnum i zero-sum)
@@ -814,7 +814,7 @@
       (for old-index = (~> (ldb (byte i 0) old-bitmask)
                            logcount))
       (for new-index = (+ old-index zero-sum))
-      (setf new-bitmask (the fixnum (dpb 0 (byte 1 new-index) new-bitmask)))
+      (setf new-bitmask (the cl-ds.common.rrb:sparse-rrb-mask (dpb 0 (byte 1 new-index) new-bitmask)))
       (the fixnum (incf zero-sum))
       (finally (return new-bitmask)))))
 
@@ -840,7 +840,7 @@
                                 truncate-mask
                                 (build-new-mask old-mask)))
                 (owned (cl-ds.common.abstract:acquire-ownership node tag)))
-           (declare (type fixnum old-mask new-mask))
+           (declare (type cl-ds.common.rrb:sparse-rrb-mask old-mask new-mask))
            (unless (= old-mask new-mask)
              (if owned
                  (setf (cl-ds.common.rrb:sparse-rrb-node-bitmask node) new-mask)
@@ -881,7 +881,7 @@
   (aref stack 0))
 
 
-(declaim (inline mutate-leaf))
+(declaim (notinline mutate-leaf))
 (defun mutate-leaf (column old-node change buffer
                     &optional (new-size (- cl-ds.common.rrb:+maximum-children-count+
                                            (count :null buffer))))
@@ -894,7 +894,8 @@
                           (make-array new-size
                                       :element-type (column-type column)))))
     (declare (type (or simple-vector simple-bit-vector) old-content)
-             (type fixnum old-size new-size bitmask))
+             (type fixnum old-size new-size)
+             (type cl-ds.common.rrb:sparse-rrb-mask bitmask))
     (iterate
       (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
       (for changed in-vector change)
@@ -929,7 +930,7 @@
                     (setf (svref buffer i) (cl-ds.common.rrb:sparse-nref old-node i)))))))
   (let ((new-content (make-array new-size :element-type (column-type column)))
         (bitmask 0))
-    (declare (type fixnum bitmask)
+    (declare (type cl-ds.common.rrb:sparse-rrb-mask bitmask)
              (type (simple-array * (*)) new-content))
     (macrolet ((unrolled ()
                  `(let ((index 0))
@@ -1159,7 +1160,6 @@
 
 
 (defun trim-depth-in-column (column)
-  (declare (optimize (debug 3)))
   (bind ((shift (cl-ds.dicts.srrb:access-shift column))
          ((:labels skip (node &optional (s shift)))
           (if (or (zerop s)
