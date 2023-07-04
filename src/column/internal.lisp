@@ -504,8 +504,8 @@
            (new-to-mask (logior real-to-mask shifted-from-mask))
            (new-to-size (logcount new-to-mask)))
       (declare (type (simple-array * (*)) from-content)
-               (type fixnum taken free-space real-from-size
-                     real-from-mask real-to-mask new-to-mask new-to-size))
+               (type cl-ds.common.rrb:sparse-rrb-mask new-from-mask new-to-mask real-from-mask real-to-mask)
+               (type fixnum taken free-space real-from-size new-to-size))
       (assert (= real-to-mask (logand real-to-mask to-mask)))
       (assert (= real-from-mask (logand real-from-mask from-mask)))
       (assert (zerop (logand to-mask shifted-from-mask)))
