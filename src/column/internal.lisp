@@ -28,14 +28,14 @@
    :bitmask bitmask))
 
 
-(-> truncate-mask (integer) fixnum)
+(-> truncate-mask ((unsigned-byte 64)) (unsigned-byte 32))
 (defun truncate-mask (mask)
   (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
 
 
 (declaim (inline offset))
 (defun offset (index)
-  (declare (type fixnum index))
+  (declare (type integer index))
   (logandc2 index cl-ds.common.rrb:+tail-mask+))
 
 
@@ -499,8 +499,7 @@
            (real-from-mask (cl-ds.common.rrb:sparse-rrb-node-bitmask from-node))
            (shifted-from-mask (truncate-mask (ash real-from-mask taken)))
            (shifted-count (logcount shifted-from-mask))
-           (new-from-mask (ldb (byte cl-ds.common.rrb:+maximum-children-count+
-                                     free-space)
+           (new-from-mask (ldb (byte cl-ds.common.rrb:+maximum-children-count+ free-space)
                                real-from-mask))
            (new-to-mask (logior real-to-mask shifted-from-mask))
            (new-to-size (logcount new-to-mask)))
@@ -629,7 +628,7 @@
 
 
 (-> move-children-in-columns (concatenation-state
-                              fixnum fixnum
+                              (unsigned-byte 32) (unsigned-byte 32)
                               cl-ds.common.rrb:sparse-rrb-mask
                               cl-ds.common.rrb:sparse-rrb-mask)
     t)
@@ -798,10 +797,13 @@
                                lognot
                                truncate-mask
                                (logxor missing-mask)))
-         (new-bitmask (~> (logior old-bitmask distinct-missing)
-                          logcount
-                          (byte 0)
-                          (ldb most-positive-fixnum))))
+         (new-bitmask (ldb (byte (logcount (logior old-bitmask distinct-missing)) 0)
+                           #.(iterate
+                               (declare (type result cl-ds.common.rrb:sparse-rrb-mask))
+                               (with result = 0)
+                               (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
+                               (setf (ldb (byte 1 i) result) 1)
+                               (finally (return result))))))
     (declare (type cl-ds.common.rrb:sparse-rrb-mask new-bitmask distinct-missing))
     (assert (zerop (logand distinct-missing missing-mask)))
     (iterate

@@ -414,8 +414,8 @@
             (unless (< in column-size)
               (map-tail))
             (for i from 0
-                 below (the fixnum (ash cl-ds.common.rrb:+maximum-children-count+
-                                        (the fixnum (* cl-ds.common.rrb:+bit-count+ level)))))
+                 below (ash cl-ds.common.rrb:+maximum-children-count+
+                            (the fixnum (* cl-ds.common.rrb:+bit-count+ level))))
             (funcall function :null)))
          ((:labels map-subtree (subtree level index))
           (declare (type cl-ds.common.rrb:sparse-rrb-node-tagged subtree)
@@ -440,7 +440,7 @@
                           (map-subtree (svref content c-index)
                                        level-1
                                        next-index))
-                      (the fixnum (incf c-index)))
+                      (incf c-index))
                     (map-nulls level-1 next-index)))))))
     (cond ((cl-ds.meta:null-bucket-p root) nil)
           ((zerop shift) (map-leaf root 0))

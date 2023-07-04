@@ -8,7 +8,8 @@
     (declare (type integer column))
     (etypecase row
       (table-row
-       (~> row table-row-iterator (vellum.column:iterator-at column)))
+       (let ((iterator (table-row-iterator row)))
+         (vellum.column:iterator-at iterator column)))
       (simple-vector
        (let ((length (length row)))
          (declare (type fixnum length))
