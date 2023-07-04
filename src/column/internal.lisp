@@ -471,7 +471,7 @@
 
 
 (-> move-to-existing-column (concatenation-state fixnum fixnum
-                                                 fixnum fixnum
+                                                 cl-ds.common.rrb:sparse-rrb-mask cl-ds.common.rrb:sparse-rrb-mask
                                                  fixnum)
     t)
 (defun move-to-existing-column (state from to from-mask to-mask column-index)
