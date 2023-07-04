@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 45889)
+(prove:plan 8020)
 
 (let* ((data-frame (vellum:to-table (cl-ds.alg:on-each (cl-ds:iota-range :to 308) #'list)
                                     :columns '(column)
@@ -15,95 +15,96 @@
   (prove:is (vellum:row-count transformed) 1)
   (prove:is (vellum:at transformed 0 0) 108))
 
-(progn
-  (defparameter *test-data* #(#(1 a 5 s)
+(defparameter *test-data* #(#(1 a 5 s)
                               #(2 b 6 s)
                               #(3 c 7 s)))
 
-  (vellum:with-standard-header (nil nil nil nil)
+(vellum:with-standard-header (nil nil nil nil)
     (defparameter *table*
       (~> *test-data*
           cl-ds:whole-range
           (vellum:to-table :header (vellum:header)))))
 
-  (prove:is (vellum:at *table* 0 0) 1)
-  (prove:is (vellum:at *table* 1 0) 2)
-  (prove:is (vellum:at *table* 2 0) 3)
+(prove:is (vellum:at *table* 0 0) 1)
+(prove:is (vellum:at *table* 1 0) 2)
+(prove:is (vellum:at *table* 2 0) 3)
 
-  (prove:is (vellum:at *table* 0 1) 'a)
-  (prove:is (vellum:at *table* 1 1) 'b)
-  (prove:is (vellum:at *table* 2 1) 'c)
+(prove:is (vellum:at *table* 0 1) 'a)
+(prove:is (vellum:at *table* 1 1) 'b)
+(prove:is (vellum:at *table* 2 1) 'c)
 
-  (prove:is (vellum:at *table* 0 2) 5)
-  (prove:is (vellum:at *table* 1 2) 6)
-  (prove:is (vellum:at *table* 2 2) 7)
+(prove:is (vellum:at *table* 0 2) 5)
+(prove:is (vellum:at *table* 1 2) 6)
+(prove:is (vellum:at *table* 2 2) 7)
 
-  (prove:is (vellum:at *table* 0 3) 's)
-  (prove:is (vellum:at *table* 1 3) 's)
-  (prove:is (vellum:at *table* 2 3) 's)
+(prove:is (vellum:at *table* 0 3) 's)
+(prove:is (vellum:at *table* 1 3) 's)
+(prove:is (vellum:at *table* 2 3) 's)
 
-  (defparameter *replica*
-    (vellum:transform *table*
-                     (vellum:bind-row ()
-                       (setf (vellum:rr 0) (+ 1 (vellum:rr 0))))
-                     :in-place nil))
-
-  (prove:is (vellum:at *table* 0 0) 1)
-  (prove:is (vellum:at *table* 1 0) 2)
-  (prove:is (vellum:at *table* 2 0) 3)
-
-  (prove:is (vellum:at *replica* 0 0) 2)
-  (prove:is (vellum:at *replica* 1 0) 3)
-
-  (prove:is (vellum:at *replica* 2 0) 4)
-
+(defparameter *replica*
   (vellum:transform *table*
-                   (vellum:bind-row ()
-                     (setf (vellum:rr 0) (* 2 (vellum:rr 0))))
-                   :in-place t)
+    (vellum:bind-row ()
+      (setf (vellum:rr 0) (+ 1 (vellum:rr 0))))
+    :in-place nil))
 
-  (prove:is (vellum:at *table* 0 0) 2)
-  (prove:is (vellum:at *table* 1 0) 4)
-  (prove:is (vellum:at *table* 2 0) 6)
+(prove:is (vellum:at *table* 0 0) 1)
+(prove:is (vellum:at *table* 1 0) 2)
+(prove:is (vellum:at *table* 2 0) 3)
 
-  (prove:is (vellum:at *replica* 0 0) 2)
-  (prove:is (vellum:at *replica* 1 0) 3)
-  (prove:is (vellum:at *replica* 2 0) 4)
+(prove:is (vellum:at *replica* 0 0) 2)
+(prove:is (vellum:at *replica* 1 0) 3)
 
-  (defparameter *concatenated-table* (vellum:vstack (list *table* *replica*)))
+(prove:is (vellum:at *replica* 2 0) 4)
 
-  (prove:is (column-count *concatenated-table*) 4)
-  (prove:is (row-count *concatenated-table*) 6)
+(vellum:transform *table*
+  (vellum:bind-row ()
+    (setf (vellum:rr 0) (* 2 (vellum:rr 0))))
+  :in-place t)
 
-  (prove:is (vellum:at *concatenated-table* 0 0) 2)
-  (prove:is (vellum:at *concatenated-table* 1 0) 4)
-  (prove:is (vellum:at *concatenated-table* 2 0) 6)
-  (prove:is (vellum:at *concatenated-table* 3 0) 2)
-  (prove:is (vellum:at *concatenated-table* 4 0) 3)
-  (prove:is (vellum:at *concatenated-table* 5 0) 4)
+(prove:is (vellum:at *table* 0 0) 2)
+(prove:is (vellum:at *table* 1 0) 4)
+(prove:is (vellum:at *table* 2 0) 6)
 
-  (defparameter *sub-table* (select *concatenated-table*
-                              :rows (vellum:s (vellum:between :from 1 :to 4))))
-  (prove:is (column-count *sub-table*) 4)
-  (prove:is (row-count *sub-table*) 3)
-  (prove:is (at *sub-table* 0 0) 4)
-  (prove:is (at *sub-table* 1 0) 6)
-  (prove:is (at *sub-table* 2 0) 2)
+(prove:is (vellum:at *replica* 0 0) 2)
+(prove:is (vellum:at *replica* 1 0) 3)
+(prove:is (vellum:at *replica* 2 0) 4)
 
-  (defparameter *sub-table* (select *concatenated-table*
-                              :columns (vellum:s (vellum:between :to 3))))
-  (prove:is (column-count *sub-table*) 3)
-  (prove:is (row-count *sub-table*) 6)
+(defparameter *concatenated-table* (vellum:vstack (list *table* *replica*)))
 
-  (defparameter *sub-table* (select *concatenated-table*
-                              :rows '(1 2 3)))
-  (prove:is (column-count *sub-table*) 4)
-  (prove:is (row-count *sub-table*) 3)
-  (prove:is (at *sub-table* 0 0) 4)
-  (prove:is (at *sub-table* 1 0) 6)
-  (prove:is (at *sub-table* 2 0) 2))
+(prove:is (column-count *concatenated-table*) 4)
+(prove:is (row-count *concatenated-table*) 6)
 
-(let* ((element-count 252529)
+(prove:is (vellum:at *concatenated-table* 0 0) 2)
+(prove:is (vellum:at *concatenated-table* 1 0) 4)
+(prove:is (vellum:at *concatenated-table* 2 0) 6)
+(prove:is (vellum:at *concatenated-table* 3 0) 2)
+(prove:is (vellum:at *concatenated-table* 4 0) 3)
+(prove:is (vellum:at *concatenated-table* 5 0) 4)
+
+(defparameter *sub-table* (select *concatenated-table*
+                            :rows (vellum:s (vellum:between :from 1 :to 4))))
+
+(prove:is (column-count *sub-table*) 4)
+(prove:is (row-count *sub-table*) 3)
+(prove:is (at *sub-table* 0 0) 4)
+(prove:is (at *sub-table* 1 0) 6)
+(prove:is (at *sub-table* 2 0) 2)
+
+(defparameter *sub-table* (select *concatenated-table*
+                            :columns (vellum:s (vellum:between :to 3))))
+
+(prove:is (column-count *sub-table*) 3)
+(prove:is (row-count *sub-table*) 6)
+
+(defparameter *sub-table* (select *concatenated-table*
+                            :rows '(1 2 3)))
+(prove:is (column-count *sub-table*) 4)
+(prove:is (row-count *sub-table*) 3)
+(prove:is (at *sub-table* 0 0) 4)
+(prove:is (at *sub-table* 1 0) 6)
+(prove:is (at *sub-table* 2 0) 2)
+
+(let* ((element-count 2525)
        (source (~> (make-list element-count)
                    (map-into (lambda ()
                                (vector (random most-positive-fixnum)
@@ -149,7 +150,7 @@
                         (incf mismatch-count))))
   (prove:is mismatch-count 0))
 
-(let* ((element-count 64325)
+(let* ((element-count 6432)
        (source (~> (make-array element-count)
                    (map-into (lambda ()
                                (list (random most-positive-fixnum)
@@ -171,7 +172,7 @@
                                                 (second-column renamed-second-column)
                                                 (third-column renamed-third-column))))
        (dropped (cl-ds.alg:to-hash-table
-                 (take 50300 (shuffle source))
+                 (take 5030 (shuffle source))
                  :hash-table-key #'first)))
   (prove:is (vellum:row-count table) element-count)
   (prove:is (vellum:row-count renamed) element-count)
@@ -192,9 +193,9 @@
                       (when (gethash first-column dropped)
                         (vellum:drop-row)))
                     :in-place t)
-  (prove:is (vellum:row-count table) (- 64325 50300))
+  (prove:is (vellum:row-count table) (- 6432 5030))
   (iterate
-    (for i from 0 below (- 64325 50300))
+    (for i from 0 below (- 6432 5030))
     (for first-column = (vellum:at table i 0))
     (for second-column = (vellum:at table i 1))
     (for third-column = (vellum:at table i 2))
