@@ -28,7 +28,8 @@
    :bitmask bitmask))
 
 
-(-> truncate-mask ((unsigned-byte 64)) (unsigned-byte 32))
+(declaim (inline truncate-mask))
+(-> truncate-mask (integer) cl-ds.common.rrb:sparse-rrb-mask)
 (defun truncate-mask (mask)
   (ldb (byte cl-ds.common.rrb:+maximum-children-count+ 0) mask))
 
@@ -791,15 +792,13 @@
 
 
 (defun build-new-mask (old-bitmask missing-mask)
-  (declare (type cl-ds.common.rrb:sparse-rrb-mask old-bitmask missing-mask)
-           (optimize (speed 3)))
+  (declare (type cl-ds.common.rrb:sparse-rrb-mask old-bitmask missing-mask))
   (let* ((distinct-missing (~> old-bitmask
                                lognot
                                truncate-mask
                                (logxor missing-mask)))
          (new-bitmask (ldb (byte (logcount (logior old-bitmask distinct-missing)) 0)
                            #.(iterate
-                               (declare (type result cl-ds.common.rrb:sparse-rrb-mask))
                                (with result = 0)
                                (for i from 0 below cl-ds.common.rrb:+maximum-children-count+)
                                (setf (ldb (byte 1 i) result) 1)
@@ -823,7 +822,6 @@
 
 (-> concatenate-masks (concatenation-state) t)
 (defun concatenate-masks (state)
-  (declare (optimize (speed 3)))
   (with-concatenation-state (state)
     (clrhash masks)
     (gather-masks nodes masks)
@@ -838,9 +836,9 @@
          (let* ((mask (mask state index))
                 (old-mask (cl-ds.common.rrb:sparse-rrb-node-bitmask node))
                 (new-mask (~>> mask
-                                lognot
-                                truncate-mask
-                                (build-new-mask old-mask)))
+                               lognot
+                               truncate-mask
+                               (build-new-mask old-mask)))
                 (owned (cl-ds.common.abstract:acquire-ownership node tag)))
            (declare (type cl-ds.common.rrb:sparse-rrb-mask old-mask new-mask))
            (unless (= old-mask new-mask)
