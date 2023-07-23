@@ -44,11 +44,16 @@
   nil)
 
 
+(defmacro distinct (&rest data)
+  (declare (ignore data))
+  nil)
+
+
 (defclass aggregation-results ()
   ((%aggregators :initarg :aggregators
                  :reader aggregators)
    (%aggregation-column-names :initarg :aggregation-column-names
-                  :reader aggregation-column-names)))
+                              :reader aggregation-column-names)))
 
 
 (defclass group-by-aggregation-results ()
@@ -64,6 +69,7 @@
   (let* ((gathered-constructor-forms (make-hash-table :test 'eql))
          (gathered-constructor-variables (make-hash-table :test 'eql))
          (gathered-group-by-variables (list))
+         (gathered-distinct-variables (make-hash-table :test 'eql))
          (group-names (list))
          (pre-form nil)
          (aggregation-symbol (gensym))
@@ -94,6 +100,9 @@
                                              ,what
                                              ,constructor-form
                                              ,into)))
+                    ((and (listp pre-form) (eq (car pre-form) 'vellum.table:distinct))
+                     (lret ((symbol (gensym)))
+                       (setf (gethash symbol gathered-distinct-variables) (rest pre-form))))
                     ((and (listp pre-form) (eq (car pre-form) 'vellum.table:group-by))
                      (iterate
                        (for elt in (rest pre-form))
@@ -118,6 +127,7 @@
           gathered-constructor-forms
           aggregation-symbol
           extract-value-symbol
+          gathered-distinct-variables
           (nreverse gathered-group-by-variables)
           (nreverse group-names))))
 
@@ -127,6 +137,7 @@
                                      gathered-constructor-forms
                                      aggregation-symbol
                                      extract-value-symbol
+                                     gathered-distinct-variables
                                      gathered-group-by-variables
                                      group-names)
   (let* ((!grouped-aggregators (gensym)))
@@ -154,12 +165,18 @@
                                     (,!aggregators (or (gethash ',result-name ,!group)
                                                        (cl-ds.alg.meta:call-constructor ,constructor-form))))
                                (cl-ds.alg.meta:extract-result ,!aggregators))))))
+                   ((gethash f gathered-distinct-variables)
+                    (let ((forms (shiftf (gethash f gathered-distinct-variables) nil)))
+                      (if (= 1 (length forms))
+                          `(vellum:drop-row-when (shiftf (gethash ,(first forms) ,f) t))
+                          `(vellum:drop-row-when (shiftf (gethash (list ,@forms) ,f) t)))))
                    (t f)))
            result)
           gathered-constructor-variables
           gathered-constructor-forms
           aggregation-symbol
           extract-value-symbol
+          gathered-distinct-variables
           gathered-group-by-variables
           group-names
           !grouped-aggregators)))
@@ -205,6 +222,7 @@
            constructor-forms
            aggregation-symbol
            extract-value-symbol
+           gathered-distinct-variables
            gathered-group-by-variables
            group-names
            !grouped-aggregators)
@@ -218,9 +236,15 @@
                         gensyms))
            env))
          (let-constructors
-          (iterate
-            (for (key value) in-hashtable constructor-variables)
-            (collecting (list value `(cl-ds.alg.meta:call-constructor ,(gethash key constructor-forms)))))))
+          (let ((result (list)))
+            (iterate
+              (for (key value) in-hashtable constructor-variables)
+              (push (list value `(cl-ds.alg.meta:call-constructor ,(gethash key constructor-forms)))
+                    result))
+            (iterate
+              (for (key value) in-hashtable gathered-distinct-variables)
+              (push (list key `(make-hash-table :test 'equal)) result))
+            result)))
     (declare (ignore extract-value-symbol aggregation-symbol))
     (unless (= (length (remove-duplicates group-names :test #'equal))
                (length group-names))

@@ -329,6 +329,19 @@ steve   9      4       3        4
 steve   10     6       3        10
 #+end_src
 
+In addition to all that, you can also use vellum:distinct to remove duplicated rows from data-frame.
+
+#+BEGIN_SRC
+(vellum:transform (vellum:to-table '((1 2) (1 2) (1 3)) :columns '(a b))
+                           (vellum:bind-row (a b)
+                             (vellum:distinct a b)))
+
+A  B
+====
+1  2
+1  3
+#+END_SRC
+
 ** UNNEST
 It is quite common to require transforming data by replacing single rows holding lists into multiple rows holding atoms. Vellum has UNNEST function for this precise task.
 

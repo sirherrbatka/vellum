@@ -36,6 +36,7 @@
    #:make-setfable-table-row
    #:iterator
    #:make-table
+   #:distinct
    #:make-table*
    #:no-transformation
    #:aggregate

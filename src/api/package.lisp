@@ -50,6 +50,7 @@
              #:aggregated-value
              #:alter-columns
              #:at
+             #:distinct
              #:retry
              #:bind-row
              #:bind-row-closure
