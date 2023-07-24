@@ -333,8 +333,8 @@ In addition to all that, you can also use vellum:distinct to remove duplicated r
 
 #+BEGIN_SRC
 (vellum:transform (vellum:to-table '((1 2) (1 2) (1 3)) :columns '(a b))
-                           (vellum:bind-row (a b)
-                             (vellum:distinct a b)))
+                  (vellum:bind-row (a b)
+                    (vellum:distinct a b)))
 
 A  B
 ====
