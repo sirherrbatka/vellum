@@ -101,8 +101,15 @@
                                              ,constructor-form
                                              ,into)))
                     ((and (listp pre-form) (eq (car pre-form) 'vellum.table:distinct))
-                     (lret ((symbol (gensym)))
-                       (setf (gethash symbol gathered-distinct-variables) (rest pre-form))))
+                     (let ((symbol (gensym)))
+                       (setf (gethash symbol gathered-distinct-variables) (rest pre-form))
+                       `(when (shiftf (gethash ,(econd ((= 1 (length (rest pre-form)))
+                                                        (second pre-form))
+                                                       ((> (length (rest pre-form)) 1)
+                                                        `(list ,@(rest pre-form))))
+                                               ,symbol)
+                                      t)
+                          (drop-row))))
                     ((and (listp pre-form) (eq (car pre-form) 'vellum.table:group-by))
                      (iterate
                        (for elt in (rest pre-form))
@@ -165,11 +172,6 @@
                                     (,!aggregators (or (gethash ',result-name ,!group)
                                                        (cl-ds.alg.meta:call-constructor ,constructor-form))))
                                (cl-ds.alg.meta:extract-result ,!aggregators))))))
-                   ((gethash f gathered-distinct-variables)
-                    (let ((forms (shiftf (gethash f gathered-distinct-variables) nil)))
-                      (if (= 1 (length forms))
-                          `(vellum:drop-row-when (shiftf (gethash ,(first forms) ,f) t))
-                          `(vellum:drop-row-when (shiftf (gethash (list ,@forms) ,f) t)))))
                    (t f)))
            result)
           gathered-constructor-variables
@@ -236,15 +238,13 @@
                         gensyms))
            env))
          (let-constructors
-          (let ((result (list)))
-            (iterate
-              (for (key value) in-hashtable constructor-variables)
-              (push (list value `(cl-ds.alg.meta:call-constructor ,(gethash key constructor-forms)))
-                    result))
-            (iterate
-              (for (key value) in-hashtable gathered-distinct-variables)
-              (push (list key `(make-hash-table :test 'equal)) result))
-            result)))
+          (iterate
+            (for (key value) in-hashtable constructor-variables)
+            (collecting (list value `(cl-ds.alg.meta:call-constructor ,(gethash key constructor-forms))))))
+         (let-distinct
+          (iterate
+            (for (key value) in-hashtable gathered-distinct-variables)
+            (collecting (list key `(make-hash-table :test 'equal))))))
     (declare (ignore extract-value-symbol aggregation-symbol))
     (unless (= (length (remove-duplicates group-names :test #'equal))
                (length group-names))
@@ -256,7 +256,8 @@
                         columns)
               ,@(if (endp gathered-group-by-variables)
                     let-constructors
-                    `((,!grouped-aggregators (make-hash-table :test 'equal)))))
+                    `((,!grouped-aggregators (make-hash-table :test 'equal))))
+              ,@let-distinct)
           (values
            (lambda (&optional (,!row (vellum.header:row)))
              (declare (ignorable ,!row)
