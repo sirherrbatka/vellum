@@ -14,7 +14,7 @@
        (let ((length (length row)))
          (declare (type fixnum length))
          (unless (< -1 column length)
-           (error 'no-column
+           (error 'vellum.header:no-column
                   :bounds `(0 ,length)
                   :argument 'column
                   :value column
@@ -25,7 +25,7 @@
       (sequence
        (let ((length (length row)))
          (unless (< -1 column length)
-           (error 'no-column
+           (error 'vellum.header:no-column
                    :bounds (iota length)
                    :argument 'column
                    :value column
@@ -47,7 +47,7 @@
         (let ((length (length row)))
           (declare (type fixnum length))
           (unless (< -1 column length)
-            (error 'no-column
+            (error 'vellum.header:no-column
                    :bounds `(0 ,length)
                    :argument 'column
                    :value column
@@ -58,7 +58,7 @@
       (sequence
        (let ((length (length row)))
          (unless (< -1 column length)
-           (error 'no-column
+           (error 'vellum.header:no-column
                    :bounds (iota length)
                    :argument 'column
                    :value column
