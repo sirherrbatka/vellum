@@ -30,6 +30,8 @@
    #:%aggregate-rows
    #:aggregate-columns
    #:%aggregate-columns
+   #:find-row
+   #:found-row
    #:row-cant-be-created)
   (:reexport #:vellum.selection
              #:between

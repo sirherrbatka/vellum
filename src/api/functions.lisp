@@ -437,3 +437,24 @@
 (defun column-list (frame column)
   (vellum:pipeline (frame)
     (cl-ds.alg:to-list :key (curry #'rr column))))
+
+
+(defun find-row (frame function)
+  (let* ((prev-control vellum.table:*transform-control*)
+         (vellum.table:*transform-control*
+           (lambda (operation)
+             (if (eq operation :found)
+                 (return-from find-row
+                   (values (iterate
+                             (for i from 0 below (vellum:column-count frame))
+                             (collecting (vellum:rr i)))
+                           t))
+                 (funcall prev-control operation)))))
+    (vellum:transform frame function
+      :enable-restarts nil
+      :wrap-errors nil)
+    (values nil nil)))
+
+
+(defun found-row ()
+  (funcall vellum.table:*transform-control* :found))

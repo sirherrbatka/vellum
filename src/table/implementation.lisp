@@ -249,11 +249,13 @@
                                            :in-place in-place
                                            :aggregated-output aggregated-output))
            (row (standard-transformation-row transformation))
+           (prev-control *transform-control*)
            (*transform-control*
              (lambda (operation)
                (cond ((eq operation :finish)
                       (setf done t))
-                     (t (funcall *transform-control* operation))))))
+                     (t
+                      (funcall prev-control operation))))))
       (vellum.header:set-row row)
       (iterate
         (declare (type fixnum *current-row*))
