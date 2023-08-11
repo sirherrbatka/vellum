@@ -6,6 +6,7 @@
   (:nicknames #:vellum.table)
   (:export
    #:*current-row*
+   #:*transform-control*
    #:*table*
    #:*transform-in-place*
    #:alter-columns
