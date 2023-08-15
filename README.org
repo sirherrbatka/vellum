@@ -603,9 +603,9 @@ Use HSTACK and VSTACK to concatenate tables column-wise and row-wise. Use ORDER-
 
 #+begin_src
 (vellum:find-row (vellum:to-table '((1 2 3) (3 4 5)) :columns '(a b c))
- (vellum:bind-row (a)
-  (when (= a 3)
-   (vellum:found-row))))
+                 (vellum:bind-row (a)
+                   (when (= a 3)
+                     (vellum:found-row))))
 
 (3 4 5)
 T
