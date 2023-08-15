@@ -451,6 +451,7 @@
                            t))
                  (funcall prev-control operation)))))
     (vellum:transform frame function
+      :in-place nil
       :enable-restarts nil
       :wrap-errors nil)
     (values nil nil)))

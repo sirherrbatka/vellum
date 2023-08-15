@@ -599,7 +599,17 @@ A  B   FRAME-2/A  FRAME-2/B
 Currently only the hash join algorithm is supported. On the other hand, you can use both :left and :inner joins, just like in the SQL.
 
 ** Other functions
-Use HSTACK and VSTACK to concatenate tables column-wise and row-wise. Use ORDER-BY to sort table content. Use NEW-COLUMNS to add new columns to a table (non destructive).
+Use HSTACK and VSTACK to concatenate tables column-wise and row-wise. Use ORDER-BY to sort table content. Use NEW-COLUMNS to add new columns to a table (non destructive). You can also use FIND-ROW, that… finds row. Take a look at this.
+
+#+begin_src
+(vellum:find-row (vellum:to-table '((1 2 3) (3 4 5)) :columns '(a b c))
+ (vellum:bind-row (a)
+  (when (= a 3)
+   (vellum:found-row))))
+
+(3 4 5)
+T
+#+end_src
 
 ** A few remarks about the inner representation and efficiency
 Vellum stores data in a column format, where each column is a sparse variant of an RRB trie. I've chosen this type of representation for efficient copy-on-write. Copy-on-write is important as it allows for exception safety in the transform function as well as reduces memory usage by allowing safe sharing of the common data bits. However, at the same time, data frames expose a mutable interface. You could consider it to be unusual.
