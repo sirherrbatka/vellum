@@ -195,7 +195,6 @@
 
     ((setf %function (bind-row-closure
                       body :header header)
-           %after after
            %done nil
            %transformation (~> (table-from-header class header)
                                (transformation nil :in-place t
@@ -224,4 +223,4 @@
                             (let ((*transform-control* transform-control))
                               (funcall %function (standard-transformation-row %transformation)))))))))
 
-    ((funcall %after (transformation-result %transformation))))
+    ((transformation-result %transformation)))

@@ -96,7 +96,6 @@
                              (header (apply #'vellum:make-header
                                             (gather-column-data range columns '())))
                              &allow-other-keys)
-  (break)
   (common-to-table range key class header body after))
 
 
