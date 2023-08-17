@@ -55,7 +55,7 @@
   (nreverse (cons (first definitions) result)))
 
 
-(defun common-to-table (range key class header body)
+(defun common-to-table (range key class header body after)
   (bind ((column-count (vellum.header:column-count header))
          (columns (make-array column-count))
          (columns-buffer (make-array column-count))
@@ -81,9 +81,9 @@
          (vellum.column:move-iterator iterator 1))
        key)
       (vellum.column:finish-iterator iterator)
-      (make class
-            :header header
-            :columns columns))))
+      (funcall after (make class
+                           :header header
+                           :columns columns)))))
 
 
 (defmethod vellum:to-table ((range cl-ds.alg:group-by-result-range)
@@ -92,10 +92,12 @@
                              (class 'vellum.table:standard-table)
                              (columns '())
                              (body nil)
+                             (after #'identity)
                              (header (apply #'vellum:make-header
                                             (gather-column-data range columns '())))
                              &allow-other-keys)
-  (common-to-table range key class header body))
+  (break)
+  (common-to-table range key class header body after))
 
 
 (defmethod vellum:to-table ((range cl-ds.alg:summary-result-range)
@@ -104,7 +106,8 @@
                              (class 'vellum.table:standard-table)
                              (columns '())
                              (body nil)
+                             (after #'identity)
                              (header (apply #'vellum:make-header
                                             (gather-column-data range columns '())))
                             &allow-other-keys)
-  (common-to-table range key class header body))
+  (common-to-table range key class header body after))
