@@ -7,6 +7,7 @@
                        (body nil)
                        (enable-restarts *enable-restarts*)
                        (wrap-errors *wrap-errors*)
+                       (after #'identity)
                        &allow-other-keys)
   (cl-ds.utils:lazy-let ((header (vellum.header:read-header range))
                          (function (ensure-function (bind-row-closure body :header header)))
@@ -49,7 +50,7 @@
                                                     (return-from function))
                                                    (t (funcall prev-control operation))))))
                       (funcall function (standard-transformation-row transformation))))))))))))
-    (transformation-result transformation)))
+    (funcall after (transformation-result transformation))))
 
 
 (defmethod to-table ((input sequence)
@@ -59,6 +60,7 @@
                        (body nil)
                        (enable-restarts *enable-restarts*)
                        (wrap-errors *wrap-errors*)
+                       (after #'identity)
                        (header (apply #'vellum.header:make-header columns)))
   (to-table (cl-ds:whole-range input)
             :key key
@@ -66,6 +68,7 @@
             :enable-restarts enable-restarts
             :wrap-errors wrap-errors
             :body body
+            :after after
             :header header))
 
 
@@ -76,6 +79,7 @@
                        (body nil)
                        (enable-restarts *enable-restarts*)
                        (wrap-errors *wrap-errors*)
+                       (after #'identity)
                        (header (apply #'vellum.header:make-header
                                       columns)))
   (unless (= 2 (array-rank input))
@@ -94,15 +98,15 @@
       (setf (svref columns i)
             (vellum.column:make-sparse-material-column
              :element-type (vellum.header:column-type header i))))
-    (transform table
-               (bind-row ()
-                 (unless (< *current-row* (array-dimension input 0))
-                   (finish-transformation))
-                 (iterate
-                   (for i from 0 below number-of-columns)
-                   (setf (rr i) (funcall key (aref input *current-row* i))))
-                 (funcall function))
-               :end nil
-               :enable-restarts enable-restarts
-               :wrap-errors wrap-errors
-               :in-place t)))
+    (funcall after (transform table
+                     (bind-row ()
+                       (unless (< *current-row* (array-dimension input 0))
+                         (finish-transformation))
+                       (iterate
+                         (for i from 0 below number-of-columns)
+                         (setf (rr i) (funcall key (aref input *current-row* i))))
+                       (funcall function))
+                     :end nil
+                     :enable-restarts enable-restarts
+                     :wrap-errors wrap-errors
+                     :in-place t))))

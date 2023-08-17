@@ -191,10 +191,11 @@
      (columns '())
      (header (apply #'vellum.header:make-header columns)))
 
-    (%function %transformation %done)
+    (%function %transformation %done %after)
 
     ((setf %function (bind-row-closure
                       body :header header)
+           %after after
            %done nil
            %transformation (~> (table-from-header class header)
                                (transformation nil :in-place t
@@ -223,4 +224,4 @@
                             (let ((*transform-control* transform-control))
                               (funcall %function (standard-transformation-row %transformation)))))))))
 
-    ((funcall after (transformation-result %transformation))))
+    ((funcall %after (transformation-result %transformation))))
