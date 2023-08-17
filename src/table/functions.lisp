@@ -179,10 +179,11 @@
 (cl-ds.alg.meta:define-aggregation-function
     to-table to-table-function
 
-    (:range &key body key class columns header enable-restarts wrap-errors)
+    (:range &key body key class columns header enable-restarts wrap-errors after)
 
     (:range &key
      (key #'identity)
+     (after #'identity)
      (body nil)
      (class 'standard-table)
      (enable-restarts *enable-restarts*)
@@ -222,4 +223,4 @@
                             (let ((*transform-control* transform-control))
                               (funcall %function (standard-transformation-row %transformation)))))))))
 
-    ((transformation-result %transformation)))
+    ((funcall after (transformation-result %transformation))))
