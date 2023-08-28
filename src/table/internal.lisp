@@ -51,7 +51,7 @@
             (vellum.column:move-iterator iterator 1))
            (index (vellum.column:sparse-material-column-iterator-index iterator))
            (*transform-control*
-            (lambda (operation)
+            (lambda (operation &rest arguments)
               (cond ((eq operation :drop)
                      #1=(iterate
                           (declare (type fixnum i))
@@ -70,7 +70,7 @@
                        (declare (type fixnum i))
                        (for i from 0 below column-count)
                        (setf (vellum.column:iterator-at iterator i) :null)))
-                    (t (funcall prev-control operation)))))
+                    (t (apply prev-control operation arguments)))))
            ((:flet call ())
             (if wrap-errors
                 (handler-case (funcall function row)

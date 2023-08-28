@@ -251,11 +251,11 @@
            (row (standard-transformation-row transformation))
            (prev-control *transform-control*)
            (*transform-control*
-             (lambda (operation)
+             (lambda (operation &rest arguments)
                (cond ((eq operation :finish)
                       (setf done t))
                      (t
-                      (funcall prev-control operation))))))
+                      (apply prev-control operation arguments))))))
       (vellum.header:set-row row)
       (iterate
         (declare (type fixnum *current-row*))

@@ -38,7 +38,7 @@
                 (with-table (table)
                   (let ((row (standard-transformation-row transformation)))
                     (vellum.header:set-row row)
-                    (let ((*transform-control* (lambda (operation)
+                    (let ((*transform-control* (lambda (operation &rest arguments)
                                                  (cond
                                                    ((eq operation :finish)
                                                     (return-from main))
@@ -48,7 +48,7 @@
                                                       (for i from 0 below column-count)
                                                       (setf (rr i row header) :null))
                                                     (return-from function))
-                                                   (t (funcall prev-control operation))))))
+                                                   (t (apply prev-control operation arguments))))))
                       (funcall function (standard-transformation-row transformation))))))))))))
     (funcall after (transformation-result transformation))))
 

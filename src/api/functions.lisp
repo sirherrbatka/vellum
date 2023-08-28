@@ -442,12 +442,16 @@
 (defun find-row (frame function)
   (let* ((prev-control vellum.table:*transform-control*)
          (vellum.table:*transform-control*
-           (lambda (operation)
+           (lambda (operation &rest arguments)
              (if (eq operation :found)
                  (return-from find-row
-                   (values (iterate
-                             (for i from 0 below (vellum:column-count frame))
-                             (collecting (vellum:rr i)))
+                   (values (if (endp arguments)
+                               (iterate
+                                 (for i from 0 below (vellum:column-count frame))
+                                 (collecting (vellum:rr i)))
+                               (iterate
+                                 (for arg in arguments)
+                                 (collecting (vellum:rr arg))))
                            t))
                  (funcall prev-control operation)))))
     (vellum:transform frame function
@@ -457,5 +461,7 @@
     (values nil nil)))
 
 
-(defun found-row ()
-  (funcall vellum.table:*transform-control* :found))
+(defmacro found-row (&rest arguments)
+  `(funcall vellum.table:*transform-control* :found
+    ,@(mapcar (lambda (x) (if (symbolp x) `',x x))
+              arguments)))
