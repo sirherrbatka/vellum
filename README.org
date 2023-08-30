@@ -611,6 +611,8 @@ Use HSTACK and VSTACK to concatenate tables column-wise and row-wise. Use ORDER-
 T
 #+end_src
 
+VELLUM:FOUND-ROW macro accepts additional arguments designating columns. If those are provided, only pointed out column values are returned.
+
 ** A few remarks about the inner representation and efficiency
 Vellum stores data in a column format, where each column is a sparse variant of an RRB trie. I've chosen this type of representation for efficient copy-on-write. Copy-on-write is important as it allows for exception safety in the transform function as well as reduces memory usage by allowing safe sharing of the common data bits. However, at the same time, data frames expose a mutable interface. You could consider it to be unusual.
 
