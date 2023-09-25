@@ -53,7 +53,8 @@
                              (:file "macros")
                              (:file "conditions")
                              (:file "generics")
-                             (:file "functions")))
+                             (:file "functions")
+                             (:file "docstrings")))
                (:module "integration"
                 :components ((:file "package")
                              (:file "cl-ds")))))
