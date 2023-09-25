@@ -11,4 +11,5 @@
              :see-also (found-row)))
 
   (macro found-row
-         (:description "Evaluation of this macro expansion will inform find-row that row was found")))
+         (:description "Evaluation of this macro expansion will inform find-row that row was found"
+          :see-also (find-row))))
