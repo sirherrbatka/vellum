@@ -10,6 +10,9 @@
                         "(prove:is (vellum:find-row (vellum:to-table '((1 2 3) (3 4 5)) :columns '(a b c)) (vellum:bind-row (c) (when (= c 5) (vellum:found-row a)))) '(3))")
              :see-also (found-row)))
 
+  (function add-columns
+            (:description "Creates new frame from the old one by adding additional columns."))
+
   (function column-list
             (:description "Returns selected column values in the current row as a list."))
 
