@@ -539,12 +539,12 @@ Instead of using select for renaming columns, you can also use rename-columns, l
 So, working with relations? Chances are you gonna use JOIN.
 
 #+BEGIN_SRC
-(let* ((frame-1 (transform (vellum:make-table :columns '(a b))
+(let* ((frame-1 (vellum:transform (vellum:make-table :columns '(a b))
                            (vellum:bind-row (a b)
                              (setf a vellum.table:*current-row*)
                              (setf b (format nil "a~a" a)))
                              :end 5))
-         (frame-2 (transform (vellum:make-table :columns '(a b))
+         (frame-2 (vellum:transform (vellum:make-table :columns '(a b))
                              (vellum:bind-row (a b)
                                (setf a vellum.table:*current-row*)
                                (setf b (format nil "b~a" a)))

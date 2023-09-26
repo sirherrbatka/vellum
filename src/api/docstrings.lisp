@@ -15,12 +15,12 @@
 
   (function join
             (:description "Performs METHOD (:LEFT or :INNER) join using ALGORITHM (:HASH) on FRAME-SPECS list. Each element of FRAME-SPECS list contains elements in the following order label for data-frame, data-frame and description of columns used as join key. Each description is either name of the column, number of the column; or two elements list consisting of name or number of the column and function designator used as key."
-             :examples "(let* ((frame-1 (transform (vellum:make-table :columns '(a b))
+             :examples "(let* ((frame-1 (vellum:transform (vellum:make-table :columns '(a b))
                            (vellum:bind-row (a b)
                              (setf a vellum.table:*current-row*)
                              (setf b (format nil \"a~a\" a)))
                              :end 5))
-         (frame-2 (transform (vellum:make-table :columns '(a b))
+         (frame-2 (vellum:transform (vellum:make-table :columns '(a b))
                              (vellum:bind-row (a b)
                                (setf a vellum.table:*current-row*)
                                (setf b (format nil \"b~a\" a)))
