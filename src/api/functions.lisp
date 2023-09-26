@@ -166,9 +166,12 @@
                :in-place t
                :wrap-errors nil
                :enable-restarts nil)
+    (let ((index (first indexes)))
+      (setf content
+            (sort content (first comparators) :key (lambda (v) (aref v index)))))
     (iterate
-      (for index in indexes)
-      (for comparator in comparators)
+      (for index in (rest indexes))
+      (for comparator in (rest comparators))
       (setf content
             (stable-sort content comparator
                          :key (lambda (v) (aref v index)))))

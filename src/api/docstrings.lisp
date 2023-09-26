@@ -11,7 +11,9 @@
              :see-also (found-row)))
 
   (function add-columns
-            (:description "Creates new frame from the old one by adding additional columns."))
+            (:description "Creates new frame from the old one by adding additional columns."
+             :arguments ((frame "Base data frame")
+                         (column-specs "Column-specs, as in :COLUMNS in MAKE-TABLE"))))
 
   (function join
             (:description "Performs METHOD (:LEFT or :INNER) join using ALGORITHM (:HASH) on FRAME-SPECS list. Each element of FRAME-SPECS list contains elements in the following order label for data-frame, data-frame and description of columns used as join key. Each description is either name of the column, number of the column; or two elements list consisting of name or number of the column and function designator used as key."
@@ -29,6 +31,9 @@
                               `((:frame-1 ,frame-1 a)
                                 (:frame-2 ,frame-2 a)))))
     (vellum:show :text result))"))
+
+  (function order-by
+            (:description "Builds new data-frame by sorting input TABLE data frame. Multiple columns and comparators can be used."))
 
   (function column-list
             (:description "Returns selected column values in the current row as a list."))
