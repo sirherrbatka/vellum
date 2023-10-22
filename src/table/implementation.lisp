@@ -499,6 +499,62 @@
       (cl-ds:erase! row)))
 
 
+(defmethod show ((as (eql :html))
+                 (table fundamental-table)
+                 &key (output *standard-output*)
+                   (start 0)
+                   (end (row-count table)))
+  (check-type table fundamental-table)
+  (check-type output stream)
+  (check-type start non-negative-integer)
+  (check-type end non-negative-integer)
+  (macrolet ((table (&body body)
+               `(let ((depth 0))
+                  (format output "<table>~%")
+                  ,@body
+                  (format output "</table>~%")))
+             (tr (&body body)
+               `(let ((depth (+ depth 3)))
+                  (dotimes (i depth) (princ " " output))
+                  (format output "<tr>~%")
+                  ,@body
+                  (dotimes (i depth) (princ " " output))
+                  (format output "</tr>~%")))
+             (th (&body body)
+               `(let ((depth (+ depth 3)))
+                  (dotimes (i depth) (princ " " output))
+                  (format output "<th>")
+                  (format output (progn ,@body))
+                  (format output "</th>~%")))
+             (td (&body body)
+               `(let ((depth (+ depth 3)))
+                  (dotimes (i depth) (princ " " output))
+                  (format output "<td>")
+                  (format output "~a" (progn ,@body))
+                  (format output "</td>~%"))))
+    (bind ((column-count (column-count table))
+           (end (min end (row-count table)))
+           (header (header table)))
+      (table
+       (tr
+        (iterate
+          (for j from 0 below column-count)
+          (for string = (or (ignore-errors
+                             (vellum.header:index-to-name header j))
+                            (format nil "~a" j)))
+          (th string)))
+       (vellum:transform table
+                         (vellum:bind-row ()
+                           (tr
+                            (iterate
+                              (for j from 0 below column-count)
+                              (td (rr j)))))
+                         :start start
+                         :end end
+                         :in-place t)
+       table))))
+
+
 (defmethod show ((as (eql :text))
                  (table fundamental-table)
                  &key

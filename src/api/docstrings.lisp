@@ -34,7 +34,7 @@
 
   (function order-by
             (:description "Builds new data-frame by sorting input TABLE data frame. Multiple columns and comparators can be used."
-             :notes ("This function is calls CL:SORT to order data according to first column, and calls STABLE-SORT for all other columns.")))
+             :notes "This function is calls CL:SORT to order data according to first column, and calls STABLE-SORT for all other columns."))
 
   (function column-list
             (:description "Returns selected column values in the current row as a list."))
