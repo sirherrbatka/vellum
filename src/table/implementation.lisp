@@ -551,8 +551,8 @@
                               (td (rr j)))))
                          :start start
                          :end end
-                         :in-place t)
-       table))))
+                         :in-place t))))
+  table)
 
 
 (defmethod show ((as (eql :text))
