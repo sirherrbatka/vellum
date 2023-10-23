@@ -543,15 +543,15 @@
                              (vellum.header:index-to-name header j))
                             (format nil "~a" j)))
           (th string)))
-       (vellum:transform table
-                         (vellum:bind-row ()
-                           (tr
-                            (iterate
-                              (for j from 0 below column-count)
-                              (td (rr j)))))
-                         :start start
-                         :end end
-                         :in-place t))))
+       (transform table
+                  (bind-row ()
+                            (tr
+                             (iterate
+                               (for j from 0 below column-count)
+                               (td (rr j)))))
+                  :start start
+                  :end end
+                  :in-place t))))
   table)
 
 
