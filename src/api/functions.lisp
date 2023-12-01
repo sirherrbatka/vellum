@@ -448,6 +448,24 @@
     (cl-ds.alg:to-list :key (curry #'rr column))))
 
 
+(defun pick-row (frame row-index &rest columns)
+  (vellum:transform frame
+    (lambda (&rest all) (declare (ignore all))
+      (return-from pick-row
+        (if (endp columns)
+            (iterate
+              (for i from 0 below (vellum:column-count frame))
+              (collecting (vellum:rr i)))
+            (iterate
+              (for arg in columns)
+              (collecting (vellum:rr arg))))))
+    :in-place t
+    :enable-restarts nil
+    :wrap-errors nil
+    :start row-index)
+  (values nil nil))
+
+
 (defun find-row (frame function)
   (let* ((prev-control vellum.table:*transform-control*)
          (vellum.table:*transform-control*

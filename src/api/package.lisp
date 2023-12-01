@@ -19,6 +19,7 @@
    #:add-columns
    #:order-by
    #:to-matrix
+   #:pick-row
    #:rename-columns
    #:s-list
    #:unnest
