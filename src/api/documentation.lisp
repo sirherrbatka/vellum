@@ -8,7 +8,12 @@
              :returns "Selected columns values (all by default) as a list. T as secondary value if row was found, NIL otherwise."
              :examples ("(prove:is (vellum:find-row (vellum:to-table '((1 2 3) (3 4 5)) :columns '(a b c)) (vellum:bind-row (c) (when (= c 5) (vellum:found-row)))) '(3 4 5))"
                         "(prove:is (vellum:find-row (vellum:to-table '((1 2 3) (3 4 5)) :columns '(a b c)) (vellum:bind-row (c) (when (= c 5) (vellum:found-row a)))) '(3))")
-             :see-also (found-row)))
+             :see-also (found-row pick-row)))
+
+  (function pick-row
+            (:description "Attempts to pick row by number."
+             :returns "Selected columns values (all by default) as a list. T as secondary value if row was found, NIL otherwise."
+             :see-also (find-row)))
 
   (function add-columns
             (:description "Creates new frame from the old one by adding additional columns."

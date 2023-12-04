@@ -54,7 +54,7 @@
                              (:file "conditions")
                              (:file "generics")
                              (:file "functions")
-                             (:file "docstrings")))
+                             (:file "documentation")))
                (:module "integration"
                 :components ((:file "package")
                              (:file "cl-ds")))))
