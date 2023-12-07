@@ -640,7 +640,7 @@
         (funcall (find-symbol "HTML" :JUPYTER) (get-output-stream-string string-stream) :display t))
 
       (print-unreadable-object (object stream)
-                               (show :text object :output stream)))
+        (show :text object :output stream)))
     (call-next-method))
   object)
 
