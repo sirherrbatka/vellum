@@ -634,11 +634,10 @@
 (defmethod print-object ((object fundamental-table) stream)
   (cond ((run-in-jupyter-p)
          (funcall (find-symbol "HTML" :JUPYTER)
-                  (with-output-to-string (string-stream) (vellum:show :html object  :output string-stream :end 10))
+                  (with-output-to-string (string-stream) (show :html object  :output string-stream :end 10))
                   :display t))
-        (*print-pretty* (print-unreadable-object (object stream) (show :text object :output stream))))
-
-  (call-next-method)
+        (*print-pretty* (print-unreadable-object (object stream) (show :text object :output stream)))
+        (t (call-next-method)))
   object)
 
 
