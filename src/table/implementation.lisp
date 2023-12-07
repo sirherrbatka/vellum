@@ -535,7 +535,14 @@
     (bind ((column-count (column-count table))
            (end (min end (row-count table)))
            (header (header table)))
-      (table
+    (format output
+            "<p>~a columns × ~a rows. Printed rows from ~a below ~a:~%</p>"
+            column-count
+            (row-count table)
+            (min start end)
+            end)
+
+    (table
        (tr
         (iterate
           (for j from 0 below column-count)
@@ -618,12 +625,23 @@
         (print-with-padding i j))
       (terpri output))))
 
+; Check if it is currently running in Jupyter.
+; Also see: https://github.com/yitzchak/common-lisp-jupyter
+(defun run-in-jupyter-p ()
+      (and (string= "JUPYTER" (package-name (symbol-package (type-of *standard-output*))))
+          (string= "IOPUB-STREAM" (symbol-name (type-of *standard-output*)))))
 
 (defmethod print-object ((object fundamental-table) stream)
   (if *print-pretty*
+    (if (run-in-jupyter-p)
+      ; Print 10 rows for jupyter output
+      (let ((string-stream (make-string-output-stream)))
+        (show :html object :output string-stream :end 10)
+        (funcall (find-symbol "HTML" :JUPYTER) (get-output-stream-string string-stream) :display t))
+
       (print-unreadable-object (object stream)
-        (show :text object :output stream))
-      (call-next-method))
+                               (show :text object :output stream)))
+    (call-next-method))
   object)
 
 
