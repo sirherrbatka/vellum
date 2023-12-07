@@ -632,16 +632,13 @@
           (string= "IOPUB-STREAM" (symbol-name (type-of *standard-output*)))))
 
 (defmethod print-object ((object fundamental-table) stream)
-  (if *print-pretty*
-    (if (run-in-jupyter-p)
-      ; Print 10 rows for jupyter output
-      (let ((string-stream (make-string-output-stream)))
-        (show :html object :output string-stream :end 10)
-        (funcall (find-symbol "HTML" :JUPYTER) (get-output-stream-string string-stream) :display t))
+  (cond ((run-in-jupyter-p)
+         (funcall (find-symbol "HTML" :JUPYTER)
+                  (with-output-to-string (string-stream) (vellum:show :html object  :output string-stream :end 10))
+                  :display t))
+        (*print-pretty* (print-unreadable-object (object stream) (show :text object :output stream))))
 
-      (print-unreadable-object (object stream)
-        (show :text object :output stream)))
-    (call-next-method))
+  (call-next-method)
   object)
 
 
