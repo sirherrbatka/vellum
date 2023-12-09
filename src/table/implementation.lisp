@@ -620,12 +620,12 @@
 
 
 (defmethod print-object ((object fundamental-table) stream)
-  (if (run-in-jupyter-p)
-      (vellum:show :html object :output (symbol-value (find-symbol "*HTML-OUTPUT*" :JUPYTER)))
-      (if *print-pretty*
-          (print-unreadable-object (object stream)
-            (show :text object :output stream))
-          (call-next-method)))
+  (cond ((run-in-jupyter-p)
+         (show :html object :output (symbol-value (find-symbol "*HTML-OUTPUT*" :JUPYTER))))
+        (*print-pretty*
+            (print-unreadable-object (object stream)
+              (show :text object :output stream)))
+        (t (call-next-method)))
   object)
 
 
