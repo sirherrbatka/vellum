@@ -224,3 +224,8 @@
                               (funcall %function (standard-transformation-row %transformation)))))))))
 
     ((transformation-result %transformation)))
+
+
+(defun run-in-jupyter-p ()
+  (and (string= "JUPYTER" (package-name (symbol-package (type-of *standard-output*))))
+       (string= "IOPUB-STREAM" (symbol-name (type-of *standard-output*)))))
