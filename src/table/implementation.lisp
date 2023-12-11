@@ -509,10 +509,24 @@
   (check-type start non-negative-integer)
   (check-type end non-negative-integer)
   (macrolet ((table (&body body)
-               `(let ((depth 0))
+               `(let ((depth (+ depth 2)))
+                  (dotimes (i depth) (princ " " output))
                   (format output "<table>~%")
                   ,@body
+                  (dotimes (i depth) (princ " " output))
                   (format output "</table>~%")))
+             (div (&body body)
+               `(let ((depth (+ depth 2)))
+                  (dotimes (i depth) (princ " " output))
+                  (format output "<div>~%")
+                  ,@body
+                  (format output "</div>~%")))
+             (p (&body body)
+               `(let ((depth (+ depth 2)))
+                  (dotimes (i depth) (princ " " output))
+                  (format output "<p>")
+                  (format output (progn ,@body))
+                  (format output "</p>~%")))
              (tr (&body body)
                `(let ((depth (+ depth 2)))
                   (dotimes (i depth) (princ " " output))
@@ -534,24 +548,32 @@
                   (format output "</td>~%"))))
     (bind ((column-count (column-count table))
            (end (min end (row-count table)))
-           (header (header table)))
-      (table
-       (tr
-        (iterate
-          (for j from 0 below column-count)
-          (for string = (or (ignore-errors
-                             (vellum.header:index-to-name header j))
-                            (format nil "~a" j)))
-          (th string)))
-       (transform table
-                  (bind-row ()
-                            (tr
-                             (iterate
-                               (for j from 0 below column-count)
-                               (td (rr j)))))
-                  :start start
-                  :end end
-                  :in-place t))))
+           (header (header table))
+           (depth -2))
+      (div
+       (p (format nil
+                  "~a columns × ~a rows. Rows from ~a below ~a:~%"
+                  column-count
+                  (row-count table)
+                  (min start end)
+                  end))
+       (table
+        (tr
+         (iterate
+           (for j from 0 below column-count)
+           (for string = (or (ignore-errors
+                              (vellum.header:index-to-name header j))
+                             (format nil "~a" j)))
+           (th string)))
+        (transform table
+          (bind-row ()
+            (tr
+             (iterate
+               (for j from 0 below column-count)
+               (td (rr j)))))
+          :start start
+          :end end
+          :in-place t)))))
   table)
 
 
@@ -582,7 +604,7 @@
               (dotimes (i (- desired-length length))
                 (format output "~a" #\space))))))
     (format output
-            "~a columns × ~a rows. Printed rows from ~a below ~a:~%"
+            "~a columns × ~a rows. Rows from ~a below ~a:~%"
             column-count
             (row-count table)
             (min start end)
