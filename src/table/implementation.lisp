@@ -518,8 +518,9 @@
              (div (&body body)
                `(let ((depth (+ depth 2)))
                   (dotimes (i depth) (princ " " output))
-                  (format output "<div>~%")
+                  (format output "<div class=\"vellum_table\">~%")
                   ,@body
+                  (dotimes (i depth) (princ " " output))
                   (format output "</div>~%")))
              (p (&body body)
                `(let ((depth (+ depth 2)))
