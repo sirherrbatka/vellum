@@ -621,7 +621,9 @@
 
 (defmethod print-object ((object fundamental-table) stream)
   (cond ((run-in-jupyter-p)
-         (show :html object :output (symbol-value (find-symbol "*HTML-OUTPUT*" :JUPYTER))))
+         (show :html object
+               :output (symbol-value (find-symbol "*HTML-OUTPUT*" :JUPYTER))
+               :end 20))
         (*print-pretty*
             (print-unreadable-object (object stream)
               (show :text object :output stream)))
