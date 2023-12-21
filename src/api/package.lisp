@@ -17,6 +17,7 @@
    #:file-input-row-cant-be-created
    #:drop-row-when
    #:add-columns
+   #:tf
    #:order-by
    #:to-matrix
    #:pick-row

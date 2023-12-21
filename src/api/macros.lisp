@@ -30,6 +30,12 @@
                                        (list ,(aggregator-constructor expression)
                                              ,@rest)))))))
 
+(defmacro tf ((table columns &rest rest) &body body)
+  `(vellum:transform ,table
+    (vellum:bind-row ,columns
+      (progn ,@body))
+    ,@rest))
+
 
 (defmacro aggregate-columns (table expression
                              &key
@@ -38,12 +44,12 @@
                                (type t))
   (bind (((function . body) expression))
     `(%aggregate-columns ,table
-                         (cl-ds.alg.meta:aggregator-constructor
-                          '() nil (function ,function)
-                          (list '() ,@body))
-                         :skip-nulls ,skip-nulls
-                         :type ,type
-                         :name ,name)))
+      (cl-ds.alg.meta:aggregator-constructor
+       '() nil (function ,function)
+       (list '() ,@body))
+      :skip-nulls ,skip-nulls
+      :type ,type
+      :name ,name)))
 
 
 (defmacro drop-row-when (predicate)
