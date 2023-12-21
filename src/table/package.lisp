@@ -1,7 +1,4 @@
-(cl:in-package #:cl-user)
-
-
-(defpackage vellum.table
+(cl:defpackage vellum.table
   (:use #:cl #:vellum.aux-package)
   (:nicknames #:vellum.table)
   (:export
