@@ -367,7 +367,9 @@
            e
            :on-macroexpanded-form
            (lambda (f e)
-             (if (and (listp pre-form) (member (car pre-form) '(vellum.table:aggregate vellum.table:group-by vellum.table:distinct)))
+             (if (and (listp pre-form)
+                      (member (car pre-form)
+                              '(vellum.table:aggregate vellum.table:group-by vellum.table:distinct)))
                  (progn (walk f e)      ; this will simply gather column names
                         (third ; silly trick, stops macro expansion of agnostic-lizard :-)
                          (agnostic-lizard:walk-form `(flet ((vellum.table:aggregate (&rest body) nil)
