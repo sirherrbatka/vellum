@@ -342,6 +342,20 @@ A  B
 1  3
 #+END_SRC
 
+And finally, there is also shorthand TRANSFORM called TF. It will bind variables for you, without explicit lambda list. It is easier to demonstrate.
+
+#+BEGIN_SRC
+(defparameter *table* (vellum:to-table '((1 2) (1 2) (1 3)) :columns '(a b)))
+
+(vellum:tf (*table*)
+  (vellum:distinct $a $b))
+
+A  B
+====
+1  2
+1  3
+#+END_SRC
+
 ** UNNEST
 It is quite common to require transforming data by replacing single rows holding lists into multiple rows holding atoms. Vellum has UNNEST function for this precise task.
 

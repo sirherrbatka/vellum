@@ -30,8 +30,9 @@
 
 
 (defmacro aggregate (into function &rest body)
-  (declare (ignore into function body))
-  `(error "Aggregation not allowed in current context."))
+  (declare (ignore into function))
+  `(progn (error "Aggregation not allowed in current context.")
+          ,@body))
 
 
 (defmacro aggregated-value (into)
@@ -40,13 +41,11 @@
 
 
 (defmacro group-by (&rest column-names)
-  (declare (ignore column-names))
-  nil)
+  `(progn ,@column-names))
 
 
 (defmacro distinct (&rest data)
-  (declare (ignore data))
-  nil)
+  `(progn ,@data))
 
 
 (defclass aggregation-results ()
@@ -353,19 +352,40 @@
                            (for index in indexes)
                            (collecting `(row-at ,!header ,!row ,index)))))))))))
 
+
 (defmacro br (&body body &environment env)
-  (let ((column-vars '()))
-    (agnostic-lizard:walk-form
-     `(progn ,@body)
-     env
-     :on-every-atom
-     (lambda (f e)
-       (unless
-           (or (not (symbolp f))
-               (find f (agnostic-lizard:metaenv-variable-like-entries e) :key 'first)
-               (not (char-equal #\$ (~> f symbol-name first-elt))))
-         (pushnew f column-vars))
-       f))
-    `(bind-row ,(mapcar (lambda (v) (~>> v symbol-name (drop 1) (list v)))
-                        column-vars)
-       ,@body)))
+  (bind ((column-vars '())
+         ((:flet strip (symbol))
+          (~>> symbol symbol-name (drop 1) intern))
+         ((:labels walk (f env &aux (pre-form nil)))
+          (agnostic-lizard:walk-form
+           f
+           env
+           :on-macroexpanded-form
+           (lambda (f e)
+             (if (and (listp pre-form) (member (car pre-form) '(vellum.table:aggregate vellum.table:group-by vellum.table:distinct)))
+                 (progn (walk f e)
+                        (third
+                         (agnostic-lizard:walk-form `(flet ((vellum.table:aggregate (&rest body) nil)
+                                                            (vellum.table:group-by (&rest body) nil)
+                                                            (vellum.table:distinct (&rest body) nil))
+                                                       ,pre-form)
+                                                    nil
+                                                    :on-every-atom (lambda (f e) (declare (ignore e))
+                                                                     (print f)
+                                                                     (if (member f column-vars)
+                                                                         (strip f)
+                                                                         f)))))
+                 f))
+           :on-every-form-pre
+           (lambda (f e) (declare (ignore e)) (setf pre-form f))
+           :on-every-atom
+           (lambda (f e)
+             (unless (or (not (symbolp f))
+                         (find f (agnostic-lizard:metaenv-variable-like-entries e) :key 'first)
+                         (not (char-equal #\$ (~> f symbol-name first-elt))))
+               (pushnew f column-vars))
+             f)))
+         (result (walk `(progn ,@body) env)))
+    `(bind-row ,(mapcar #'strip column-vars)
+       ,result)))

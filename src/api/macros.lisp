@@ -30,10 +30,9 @@
                                        (list ,(aggregator-constructor expression)
                                              ,@rest)))))))
 
-(defmacro tf ((table columns &rest rest) &body body)
+(defmacro tf ((table &rest rest) &body body)
   `(vellum:transform ,table
-    (vellum:bind-row ,columns
-      (progn ,@body))
+    (vellum.table:br ,@body)
     ,@rest))
 
 
