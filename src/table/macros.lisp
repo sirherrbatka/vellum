@@ -357,25 +357,27 @@
   (bind ((column-vars '())
          ((:flet strip (symbol))
           (~>> symbol symbol-name (drop 1) intern))
-         ((:labels walk (f env &aux (pre-form nil)))
+         ((:flet strip-check (f &rest ignored))
+          (declare (ignore ignored))
+          (if (member f column-vars) (strip f) f))
+         ((:flet nothing (f e)) (declare (ignore e)) f)
+         ((:labels walk (f e &aux (pre-form nil)))
           (agnostic-lizard:walk-form
            f
-           env
+           e
            :on-macroexpanded-form
            (lambda (f e)
              (if (and (listp pre-form) (member (car pre-form) '(vellum.table:aggregate vellum.table:group-by vellum.table:distinct)))
-                 (progn (walk f e)
-                        (third
+                 (progn (walk f e)      ; this will simply gather column names
+                        (third ; silly trick, stops macro expansion of agnostic-lizard :-)
                          (agnostic-lizard:walk-form `(flet ((vellum.table:aggregate (&rest body) nil)
                                                             (vellum.table:group-by (&rest body) nil)
                                                             (vellum.table:distinct (&rest body) nil))
                                                        ,pre-form)
-                                                    nil
-                                                    :on-every-atom (lambda (f e) (declare (ignore e))
-                                                                     (print f)
-                                                                     (if (member f column-vars)
-                                                                         (strip f)
-                                                                         f)))))
+                                                    e
+                                                    :on-every-form-pre  #'nothing
+                                                    :on-macroexpanded-form #'nothing
+                                                    :on-every-atom #'strip-check)))
                  f))
            :on-every-form-pre
            (lambda (f e) (declare (ignore e)) (setf pre-form f))
@@ -385,7 +387,7 @@
                          (find f (agnostic-lizard:metaenv-variable-like-entries e) :key 'first)
                          (not (char-equal #\$ (~> f symbol-name first-elt))))
                (pushnew f column-vars))
-             f)))
+             (strip-check f))))
          (result (walk `(progn ,@body) env)))
     `(bind-row ,(mapcar #'strip column-vars)
-       ,result)))
+       ,@(rest result))))

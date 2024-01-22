@@ -348,12 +348,13 @@ And finally, there is also shorthand TRANSFORM called TF. It will bind variables
 (defparameter *table* (vellum:to-table '((1 2) (1 2) (1 3)) :columns '(a b)))
 
 (vellum:tf (*table*)
-  (vellum:distinct $a $b))
+  (vellum:group-by $a)
+  (vellum:distinct $a $b)
+  (vellum:aggregate sum (cl-ds.math:sum $b)))
 
-A  B
-====
-1  2
-1  3
+A  SUM
+======
+1  5
 #+END_SRC
 
 ** UNNEST
