@@ -352,3 +352,20 @@
                  (list ,@(iterate
                            (for index in indexes)
                            (collecting `(row-at ,!header ,!row ,index)))))))))))
+
+(defmacro br (&body body &environment env)
+  (let ((column-vars '()))
+    (agnostic-lizard:walk-form
+     `(progn ,@body)
+     env
+     :on-every-atom
+     (lambda (f e)
+       (unless
+           (or (not (symbolp f))
+               (find f (agnostic-lizard:metaenv-variable-like-entries e) :key 'first)
+               (not (char-equal #\$ (~> f symbol-name first-elt))))
+         (pushnew f column-vars))
+       f))
+    `(bind-row ,(mapcar (lambda (v) (~>> v symbol-name (drop 1) (list v)))
+                        column-vars)
+       ,@body)))

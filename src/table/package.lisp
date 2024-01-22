@@ -10,6 +10,7 @@
    #:at
    #:bind-row
    #:bind-row-closure
+   #:br
    #:brr
    #:column-at
    #:column-count
