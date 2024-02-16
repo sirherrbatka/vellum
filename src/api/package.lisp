@@ -48,6 +48,7 @@
              #:standard-header
              #:with-header)
   (:reexport #:vellum.table
+             #:tablep
              #:*current-row*
              #:*transform-in-place*
              #:aggregate

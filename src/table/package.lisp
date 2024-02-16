@@ -60,6 +60,7 @@
    #:transformation
    #:transformation-error
    #:transformation-result
+   #:tablep
    #:vmask
    #:vstack
    #:vstack*

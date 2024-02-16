@@ -724,3 +724,11 @@
                        :report "Skip this row."
                        nil))))))
       (call-next-method)))
+
+
+(defmethod tablep ((object t))
+  nil)
+
+
+(defmethod tablep ((object fundamental-table))
+  t)

@@ -51,3 +51,5 @@
 (defgeneric bind-row-closure (bind-row-object &key header aggregated-output))
 
 (defgeneric read-iterator (object))
+
+(defgeneric tablep (object))
