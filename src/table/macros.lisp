@@ -361,10 +361,22 @@
           (declare (ignore ignored))
           (if (member f column-vars) (strip f) f))
          ((:flet nothing (f e)) (declare (ignore e)) f)
+         ((:flet symbol-transformer (f e))
+          (unless (or (not (symbolp f))
+                      (find f (agnostic-lizard:metaenv-variable-like-entries e) :key 'first)
+                      (not (char-equal #\$ (~> f symbol-name first-elt))))
+            (pushnew f column-vars))
+          (strip-check f))
+         ((:flet setq-hack (f e))
+          (cond
+            ((eql (first f) 'setq)
+             `(setq ,(symbol-transformer (second f) e)
+                    ,(cddr f)))
+            (t f)))
          ((:labels walk (f e &aux (pre-form nil)))
           (agnostic-lizard:walk-form
-           f
-           e
+           f e
+           :on-special-form #'setq-hack
            :on-macroexpanded-form
            (lambda (f e)
              (if (and (listp pre-form)
@@ -379,17 +391,12 @@
                                                     e
                                                     :on-every-form-pre  #'nothing
                                                     :on-macroexpanded-form #'nothing
-                                                    :on-every-atom #'strip-check)))
+                                                    :on-every-atom #'symbol-transformer)))
                  f))
            :on-every-form-pre
-           (lambda (f e) (declare (ignore e)) (setf pre-form f))
-           :on-every-atom
-           (lambda (f e)
-             (unless (or (not (symbolp f))
-                         (find f (agnostic-lizard:metaenv-variable-like-entries e) :key 'first)
-                         (not (char-equal #\$ (~> f symbol-name first-elt))))
-               (pushnew f column-vars))
-             (strip-check f))))
+           (lambda (f e) (declare (ignore e))
+             (setf pre-form f))
+           :on-every-atom #'symbol-transformer))
          (result (walk `(progn ,@body) env)))
     `(bind-row ,(mapcar #'strip column-vars)
        ,@(rest result))))
