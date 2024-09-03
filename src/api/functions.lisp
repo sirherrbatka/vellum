@@ -492,3 +492,13 @@
   `(funcall vellum.table:*transform-control* :found
     ,@(mapcar (lambda (x) (if (symbolp x) `',x x))
               arguments)))
+
+
+(defun add-row (frame column value &rest more-column-values)
+  (let ((row-count (row-count frame)))
+    (setf (vellum:at frame row-count column) value)
+    (iterate
+      (for column in more-column-values by #'cddr)
+      (for value in (cdr more-column-values) by #'cddr)
+      (setf (vellum:at frame row-count column) value)))
+  frame)

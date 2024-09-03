@@ -31,6 +31,7 @@
    #:every-null-column-p*
    #:%aggregate-rows
    #:aggregate-columns
+   #:add-row
    #:%aggregate-columns
    #:find-row
    #:found-row
