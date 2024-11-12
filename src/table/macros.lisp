@@ -371,7 +371,7 @@
           (cond
             ((eql (first f) 'setq)
              `(setq ,(symbol-transformer (second f) e)
-                    ,(cddr f)))
+                    ,(third f)))
             (t f)))
          ((:labels walk (f e &aux (pre-form nil)))
           (agnostic-lizard:walk-form
