@@ -382,7 +382,7 @@
          (column-size (the fixnum (cl-ds.dicts.srrb:access-tree-index-bound container)))
          (root (cl-ds.dicts.srrb:access-tree container))
          (tail-mask (the fixnum (cl-ds.dicts.srrb:access-tail-mask container)))
-         (tail (the (or null simple-vector) (cl-ds.dicts.srrb:access-tail container)))
+         (tail (the (or null vector) (cl-ds.dicts.srrb:access-tail container)))
          ((:flet map-tail ())
           (declare (type function function))
           (iterate
