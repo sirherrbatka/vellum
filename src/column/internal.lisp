@@ -893,7 +893,7 @@
                           old-content
                           (make-array new-size
                                       :element-type (column-type column)))))
-    (declare (type (or simple-vector simple-bit-vector) old-content)
+    (declare (type (simple-array * (*)) old-content)
              (type fixnum old-size new-size)
              (type cl-ds.common.rrb:sparse-rrb-mask bitmask))
     (iterate
