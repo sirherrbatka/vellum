@@ -16,6 +16,7 @@
    #:pipeline
    #:file-input-row-cant-be-created
    #:drop-row-when
+   #:drop-row-unless
    #:add-columns
    #:tf
    #:order-by
