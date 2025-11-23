@@ -1,6 +1,6 @@
 (cl:in-package #:vellum.table)
 
-(prove:plan 8020)
+(prove:plan 8220)
 
 (let* ((data-frame (vellum:to-table (cl-ds.alg:on-each (cl-ds:iota-range :to 308) #'list)
                                     :columns '(column)
@@ -386,5 +386,30 @@
        (table (vellum:to-table (mapcar #'list iota)
                                :columns '(i))))
   (prove:is (vellum:pipeline (table) (cl-ds.alg:to-list :key (vellum:brr i))) iota))
+
+(iterate
+  (with table = (vellum:to-table '()
+                                 :columns '((:name a)
+                                            (:name b)
+                                            (:name c))))
+  (for i from 0 below 100)
+  (prove:is (vellum:row-count table) i)
+  (iterate
+    (for ii from 0 below 3)
+    (setf (vellum:at table i ii)
+          5)))
+
+(iterate
+  (with table = (vellum:to-table '()
+                                 :columns '((:name a)
+                                            (:name b)
+                                            (:name c))))
+  (for i from 0 below 100)
+  (for current-row = (vellum:row-count table))
+  (prove:is current-row i)
+  (iterate
+    (for ii from 0 below 3)
+    (setf (vellum:at table current-row ii)
+          5)))
 
 (prove:finalize)
