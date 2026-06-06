@@ -96,9 +96,9 @@
                        (assert (or (null old-form)
                                    (equalp old-form constructor-form)))
                        `(,aggregation-symbol ,constructor-variable
-                                             ,what
-                                             ,constructor-form
-                                             ,into)))
+                         ,what
+                         ,constructor-form
+                         ,into)))
                     ((and (listp pre-form) (eq (car pre-form) 'vellum.table:distinct))
                      (let ((symbol (gensym)))
                        (setf (gethash symbol gathered-distinct-variables) (rest pre-form))
@@ -125,8 +125,8 @@
                        (declare (ignore macro-name))
                        `(,extract-value-symbol ,(ensure (gethash into gathered-constructor-variables)
                                                   (gensym))
-                                               ,into
-                                               ,constructor-form)))
+                         ,into
+                         ,constructor-form)))
                     (t f))))))
     (list result
           gathered-constructor-variables
@@ -356,17 +356,14 @@
 (defmacro br (&body body &environment env)
   (bind ((column-vars '())
          ((:flet strip (symbol))
-          (~>> symbol symbol-name (drop 1) intern))
-         ((:flet strip-check (f &rest ignored))
-          (declare (ignore ignored))
-          (if (member f column-vars) (strip f) f))
+          (list symbol (~>> symbol symbol-name (drop 1) intern)))
          ((:flet nothing (f e)) (declare (ignore e)) f)
          ((:flet symbol-transformer (f e))
           (unless (or (not (symbolp f))
                       (find f (agnostic-lizard:metaenv-variable-like-entries e) :key 'first)
                       (not (char-equal #\$ (~> f symbol-name first-elt))))
             (pushnew f column-vars))
-          (strip-check f))
+          f)
          ((:flet setq-hack (f e))
           (cond
             ((eql (first f) 'setq)
