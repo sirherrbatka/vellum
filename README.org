@@ -499,9 +499,9 @@ Selecting a subset of the columns is equally important to add new columns. To do
 (defparameter *just-second-and-third* (vellum:select *table*
                                         :columns '(second-column third-column)))
 (defparameter *just-second-and-third* (vellum:select *table*
-                                        :columns (vellum:s (vellum:from :from 'second-column)))
+                                        :columns (vellum:s (vellum:between :from 'second-column)))
 (defparameter *just-second-and-third* (vellum:select *table*
-                                        :columns (vellum:s (vellum:from :from 1))))
+                                        :columns (vellum:s (vellum:between :from 1))))
 #+END_SRC
 
 All four ways to select second and third columns are equally valid. Selecting by range is probably not all that useful in the context of columns, however, the exact same syntax is used for :ROWS where it really it is in it's element.
